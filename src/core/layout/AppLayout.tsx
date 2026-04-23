@@ -53,7 +53,9 @@ export default function AppLayout() {
   const isActive = (path: string) => currentPath.includes(path);
 
   return (
-    <div className="h-screen flex bg-surface-soft overflow-hidden w-full">
+    <div className="h-full min-h-screen md:h-screen flex bg-surface-soft overflow-hidden w-full max-w-[100vw]">
+
+
 
       {/* ─── Sidebar (Desktop) ─── */}
       <aside className="hidden md:flex flex-col w-[260px] bg-white border-r border-surface-border shrink-0 z-10">
