@@ -18,7 +18,7 @@ interface ApprovalRequest {
   type: 'credit_limit' | 'order_approval';
 }
 
-export default function ApprovalsPage() {
+export default function GerenteApprovalsPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
@@ -34,26 +34,17 @@ export default function ApprovalsPage() {
           amount: 15000, 
           reason: 'Exceso de Límite de Crédito', 
           date: '2026-04-22',
-          details: 'El cliente solicita un pedido de fertilizantes que supera su límite actual de $10,000 por $5,000 adicionales.',
+          details: 'El cliente solicita un pedido de fertilizantes que supera su límite actual de $10,000 por $5,000 adicionales. Cuenta con buen historial crediticio previo.',
           type: 'credit_limit'
-        },
-        { 
-          id: '2', 
-          customer: 'Ferretería Central', 
-          amount: 8400, 
-          reason: 'Margen de Utilidad Bajo', 
-          date: '2026-04-21',
-          details: 'Pedido con descuento especial aplicado por el vendedor que reduce el margen operativo por debajo del 12%.',
-          type: 'order_approval'
         },
         { 
           id: '3', 
           customer: 'Agropecuaria El Sol', 
-          amount: 12200, 
-          reason: 'Cliente Nuevo - Primer Pedido', 
+          amount: 45200, 
+          reason: 'Cliente Nuevo - Crédito Inicial', 
           date: '2026-04-22',
-          details: 'Validación de primer pedido para cliente recientemente dado de alta en Dynamics 365.',
-          type: 'order_approval'
+          details: 'Validación de límite de crédito inicial de $45,200 para cliente recientemente dado de alta. Requiere firma gerencial por monto.',
+          type: 'credit_limit'
         },
       ]);
       setLoading(false);
@@ -82,8 +73,8 @@ export default function ApprovalsPage() {
           <ArrowLeft size={24} />
         </button>
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Aprobaciones</h1>
-          <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Pendientes de revisión</p>
+          <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Aprobaciones Gerenciales</h1>
+          <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Gerente Comercial</p>
         </div>
       </header>
 

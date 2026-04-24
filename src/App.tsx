@@ -11,7 +11,7 @@ import AccountCliente from './features/facturacion/pages/AccountCliente';
 import FacturasCliente from './features/facturacion/pages/FacturasCliente';
 import FacturaDetailCliente from './features/facturacion/pages/FacturaDetailCliente';
 import PedidosCliente from './features/pedidos/pages/PedidosCliente';
-import SettingsCliente from './features/config/pages/SettingsCliente';
+
 import DashboardVendedor from './features/dashboards/pages/DashboardVendedor';
 import DashboardSupervisor from './features/dashboards/pages/DashboardSupervisor';
 import DashboardGerente from './features/dashboards/pages/DashboardGerente';
@@ -20,7 +20,8 @@ import PedidosVendedorPage from './features/dashboards/pages/PedidosVendedorPage
 import CatalogoPage from './features/catalogo/pages/CatalogoPage';
 import NuevoPedidoPage from './features/pedidos/pages/NuevoPedidoPage';
 
-import ApprovalsPage from './features/dashboards/pages/ApprovalsPage';
+import SupervisorApprovalsPage from './features/dashboards/pages/SupervisorApprovalsPage';
+import GerenteApprovalsPage from './features/dashboards/pages/GerenteApprovalsPage';
 import SupervisorEquipoPage from './features/dashboards/pages/SupervisorEquipoPage';
 import SupervisorMetasPage from './features/dashboards/pages/SupervisorMetasPage';
 import DirectorAnalyticsPage from './features/dashboards/pages/DirectorAnalyticsPage';
@@ -52,11 +53,11 @@ function App() {
             {/* ─── Cliente ─── */}
             <Route element={<ProtectedRoute allowedRoles={['cliente']} />}>
               <Route path="cliente/home" element={<HomeCliente />} />
-              <Route path="cliente/cuenta" element={<AccountCliente />} />
+              <Route path="cliente/cartera" element={<AccountCliente />} />
               <Route path="cliente/facturas" element={<FacturasCliente />} />
               <Route path="cliente/facturas/:id" element={<FacturaDetailCliente />} />
               <Route path="cliente/pedidos" element={<PedidosCliente />} />
-              <Route path="cliente/config" element={<SettingsCliente />} />
+
             </Route>
 
             {/* ─── Vendedor ─── */}
@@ -68,7 +69,9 @@ function App() {
 
               <Route path="pedidos" element={<PedidosVendedorPage />} />
               <Route path="pedidos/:id" element={<PedidoDetailVendedorPage />} />
+              <Route path="pedidos/:id/editar" element={<NuevoPedidoPage />} />
               <Route path="pedidos/nuevo" element={<NuevoPedidoPage />} />
+
 
             </Route>
 
@@ -77,13 +80,14 @@ function App() {
               <Route path="supervisor/home" element={<DashboardSupervisor />} />
               <Route path="supervisor/equipo" element={<SupervisorEquipoPage />} />
               <Route path="supervisor/metas" element={<SupervisorMetasPage />} />
+              <Route path="supervisor/aprobaciones" element={<SupervisorApprovalsPage />} />
             </Route>
 
 
             {/* ─── Gerente ─── */}
             <Route element={<ProtectedRoute allowedRoles={['gerente']} />}>
               <Route path="gerente/home" element={<DashboardGerente />} />
-              <Route path="gerente/aprobaciones" element={<ApprovalsPage />} />
+              <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
             </Route>
 
 

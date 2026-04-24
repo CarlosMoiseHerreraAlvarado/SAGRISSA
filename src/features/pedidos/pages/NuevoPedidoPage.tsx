@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Search, User, Package, ChevronRight, CheckCircle2, ShoppingCart, Calendar, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { customerService } from '../../facturacion/services/customer.service';
 import { catalogService } from '../../catalogo/services/catalog.service';
 import { orderService } from '../services/order.service';
 import type { CustomerAccount, Product, OrderItem } from '../../../types';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { getGeoLocation } from '../../../core/utils/geolocation';
 
 type Step = 'cliente' | 'productos' | 'entrega' | 'success';
 
 export default function NuevoPedidoPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('cliente');
-  const [loading, setLoading] = useState(false);
+  const { id } = useParams();
+  const isEditing = !!id;
+  const [step, setStep] = useState<Step>(isEditing ? 'productos' : 'cliente');
+  const [loading, setLoading] = useState(isEditing);
   
   // State for Selection
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerAccount | null>(null);
@@ -30,20 +33,65 @@ export default function NuevoPedidoPage() {
 
   // Initial Data Fetch
   useEffect(() => {
-    if (step === 'cliente') {
+    let mounted = true;
+    if (isEditing) {
       setLoading(true);
-      customerService.getCustomersList().then(data => {
-        setCustomers(data);
+      Promise.all([
+        customerService.getCustomersList(),
+        catalogService.getProducts(),
+        orderService.getOrderById(id!)
+      ]).then(([customersData, productsData, orderData]) => {
+        if (!mounted) return;
+        setCustomers(customersData);
+        setProducts(productsData);
+
+        const cust = customersData.find(c => c.customerId === orderData.customerId);
+        if (cust) setSelectedCustomer(cust);
+
+        const cartItems = orderData.items.map(item => {
+          const prod = productsData.find(p => p.id === item.productId) || {
+            id: item.productId,
+            sku: 'SKU-000',
+            name: item.productName,
+            price: item.unitPrice,
+            family: 'N/A'
+          } as Product;
+          return { product: prod, quantity: item.quantity };
+        });
+        setCart(cartItems);
+
+        setDeliveryData({
+          date: orderData.deliveryDate ? orderData.deliveryDate.split('T')[0] : '',
+          address: orderData.deliveryAddress || '',
+          notes: orderData.observations || ''
+        });
+
         setLoading(false);
+      }).catch(e => {
+        console.error(e);
+        if (mounted) setLoading(false);
       });
-    } else if (step === 'productos') {
-      setLoading(true);
-      catalogService.getProducts().then(data => {
-        setProducts(data);
-        setLoading(false);
-      });
+    } else {
+      if (step === 'cliente' && customers.length === 0) {
+        setLoading(true);
+        customerService.getCustomersList().then(data => {
+          if (mounted) {
+            setCustomers(data);
+            setLoading(false);
+          }
+        });
+      } else if (step === 'productos' && products.length === 0) {
+        setLoading(true);
+        catalogService.getProducts().then(data => {
+          if (mounted) {
+            setProducts(data);
+            setLoading(false);
+          }
+        });
+      }
     }
-  }, [step]);
+    return () => { mounted = false; };
+  }, [id, step, isEditing]);
 
   // ─── Step Actions ────────────────────────────────────────────────────────
 
@@ -59,16 +107,36 @@ export default function NuevoPedidoPage() {
       totalPrice: item.product.price * item.quantity
     }));
 
+    // Capturar Geolocalización (Paso extra de seguridad/auditoría)
+    let coords = { latitude: undefined as number | undefined, longitude: undefined as number | undefined };
     try {
-      await orderService.createOrder({
+      const geo = await getGeoLocation();
+      coords.latitude = geo.latitude;
+      coords.longitude = geo.longitude;
+      console.log('[Geo] Ubicación capturada:', coords);
+    } catch (err) {
+      console.warn('[Geo] No se pudo capturar la ubicación:', err);
+      // No bloqueamos el pedido si falla el GPS, pero queda registrado el fallo en consola
+    }
+
+    try {
+      const payload = {
         customerId: selectedCustomer.customerId,
         customerName: selectedCustomer.name,
         items,
         totalAmount: items.reduce((sum, i) => sum + i.totalPrice, 0),
         deliveryDate: deliveryData.date,
         deliveryAddress: deliveryData.address,
-        observations: deliveryData.notes
-      });
+        observations: deliveryData.notes,
+        latitude: coords.latitude,
+        longitude: coords.longitude
+      };
+
+      if (isEditing) {
+        await orderService.updateOrder(id!, payload);
+      } else {
+        await orderService.createOrder(payload);
+      }
       setStep('success');
     } catch (e) {
       console.error(e);
@@ -261,9 +329,18 @@ export default function NuevoPedidoPage() {
                   value={deliveryData.notes}
                   onChange={e => setDeliveryData({...deliveryData, notes: e.target.value})}
                 />
-             </div>
-          </div>
-       </div>
+              </div>
+           </div>
+
+           <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                 <MapPin size={16} />
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 leading-tight uppercase tracking-widest">
+                 La ubicación GPS será capturada automáticamente al finalizar para validar la visita.
+              </p>
+           </div>
+        </div>
 
        <button 
          onClick={handleCreateOrder}
@@ -271,7 +348,7 @@ export default function NuevoPedidoPage() {
          className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg transition-all
            ${loading || !deliveryData.date || !deliveryData.address ? 'bg-slate-200 text-slate-400' : 'bg-[#00A9F4] text-white hover:bg-brand-dark active:scale-95'}`}
        >
-         {loading ? 'Procesando...' : 'Finalizar Pedido'}
+         {loading ? 'Procesando...' : isEditing ? 'Guardar Cambios' : 'Finalizar Pedido'}
        </button>
     </div>
   );
@@ -281,9 +358,9 @@ export default function NuevoPedidoPage() {
        <div className="w-24 h-24 bg-emerald-50 rounded-[40px] flex items-center justify-center text-emerald-500 mb-8 border border-emerald-100 shadow-inner">
           <CheckCircle2 size={48} strokeWidth={2.5} />
        </div>
-       <h2 className="text-2xl font-black text-slate-800 mb-2">¡Pedido Realizado!</h2>
+       <h2 className="text-2xl font-black text-slate-800 mb-2">{isEditing ? '¡Pedido Actualizado!' : '¡Pedido Realizado!'}</h2>
        <p className="text-sm font-medium text-slate-400 mb-10 leading-relaxed px-4">
-         El pedido ha sido enviado exitosamente al sistema central para su validación y procesamiento.
+         {isEditing ? 'Los cambios en el pedido se han guardado exitosamente.' : 'El pedido ha sido enviado exitosamente al sistema central para su validación y procesamiento.'}
        </p>
        <button 
          onClick={() => navigate('/app/vendedor/home')}
@@ -317,7 +394,7 @@ export default function NuevoPedidoPage() {
                  <ArrowLeft size={24} />
                </button>
              )}
-             <h2 className="font-black text-xl md:text-2xl text-slate-800 tracking-tight uppercase tracking-widest leading-none">Registrar Pedido</h2>
+             <h2 className="font-black text-xl md:text-2xl text-slate-800 tracking-tight uppercase tracking-widest leading-none">{isEditing ? 'Editar Pedido' : 'Registrar Pedido'}</h2>
            </div>
         </div>
 

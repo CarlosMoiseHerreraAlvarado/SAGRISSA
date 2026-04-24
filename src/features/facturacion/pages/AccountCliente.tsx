@@ -1,28 +1,75 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, Download, Mail, Loader2 } from 'lucide-react';
 import { StatCard } from '../../../core/ui/StatCard';
 import { AgingCard } from '../../../core/ui/AgingCard';
 import { Skeleton } from '../../../core/ui/Skeleton';
 import { useAuth } from '../../../core/hooks/useAuth';
+import { accountService } from '../services/account.service';
 
-const AGING_DATA = [
-  { range: '0 a 30 días', amount: 350000 },
-  { range: '31 a 60 días', amount: 130000 },
-  { range: '61 a 90 días', amount: 80000 },
-  { range: '91 a 120 días', amount: 20000 },
-  { range: 'Más de 120 días', amount: 0.01 },
-];
+interface AccountData {
+  totalDebt: number;
+  availableCredit: number;
+  pendingInvoices: number;
+  openOrders: number;
+  daysToPay: number;
+  creditTerm: number;
+  lastPayment: number;
+  lastPaymentDate: string;
+  creditLine: number;
+  aging: { range: string; amount: number }[];
+}
+
+const MOCK_ACCOUNT_DATA: AccountData = {
+  totalDebt: 580000,
+  availableCredit: 420000,
+  pendingInvoices: 3,
+  openOrders: 2,
+  daysToPay: 24,
+  creditTerm: 30,
+  lastPayment: 2971.02,
+  lastPaymentDate: '2022-05-16',
+  creditLine: 1000000,
+  aging: [
+    { range: '0 a 30 días', amount: 350000 },
+    { range: '31 a 60 días', amount: 130000 },
+    { range: '61 a 90 días', amount: 80000 },
+    { range: '91 a 120 días', amount: 20000 },
+    { range: 'Más de 120 días', amount: 0.01 },
+  ],
+};
 
 export default function AccountCliente() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [accountData, setAccountData] = useState<AccountData>(MOCK_ACCOUNT_DATA);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    let mounted = true;
+    setTimeout(() => {
+      if (mounted) {
+        setAccountData(MOCK_ACCOUNT_DATA);
+        setLoading(false);
+      }
+    }, 800);
+    return () => { mounted = false; };
   }, []);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    await accountService.downloadStatement(user?.name || 'Cliente');
+    setIsDownloading(false);
+  };
+
+  const handleEmail = async () => {
+    setIsSending(true);
+    await accountService.sendByEmail(user?.email || 'cliente@sagrissa.com');
+    setIsSending(false);
+    alert('El estado de cuenta ha sido enviado a su correo electrónico.');
+  };
 
   return (
     <div className="w-full min-h-screen flex justify-center bg-white md:bg-transparent pb-20 md:pb-0">
@@ -41,7 +88,7 @@ export default function AccountCliente() {
             >
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Mi Cuenta</h1>
+            <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Estado de Cuenta</h1>
           </div>
 
           <div className="flex justify-between items-center z-10">
@@ -58,7 +105,7 @@ export default function AccountCliente() {
               {loading ? (
                 <Skeleton width={120} height={28} />
               ) : (
-                <p className="text-2xl font-black text-brand-blue tracking-tighter">$580,000.00</p>
+                <p className="text-2xl font-black text-brand-blue tracking-tighter">${accountData.totalDebt.toLocaleString()}.00</p>
               )}
             </div>
           </div>
@@ -71,18 +118,18 @@ export default function AccountCliente() {
             {/* Antigüedad de Saldo & Extras */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
               <div className="flex flex-col gap-6">
-                <AgingCard items={AGING_DATA} loading={loading} />
+                <AgingCard items={accountData.aging} loading={loading} />
 
                 {/* Info Grid */}
                 <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {[
-                      { label: 'Días Pago', value: '24 días' },
-                      { label: 'Término Crédito', value: '30 días' },
-                      { label: 'Último Pago', value: '$2,971.02' },
-                      { label: 'Fecha Últ. Pago', value: '16/05/2022' },
-                      { label: 'Línea Crédito', value: '$1,000,000' },
-                      { label: 'Crédito Disponible', value: '$420,000' },
+                      { label: 'Días Pago', value: `${accountData.daysToPay} días` },
+                      { label: 'Término Crédito', value: `${accountData.creditTerm} días` },
+                      { label: 'Último Pago', value: `$${accountData.lastPayment.toLocaleString()}` },
+                      { label: 'Fecha Últ. Pago', value: accountData.lastPaymentDate },
+                      { label: 'Línea Crédito', value: `$${accountData.creditLine.toLocaleString()}` },
+                      { label: 'Crédito Disponible', value: `$${accountData.availableCredit.toLocaleString()}` },
                     ].map((item, idx) => (
                       <div key={idx} className="flex flex-col gap-1 items-start justify-center">
                         <span className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">
@@ -101,17 +148,36 @@ export default function AccountCliente() {
 
               <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-2 gap-3">
-                  <StatCard title="Facturas Pendientes" value="3" variant="default" />
-                  <StatCard title="Pedidos Abiertos" value="2" variant="default" />
+                  <StatCard title="Facturas Pendientes" value={accountData.pendingInvoices.toString()} variant="default" />
+                  <StatCard title="Pedidos Abiertos" value={accountData.openOrders.toString()} variant="default" />
                 </div>
-                {/* Boton Ver Documentos */}
-                <button
-                  className="w-full bg-brand-blue text-white font-black py-4 rounded-2xl shadow-lg hover:bg-brand-dark transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-auto"
-                  onClick={() => navigate('/app/cliente/facturas')}
-                >
-                  <FileText size={20} />
-                  VER DETALLE
-                </button>
+                {/* Boton Acciones */}
+                <div className="flex flex-col gap-3 mt-auto">
+                   <button
+                     className="w-full bg-brand-blue text-white font-black py-4 rounded-2xl shadow-lg hover:bg-brand-dark transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                     onClick={handleDownload}
+                     disabled={isDownloading}
+                   >
+                     {isDownloading ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
+                     DESCARGAR PDF
+                   </button>
+                   
+                   <button
+                     className="w-full bg-white border border-slate-200 text-slate-600 font-black py-4 rounded-2xl hover:bg-slate-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                     onClick={handleEmail}
+                     disabled={isSending}
+                   >
+                     {isSending ? <Loader2 className="animate-spin" size={20} /> : <Mail size={20} />}
+                     ENVIAR POR EMAIL
+                   </button>
+
+                   <button
+                     className="w-full bg-slate-50 text-slate-400 font-black py-3 rounded-xl text-[11px] uppercase tracking-widest hover:text-brand-blue transition-all"
+                     onClick={() => navigate('/app/cliente/facturas')}
+                   >
+                     VER DETALLE DE FACTURAS
+                   </button>
+                </div>
               </div>
             </div>
 

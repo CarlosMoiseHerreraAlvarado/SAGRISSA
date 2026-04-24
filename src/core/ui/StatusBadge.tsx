@@ -1,6 +1,6 @@
 
 
-type InvoiceStatus = 'pending' | 'paid' | 'partial' | 'cancelled' | 'draft' | 'approved' | 'rejected';
+type InvoiceStatus = 'pending' | 'paid' | 'partial' | 'cancelled' | 'draft' | 'approved' | 'rejected' | 'overdue';
 type OrderStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'fulfilled';
 
 type Status = InvoiceStatus | OrderStatus;
@@ -67,6 +67,12 @@ const statusConfig: Record<Status, { bg: string; text: string; dot: string; defa
     text: 'text-blue-600',
     dot: 'bg-blue-500',
     defaultLabel: 'Completado',
+  },
+  overdue: {
+    bg: 'bg-red-50',
+    text: 'text-red-600',
+    dot: 'bg-red-500',
+    defaultLabel: 'Vencido',
   },
 };
 

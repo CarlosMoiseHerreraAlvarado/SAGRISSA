@@ -52,6 +52,8 @@ export interface Order {
   status: OrderStatus;
   items: OrderItem[];
   totalAmount: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 // ------------------

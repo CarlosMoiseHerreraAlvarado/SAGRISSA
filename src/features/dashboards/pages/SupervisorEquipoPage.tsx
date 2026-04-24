@@ -61,6 +61,26 @@ export default function SupervisorEquipoPage() {
       </header>
 
       <div className="flex flex-col gap-6 px-6 md:px-0 z-10 relative pb-24">
+        
+        {/* Team Summary KPIs */}
+        {!loading && (
+          <div className="grid grid-cols-2 gap-4">
+             <div className="bg-slate-900 rounded-[32px] p-6 text-white shadow-xl relative overflow-hidden">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Ventas Totales</p>
+                <p className="text-2xl font-black tracking-tight">${team.reduce((acc, m) => acc + m.monthlySales, 0).toLocaleString()}</p>
+                <div className="absolute -right-4 -bottom-4 opacity-10">
+                   <TrendingUp size={80} />
+                </div>
+             </div>
+             <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Prom. Rendimiento</p>
+                <p className="text-2xl font-black text-slate-800 tracking-tight">
+                   {Math.round(team.reduce((acc, m) => acc + m.performance, 0) / team.length)}%
+                </p>
+             </div>
+          </div>
+        )}
+
         {loading ? (
           Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-[32px]" />)
         ) : (
@@ -86,24 +106,24 @@ export default function SupervisorEquipoPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-50/50 rounded-2xl p-3 border border-slate-100/50">
+                  <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50">
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ventas Mes</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-[14px] font-black text-slate-800">${member.monthlySales.toLocaleString()}</span>
+                      <span className="text-[16px] font-black text-slate-800">${member.monthlySales.toLocaleString()}</span>
                       {member.performance >= 80 ? (
-                        <TrendingUp size={14} className="text-emerald-500" />
+                        <TrendingUp size={16} className="text-emerald-500" />
                       ) : (
-                        <TrendingDown size={14} className="text-amber-500" />
+                        <TrendingDown size={16} className="text-amber-500" />
                       )}
                     </div>
                   </div>
-                  <div className="bg-slate-50/50 rounded-2xl p-3 border border-slate-100/50">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Rendimiento</p>
+                  <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Cumplimiento Meta</p>
                     <div className="flex items-center gap-2">
-                       <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${member.performance >= 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${member.performance}%` }} />
+                       <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full transition-all duration-1000 ${member.performance >= 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${member.performance}%` }} />
                        </div>
-                       <span className="text-[12px] font-black text-slate-700">{member.performance}%</span>
+                       <span className="text-[13px] font-black text-slate-800">{member.performance}%</span>
                     </div>
                   </div>
                 </div>

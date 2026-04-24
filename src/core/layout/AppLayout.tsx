@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, DollarSign, FileText, Package, ClipboardList, Settings, LogOut, Users, BarChart3 } from 'lucide-react';
+import { Home, DollarSign, FileText, Package, ClipboardList, Settings, LogOut, Users, BarChart3, WifiOff, CloudSync, RefreshCcw } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useOfflineSync } from '../hooks/useOfflineSync';
 import type { Role } from '../../types';
 
 interface NavItem {
@@ -12,9 +14,9 @@ interface NavItem {
 const NAV_CONFIG: Record<Role, NavItem[]> = {
   cliente: [
     { label: 'Inicio', path: '/app/cliente/home', Icon: Home },
-    { label: 'Cuenta', path: '/app/cliente/cuenta', Icon: DollarSign },
+    { label: 'Cartera', path: '/app/cliente/cartera', Icon: DollarSign },
     { label: 'Facturas', path: '/app/cliente/facturas', Icon: FileText },
-    { label: 'Ajustes', path: '/app/cliente/config', Icon: Settings },
+    { label: 'Ajustes', path: '/app/config', Icon: Settings },
   ],
   vendedor: [
     { label: 'Inicio', path: '/app/vendedor/home', Icon: Home },
@@ -26,6 +28,7 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
     { label: 'Inicio', path: '/app/supervisor/home', Icon: Home },
     { label: 'Equipo', path: '/app/supervisor/equipo', Icon: Users },
     { label: 'Metas', path: '/app/supervisor/metas', Icon: BarChart3 },
+    { label: 'Aprobaciones', path: '/app/supervisor/aprobaciones', Icon: DollarSign },
     { label: 'Ajustes', path: '/app/config', Icon: Settings },
   ],
   gerente: [
@@ -46,6 +49,30 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  // Activar sincronización en segundo plano (Modo Offline Real)
+  useOfflineSync();
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    const updateStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener('online', updateStatus);
+    window.addEventListener('offline', updateStatus);
+    return () => {
+      window.removeEventListener('online', updateStatus);
+      window.removeEventListener('offline', updateStatus);
+    };
+  }, []);
+
+  const handleManualSync = async () => {
+    if (!isOnline) return;
+    setIsSyncing(true);
+    // Simulación de forzar sincronización
+    await new Promise(r => setTimeout(r, 2000));
+    setIsSyncing(false);
+  };
 
   const navItems = user ? NAV_CONFIG[user.role] : [];
   const currentPath = location.pathname;
@@ -91,6 +118,27 @@ export default function AppLayout() {
           ))}
         </nav>
 
+        {/* Connectivity Status (PWA Integration) */}
+        <div className="px-6 py-4 mx-4 mb-4 bg-slate-50 rounded-2xl border border-slate-100">
+           <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    {isOnline ? 'En Línea' : 'Modo Local'}
+                 </span>
+              </div>
+              <CloudSync size={14} className={isSyncing ? 'text-brand-blue animate-spin' : 'text-slate-300'} />
+           </div>
+           <button 
+             onClick={handleManualSync}
+             disabled={!isOnline || isSyncing}
+             className="w-full flex items-center justify-center gap-2 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue hover:border-brand-blue/30 disabled:opacity-30 transition-all"
+           >
+              <RefreshCcw size={10} />
+              Sincronizar ahora
+           </button>
+        </div>
+
         {/* Profile Footer */}
         <div className="px-6 py-6 border-t border-surface-border bg-surface-soft/50">
           <div className="flex items-center justify-between">
@@ -114,6 +162,15 @@ export default function AppLayout() {
 
       {/* ─── Main Content Area ─── */}
       <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative">
+        
+        {/* Banner de Modo Offline */}
+        {!isOnline && (
+          <div className="bg-amber-500 text-white px-6 py-2 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300 z-50">
+            <WifiOff size={16} />
+            <span className="text-[11px] font-black uppercase tracking-widest">Modo Offline Activo · Trabajando con datos locales</span>
+          </div>
+        )}
+
         <main className="flex-1 overflow-y-auto pb-[90px] md:pb-0 w-full relative z-0">
           <Outlet />
         </main>

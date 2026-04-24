@@ -6,28 +6,53 @@ import { ListCard, ListCardHeader, ListCardFooter } from '../../../core/ui/ListC
 import { StatusBadge } from '../../../core/ui/StatusBadge';
 import { SkeletonListItem } from '../../../core/ui/Skeleton';
 import { EmptyState } from '../../../core/ui/EmptyState';
+import { useOfflineSync } from '../../../core/hooks/useOfflineSync';
+import { orderService } from '../../pedidos/services/order.service';
+import type { Order } from '../../../types';
 
 const MOCK_PEDIDOS_VENDEDOR = [
-  { id: '1', number: 'ORD-99020', client: 'Luis Armando S.', date: 'Hoy, 10:30 AM', total: 45800, status: 'draft' as const, items: 12 },
-  { id: '2', number: 'ORD-99018', client: 'Andrea Montoya', date: 'Ayer, 4:15 PM', total: 32400, status: 'fulfilled' as const, items: 8 },
-  { id: '3', number: 'ORD-99015', client: 'Ferretería Central', date: '12 May, 2022', total: 67200, status: 'fulfilled' as const, items: 15 },
-  { id: '4', number: 'ORD-99010', client: 'Agropecuaria El Sol', date: '10 May, 2022', total: 21500, status: 'fulfilled' as const, items: 6 },
-];
+  { id: '1', orderNumber: 'ORD-99020', customerName: 'Luis Armando S.', dateCreated: '2026-04-23T10:30:00Z', totalAmount: 45800, status: 'draft', customerId: 'c1', deliveryDate: '2026-04-30', deliveryAddress: 'Santa Tecla', observations: '', items: [] },
+  { id: '2', orderNumber: 'ORD-99018', customerName: 'Andrea Montoya', dateCreated: '2026-04-22T16:15:00Z', totalAmount: 32400, status: 'fulfilled', customerId: 'c2', deliveryDate: '2026-04-25', deliveryAddress: 'San Salvador', observations: '', items: [] },
+  { id: '3', orderNumber: 'ORD-99015', customerName: 'Ferretería Central', dateCreated: '2026-04-12T09:00:00Z', totalAmount: 67200, status: 'fulfilled', customerId: 'c3', deliveryDate: '2026-04-15', deliveryAddress: 'Santa Tecla', observations: '', items: [] },
+  { id: '4', orderNumber: 'ORD-99010', customerName: 'Agropecuaria El Sol', dateCreated: '2026-04-10T14:20:00Z', totalAmount: 21500, status: 'fulfilled', customerId: 'c4', deliveryDate: '2026-04-12', deliveryAddress: 'Ahuachapán', observations: '', items: [] },
+] as Order[];
 
 export default function PedidosVendedorPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  
+  useOfflineSync();
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    let mounted = true;
+    orderService.getMyOrders().then(data => {
+      if (mounted) {
+        setOrders(data.length > 0 ? data : MOCK_PEDIDOS_VENDEDOR);
+        setLoading(false);
+      }
+    }).catch(() => {
+      setOrders(MOCK_PEDIDOS_VENDEDOR);
+      setLoading(false);
+    });
+    return () => { mounted = false; };
   }, []);
 
-  const filteredOrders = MOCK_PEDIDOS_VENDEDOR.filter(order =>
-    order.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.client.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredOrders = orders.filter(order =>
+    order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.customerName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHrs = diffMs / (1000 * 60 * 60);
+    if (diffHrs < 24) return `Hoy, ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    if (diffHrs < 48) return 'Ayer';
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
 
   return (
     <MobilePage>
@@ -85,23 +110,23 @@ export default function PedidosVendedorPage() {
               <ListCard key={order.id} onClick={() => navigate(`/app/pedidos/${order.id}`)}>
 
                 <ListCardHeader 
-                  title={order.client}
-                  subtitle={order.number}
+                  title={order.customerName}
+                  subtitle={order.orderNumber}
                   badge={<StatusBadge status={order.status} size="sm" />}
                 />
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Fecha</span>
-                    <span className="text-[13px] font-bold text-slate-700">{order.date}</span>
+                    <span className="text-[13px] font-bold text-slate-700">{formatDate(order.dateCreated)}</span>
                   </div>
                   <div className="text-right flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Productos</span>
-                    <span className="text-[13px] font-black text-brand-blue">{order.items} uni.</span>
+                    <span className="text-[13px] font-black text-brand-blue">{order.items?.length || 0} uni.</span>
                   </div>
                 </div>
                 <ListCardFooter 
                   label="Total Bruto"
-                  value={`$${order.total.toLocaleString()}`}
+                  value={`$${order.totalAmount.toLocaleString()}`}
                   variant={order.status === 'draft' ? 'highlight' : 'default'}
                 />
               </ListCard>

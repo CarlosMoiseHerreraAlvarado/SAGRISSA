@@ -23,6 +23,8 @@ export default function PedidoDetailVendedorPage() {
     status: 'draft',
     address: 'Finca Las Marías, Santa Tecla',
     total: 45800.00,
+    latitude: 13.6894,
+    longitude: -89.1872,
     items: [
       { id: '1', name: 'Biomin Booster 11', qty: 10, price: 4000.00, subtotal: 40000.00 },
       { id: '2', name: 'Urea 46% Granulada', qty: 163, price: 35.50, subtotal: 5800.00 },
@@ -111,9 +113,33 @@ export default function PedidoDetailVendedorPage() {
 
             {/* Action Bottom */}
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-lg border-t border-slate-100 md:relative md:bg-transparent md:border-none md:p-0">
-               <button className="w-full py-5 bg-brand-blue text-white rounded-[32px] font-black text-[13px] uppercase tracking-widest shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2 active:scale-95 transition-all">
-                  Continuar Edición <ChevronRight size={18} />
-               </button>
+               <div className="flex gap-3">
+                 <button className="flex-1 py-5 bg-white border border-red-100 text-red-500 rounded-[32px] font-black text-[13px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all">
+                    Eliminar
+                 </button>
+                 <button onClick={() => navigate(`/app/pedidos/${_id}/editar`)} className="flex-[2] py-5 bg-brand-blue text-white rounded-[32px] font-black text-[13px] uppercase tracking-widest shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2 active:scale-95 transition-all">
+                    Editar Pedido <ChevronRight size={18} />
+                 </button>
+               </div>
+            </div>
+            {/* Geolocation Audit Integration */}
+            <div className="bg-slate-50 border border-slate-100 rounded-[40px] p-8 flex flex-col gap-4">
+               <div className="flex items-center gap-2">
+                  <MapPin size={16} className="text-brand-blue" />
+                  <span className="text-[11px] font-black text-brand-blue uppercase tracking-widest">Auditoría de Ubicación</span>
+               </div>
+               <div className="flex items-center justify-between">
+                  <div>
+                     <p className="text-[10px] font-bold text-slate-400 uppercase">Coordenadas Capturadas</p>
+                     <p className="text-[13px] font-black text-slate-700">{order.latitude}, {order.longitude}</p>
+                  </div>
+                  <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue transition-all">
+                     Ver en Mapa
+                  </button>
+               </div>
+               <p className="text-[10px] font-medium text-slate-400 leading-tight">
+                  Ubicación verificada vía GPS PWA al momento de la firma del pedido.
+               </p>
             </div>
           </>
         )}

@@ -31,5 +31,40 @@ export const orderService = {
     // return await fetchApi<Order[]>('/orders/me');
     await new Promise(r => setTimeout(r, 600));
     return [];
+  },
+
+  getOrderById: async (id: string): Promise<Order> => {
+    // return await fetchApi<Order>(`/orders/${id}`);
+    await new Promise(r => setTimeout(r, 800));
+    // Mocking an existing order
+    return {
+      id,
+      orderNumber: 'ORD-99020',
+      status: 'draft',
+      customerId: 'CUST-001',
+      customerName: 'Luis Armando S.',
+      totalAmount: 45800.00,
+      deliveryDate: '2026-04-30',
+      deliveryAddress: 'Finca Las Marías, Santa Tecla',
+      observations: 'Entregar en la mañana.',
+      dateCreated: '2026-04-22T10:30:00Z',
+      items: [
+        { productId: 'p1', productName: 'Biomin Booster 11', quantity: 10, unitPrice: 4000.00, totalPrice: 40000.00 },
+        { productId: 'p2', productName: 'Urea 46% Granulada', quantity: 163, unitPrice: 35.50, totalPrice: 5800.00 },
+      ]
+    } as Order;
+  },
+
+  updateOrder: async (id: string, orderPayload: Partial<Order>): Promise<Order> => {
+    // return await fetchApi<Order>(`/orders/${id}`, {
+    //   method: 'PUT',
+    //   body: JSON.stringify(orderPayload)
+    // });
+    await new Promise(r => setTimeout(r, 1200));
+    return {
+      ...orderPayload,
+      id,
+      status: 'draft'
+    } as Order;
   }
 };

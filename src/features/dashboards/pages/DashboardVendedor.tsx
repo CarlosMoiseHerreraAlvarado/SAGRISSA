@@ -1,18 +1,35 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PackageSearch, Users, Landmark, FileText, Activity } from 'lucide-react';
+import { PackageSearch, Users, Landmark, FileText, Activity, MapPin, Loader2 } from 'lucide-react';
 import { useAuth } from '../../../core/hooks/useAuth';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { getGeoLocation } from '../../../core/utils/geolocation';
 
 export default function DashboardVendedor() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleGetLocation = async () => {
+    setGeoLoading(true);
+    setGeoError(null);
+    try {
+      const pos = await getGeoLocation();
+      setLocation({ lat: pos.latitude, lng: pos.longitude });
+    } catch (err) {
+      setGeoError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setGeoLoading(false);
+    }
+  };
 
   const menuItems = [
     { id: 'cat', icon: PackageSearch, label: 'Catálogo Rápido', color: 'bg-emerald-50 text-emerald-600 border-emerald-100', path: '/app/catalogo' },
@@ -67,6 +84,35 @@ export default function DashboardVendedor() {
                    </div>
                  </div>
                </div>
+            </div>
+
+            {/* Geolocalización */}
+            <div className="flex flex-col gap-4">
+              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Ubicación</h3>
+              <div className="bg-white border border-slate-100 rounded-[32px] p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${location ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
+                      {geoLoading ? <Loader2 size={24} className="animate-spin" /> : <MapPin size={24} />}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-slate-800">
+                        {location ? 'Ubicación Actual' : 'Sin ubicación'}
+                      </span>
+                      <span className="text-[10px] font-medium text-slate-400">
+                        {geoError ? geoError : location ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'Presiona para obtener tu ubicación'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleGetLocation}
+                    disabled={geoLoading}
+                    className="bg-brand-blue text-white px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-brand-dark transition-all disabled:opacity-50"
+                  >
+                    {geoLoading ? 'Obteniendo...' : location ? 'Actualizar' : 'Obtener'}
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Acciones Rápidas */}

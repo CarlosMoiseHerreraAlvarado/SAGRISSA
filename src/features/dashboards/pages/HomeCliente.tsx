@@ -140,7 +140,7 @@ export default function HomeCliente() {
                       label="Estado de Cuenta"
                       icon={DollarSign}
                       color="emerald"
-                      onClick={() => navigate('/app/cliente/cuenta')}
+                      onClick={() => navigate('/app/cliente/cartera')}
                     />
                     <ActionCard
                       label="Ver Facturas"

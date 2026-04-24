@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, FileCheck, Briefcase, ChevronRight, PieChart, Activity, Clock, TrendingUp } from 'lucide-react';
+import { FileCheck, ChevronRight, PieChart, Activity, Clock, TrendingUp } from 'lucide-react';
 
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { StatCard } from '../../../core/ui/StatCard';
@@ -37,12 +37,18 @@ export default function DashboardGerente() {
       <div className="flex flex-col gap-8 md:gap-10 px-6 md:px-0 z-10 relative pb-24">
         
         {/* Main Metric Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           <StatCard
-            title="Ventas Consolidadas"
+            title="Ventas Totales"
             value="$1.2M"
             trend={{ value: 8.2 }}
             variant="primary"
+          />
+          <StatCard
+            title="Eficiencia Cobro"
+            value="94.2%"
+            trend={{ value: 1.5 }}
+            variant="default"
           />
           <StatCard
             title="Aprobaciones Ptes."
@@ -52,15 +58,9 @@ export default function DashboardGerente() {
             onClick={() => navigate('/app/gerente/aprobaciones')}
           />
           <StatCard
-            title="Cartera Vencida"
-            value="$180K"
-            icon={DollarSign}
-            variant="default"
-          />
-          <StatCard
-            title="Proyectos Activos"
-            value="4"
-            icon={Briefcase}
+            title="Margen Bruto"
+            value="32.5%"
+            icon={TrendingUp}
             variant="default"
           />
         </div>
@@ -148,16 +148,38 @@ export default function DashboardGerente() {
 
              </div>
 
-             {/* System Health / Connectivity */}
-             <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-[32px] flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
-                   <Activity size={18} />
-                </div>
-                <div>
-                   <p className="text-[12px] font-black text-emerald-900">Dynamics 365 Online</p>
-                   <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Sincronización Exitosa</p>
-                </div>
-             </div>
+              {/* Regional Sales Insights */}
+              <div className="bg-white border border-slate-100 p-8 rounded-[40px] shadow-sm flex flex-col gap-6">
+                 <h3 className="font-black text-[13px] text-slate-800 uppercase tracking-widest">Ventas por Región</h3>
+                 <div className="space-y-5">
+                    {[
+                      { region: 'Centro', value: 45, color: 'bg-brand-blue' },
+                      { region: 'Occidente', value: 30, color: 'bg-slate-800' },
+                      { region: 'Oriente', value: 25, color: 'bg-slate-300' },
+                    ].map((item) => (
+                      <div key={item.region} className="flex flex-col gap-2">
+                         <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
+                            <span className="text-slate-400">{item.region}</span>
+                            <span className="text-slate-800">{item.value}%</span>
+                         </div>
+                         <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.value}%` }} />
+                         </div>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+
+              {/* System Health / Connectivity */}
+              <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-[32px] flex items-center gap-4">
+                 <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
+                    <Activity size={18} />
+                 </div>
+                 <div>
+                    <p className="text-[12px] font-black text-emerald-900">Dynamics 365 Online</p>
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Sincronización Exitosa</p>
+                 </div>
+              </div>
           </div>
         </div>
       </div>

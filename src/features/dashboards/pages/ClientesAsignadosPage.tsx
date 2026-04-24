@@ -3,23 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, User, MapPin, Phone, ChevronRight, FileText } from 'lucide-react';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { customerService } from '../../facturacion/services/customer.service';
+import type { CustomerAccount } from '../../../types';
 
 export default function ClientesAsignadosPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [clientes, setClientes] = useState<CustomerAccount[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    let mounted = true;
+    customerService.getCustomersList().then(data => {
+      if (mounted) {
+        setClientes(data);
+        setLoading(false);
+      }
+    }).catch(() => {
+      setLoading(false);
+    });
+    return () => { mounted = false; };
   }, []);
-
-  const clientes = [
-    { id: '1', name: 'Agropecuaria El Sol', zone: 'Zona Centro', balance: '$2,450.00', address: 'San Salvador, El Salvador' },
-    { id: '2', name: 'Distribuidora X', zone: 'Zona Occidente', balance: '$0.00', address: 'Santa Ana, El Salvador' },
-    { id: '3', name: 'Ferretería Central', zone: 'Zona Centro', balance: '$8,400.00', address: 'San Salvador, El Salvador' },
-    { id: '4', name: 'Luis Armando S.', zone: 'Zona Oriente', balance: '$120.00', address: 'San Miguel, El Salvador' },
-  ];
 
   const filtered = clientes.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -54,9 +58,9 @@ export default function ClientesAsignadosPage() {
         ) : (
           filtered.map((cliente) => (
             <div 
-              key={cliente.id} 
+              key={cliente.customerId} 
               className="bg-white border border-slate-50 p-6 rounded-[32px] shadow-sm hover:border-brand-blue/30 transition-all group cursor-pointer"
-              onClick={() => navigate(`/app/pedidos/nuevo?clienteId=${cliente.id}`)}
+              onClick={() => navigate(`/app/pedidos/nuevo?clienteId=${cliente.customerId}`)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4">
@@ -66,12 +70,12 @@ export default function ClientesAsignadosPage() {
                   <div>
                     <h3 className="font-black text-slate-800 text-[15px]">{cliente.name}</h3>
                     <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      <MapPin size={10} /> {cliente.zone}
+                      <MapPin size={10} /> Cliente SAGRISA
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[14px] font-black text-slate-700">{cliente.balance}</p>
+                  <p className="text-[14px] font-black text-slate-700">${cliente.totalDebt.toLocaleString()}</p>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Saldo Actual</p>
                 </div>
               </div>

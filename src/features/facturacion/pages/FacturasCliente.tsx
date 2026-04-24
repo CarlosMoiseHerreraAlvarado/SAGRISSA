@@ -7,34 +7,43 @@ import { ListCard, ListCardHeader, ListCardFooter } from '../../../core/ui/ListC
 import { StatusBadge } from '../../../core/ui/StatusBadge';
 import { EmptyState } from '../../../core/ui/EmptyState';
 import { SkeletonListItem } from '../../../core/ui/Skeleton';
-
-const MOCK_INVOICES = [
-  { id: '1', number: 'FAC-99201-1', date: '30 Abr, 2022', total: 580000, balance: 580000, status: 'pending' as const },
-  { id: '2', number: 'FAC-99201-2', date: '15 Mar, 2022', total: 245000, balance: 0, status: 'paid' as const },
-  { id: '3', number: 'FAC-99201-3', date: '28 Feb, 2022', total: 125000, balance: 0, status: 'paid' as const },
-  { id: '4', number: 'FAC-99201-4', date: '10 Ene, 2022', total: 89000, balance: 0, status: 'paid' as const },
-];
+import { facturaService } from '../services/factura.service';
+import { FileSpreadsheet } from 'lucide-react';
+import { reportsService } from '../../dashboards/services/reports.service';
 
 export default function FacturasCliente() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<any[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    facturaService.getInvoices().then(data => {
+      setInvoices(data);
+      setLoading(false);
+    });
   }, []);
 
-  const filteredInvoices = MOCK_INVOICES.filter(inv => {
+  const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = inv.number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTab = activeTab === 'pending' ? inv.status === 'pending' : inv.status === 'paid';
     return matchesSearch && matchesTab;
   });
 
+  const handleExport = async () => {
+    await reportsService.downloadReport({
+      id: 'inv-export',
+      title: 'Listado_Facturas_Cliente',
+      type: 'XLSX',
+      size: '15KB',
+      date: new Date().toLocaleDateString()
+    });
+  };
+
   const tabs = [
-    { id: 'pending', label: 'Saldos Pendientes', count: MOCK_INVOICES.filter(i => i.status === 'pending').length },
-    { id: 'history', label: 'Facturado Histórico', count: MOCK_INVOICES.filter(i => i.status === 'paid').length },
+    { id: 'pending', label: 'Saldos Pendientes', count: invoices.filter(i => i.status === 'pending').length },
+    { id: 'history', label: 'Facturado Histórico', count: invoices.filter(i => i.status === 'paid').length },
   ];
 
   return (
@@ -46,11 +55,20 @@ export default function FacturasCliente() {
           <div className="flex items-center gap-3">
             <button
               className="p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors md:hidden"
-              onClick={() => navigate('/app/cliente/cuenta')}
+              onClick={() => navigate('/app/cliente/cartera')}
             >
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Facturas</h1>
+            <div className="flex-1">
+               <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Facturas</h1>
+            </div>
+            <button 
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all"
+            >
+               <FileSpreadsheet size={16} />
+               <span className="hidden md:inline">Exportar Excel</span>
+            </button>
           </div>
 
           <SearchInput

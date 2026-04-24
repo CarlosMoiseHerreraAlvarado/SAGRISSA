@@ -3,6 +3,8 @@
  * Según el documento maestro de arquitectura, la PWA nunca se comunica con Dynamics ni la SQL directa.
  */
 
+import { syncService } from './sync.service';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.sagrissa.com/v1';
 
 // Interceptor básico de fetch (simulado) para inyectar token de Entra ID cuando aplique y manejar roles
@@ -14,6 +16,21 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options?.headers,
   };
+
+  // DETECCIÓN DE MODO OFFLINE REAL
+  if (!navigator.onLine) {
+    console.warn(`[Offline] Sin conexión detectada. Interceptando llamada a ${endpoint}`);
+    
+    // Si es una petición de ESCRITURA (POST/PUT/PATCH), la encolamos
+    const method = options?.method?.toUpperCase() || 'GET';
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      await syncService.enqueueRequest(endpoint, options || {});
+      // Devolvemos un mock genérico para que la UI no se rompa y muestre éxito "local"
+      return { _offlineQueued: true, message: 'Guardado en cola local' } as unknown as T;
+    }
+    
+    throw new Error('Sin conexión de red para realizar esta consulta.');
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {

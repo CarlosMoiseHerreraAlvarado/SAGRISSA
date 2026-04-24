@@ -1,4 +1,5 @@
 import type { Product } from '../../../types';
+import { syncService } from '../../../core/api/sync.service';
 
 /**
  * Servicio de Catálogo e Inventario
@@ -8,13 +9,26 @@ export const catalogService = {
   // Obtiene los productos filtrables. En producción va al Mirror SQL vía APIM.
   getProducts: async (): Promise<Product[]> => {
     try {
-      // return await fetchApi<Product[]>('/catalog/products');
-      
-      // Simulación de latencia de APIM -> Mirror SQL
-      await new Promise(r => setTimeout(r, 600));
-      return MOCK_PRODUCTS;
+      if (navigator.onLine) {
+        // En producción: await fetchApi<Product[]>('/catalog/products');
+        // Para demo, simulamos la respuesta y la guardamos localmente
+        await new Promise(r => setTimeout(r, 600));
+        const data = MOCK_PRODUCTS;
+        
+        // Guardamos en IndexedDB para uso futuro offline (Paso 2)
+        await syncService.saveCatalogLocally(data);
+        return data;
+      } else {
+        // Si estamos offline, intentamos recuperar de IndexedDB
+        console.warn('[Offline] Recuperando catálogo desde IndexedDB...');
+        const localData = await syncService.getCatalogLocally() as Product[];
+        return localData || [];
+      }
     } catch (e) {
-      throw e;
+      console.error('Error in getProducts:', e);
+      // Fallback a IndexedDB incluso si falla la red de forma inesperada
+      const localData = await syncService.getCatalogLocally() as Product[];
+      return localData || [];
     }
   },
 

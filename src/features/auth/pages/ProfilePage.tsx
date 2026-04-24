@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Mail, Shield, Smartphone, Bell, Moon, LogOut, ChevronRight, Briefcase, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Shield, Smartphone, Bell, Moon, LogOut, ChevronRight, Briefcase, CheckCircle2, MapPin } from 'lucide-react';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { useAuth } from '../../../core/hooks/useAuth';
 
@@ -11,7 +11,8 @@ export default function ProfilePage() {
   const [preferences, setPreferences] = useState({
     notifications: true,
     darkMode: false,
-    offlineSync: true
+    offlineSync: true,
+    biometrics: false
   });
 
   useEffect(() => {
@@ -19,8 +20,26 @@ export default function ProfilePage() {
     if (saved) setPreferences(JSON.parse(saved));
   }, []);
 
-  const togglePreference = (key: keyof typeof preferences) => {
-    const newPrefs = { ...preferences, [key]: !preferences[key] };
+  const togglePreference = async (key: keyof typeof preferences) => {
+    const isActivating = !preferences[key];
+    const newPrefs = { ...preferences, [key]: isActivating };
+    
+    if (key === 'notifications' && isActivating) {
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          new Notification('SAGRISA', {
+            body: '¡Notificaciones activadas exitosamente! Recibirás alertas importantes aquí.',
+            icon: '/vite.svg'
+          });
+        } else {
+          newPrefs.notifications = false; // Revert if denied
+        }
+      } else {
+        alert('Tu navegador no soporta notificaciones web.');
+      }
+    }
+
     setPreferences(newPrefs);
     localStorage.setItem('sagrissa_prefs', JSON.stringify(newPrefs));
     
@@ -57,6 +76,13 @@ export default function ProfilePage() {
                  <Briefcase size={16} className="text-slate-300 mb-1" />
                  <span className="text-[11px] font-bold text-slate-400">{user?.department || 'Comercial'}</span>
               </div>
+           </div>
+
+           <div className="w-full mt-4 pt-4 border-t border-slate-50 flex justify-center">
+             <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Última conexión: Hoy, 08:30 AM
+             </div>
            </div>
         </div>
 
@@ -117,6 +143,53 @@ export default function ProfilePage() {
                 </div>
               </button>
 
+              <button onClick={() => togglePreference('biometrics')} className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${preferences.biometrics ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-300'}`}>
+                     <Shield size={20} />
+                  </div>
+                  <div className="text-left">
+                     <p className="text-[14px] font-black text-slate-800">Acceso Biométrico</p>
+                     <p className="text-[11px] font-medium text-slate-400">Face ID / Huella Digital</p>
+                  </div>
+                </div>
+                <div className={`w-10 h-5 rounded-full relative transition-colors ${preferences.biometrics ? 'bg-indigo-500' : 'bg-slate-200'}`}>
+                   <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${preferences.biometrics ? 'left-6' : 'left-1'}`} />
+                </div>
+              </button>
+
+           </div>
+        </div>
+
+        {/* System Diagnostics (PWA Integration Visibility) */}
+        <div className="flex flex-col gap-4">
+           <h4 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Diagnóstico de Sistema</h4>
+           <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-xl relative overflow-hidden">
+              <div className="flex flex-col gap-6 relative z-10">
+                 <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                       <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Estado GPS</span>
+                       <span className="text-sm font-black text-emerald-400 flex items-center gap-2">
+                          <MapPin size={14} /> Activo y Calibrado
+                       </span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                       <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Cola de Sinc.</span>
+                       <span className="text-sm font-black text-white">0 Pendientes</span>
+                    </div>
+                 </div>
+                 
+                 <div className="h-px bg-white/10 w-full" />
+
+                 <div className="flex flex-col gap-1">
+                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Última Sincronización</span>
+                    <span className="text-[13px] font-medium text-white/80 italic">
+                       "Catálogo actualizado hace 12 minutos via Wi-Fi"
+                    </span>
+                 </div>
+              </div>
+              {/* Abstract pattern */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/20 rounded-full blur-3xl -mr-16 -mt-16" />
            </div>
         </div>
 

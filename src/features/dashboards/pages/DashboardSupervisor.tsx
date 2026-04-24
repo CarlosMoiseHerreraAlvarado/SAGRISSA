@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Target, Activity, ChevronRight, ClipboardList, Phone, User } from 'lucide-react';
+import { Users, Target, Activity, ChevronRight, ClipboardList, User } from 'lucide-react';
 
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { StatCard } from '../../../core/ui/StatCard';
@@ -142,22 +142,46 @@ export default function DashboardSupervisor() {
                </div>
             </div>
 
-            {/* Quick Contact Card - Consistent Brand Profile */}
-            <div className="bg-white border border-slate-100 rounded-[40px] p-8 shadow-sm flex items-center justify-between group overflow-hidden relative">
-               <div className="z-10 relative">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Enlace Directo</p>
-                  <h4 className="text-[16px] font-black text-slate-800 mb-1">Mesa de Ayuda</h4>
-                  <p className="text-slate-400 text-[11px]">Soporte técnico y funcional</p>
-                  <button className="mt-6 flex items-center gap-2 text-[11px] font-black text-brand-blue uppercase group-hover:gap-3 transition-all">
-                    Llamar ahora <ChevronRight size={14} />
+            {/* Team Tracking Map Integration (Visible Geo Data) */}
+            <div className="bg-slate-900 border border-slate-800 rounded-[40px] p-8 flex flex-col gap-5 relative overflow-hidden shadow-2xl">
+               <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-1">
+                     <div className="w-2 h-2 rounded-full bg-brand-blue animate-ping" />
+                     <span className="text-[10px] font-black text-brand-blue uppercase tracking-widest">Rastreo en Tiempo Real</span>
+                  </div>
+                  <h4 className="text-[18px] font-black text-white">Cobertura del Equipo</h4>
+                  <p className="text-[11px] font-medium text-white/40 leading-relaxed mb-6">
+                    Últimas ubicaciones capturadas al cierre de pedidos en campo.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                     <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                        <p className="text-[9px] font-bold text-white/30 uppercase mb-1">Zonas Activas</p>
+                        <p className="text-xl font-black text-white">3 / 4</p>
+                     </div>
+                     <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                        <p className="text-[9px] font-bold text-white/30 uppercase mb-1">Ptos. Control</p>
+                        <p className="text-xl font-black text-white">128</p>
+                     </div>
+                  </div>
+
+                  <button 
+                    onClick={() => navigate('/app/supervisor/equipo')}
+                    className="w-full py-4 bg-brand-blue text-white rounded-[24px] font-black text-[11px] uppercase tracking-widest shadow-lg shadow-brand-blue/30 flex items-center justify-center gap-2"
+                  >
+                    Abrir Mapa de Ruta <ChevronRight size={16} />
                   </button>
                </div>
-               <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 flex items-center justify-center text-brand-blue relative z-10 group-hover:bg-brand-blue group-hover:text-white transition-all duration-500">
-                  <Phone size={24} />
+               
+               {/* Map graphic background */}
+               <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
+                  <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none">
+                     <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="0.5" strokeDasharray="2 2" />
+                     <circle cx="50" cy="50" r="20" stroke="white" strokeWidth="0.5" strokeDasharray="2 2" />
+                     <path d="M50 10 L50 90 M10 50 L90 50" stroke="white" strokeWidth="0.2" />
+                  </svg>
                </div>
             </div>
-
-
           </div>
         </div>
       </div>

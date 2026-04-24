@@ -1,25 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Filter, Search, FileSpreadsheet, FileBarChart, FileText } from 'lucide-react';
+import { ArrowLeft, Download, Filter, Search, FileSpreadsheet, FileBarChart, FileText, Loader2 } from 'lucide-react';
 
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { reportsService, type ReportItem } from '../services/reports.service';
 
 export default function DirectorReportesPage() {
   const navigate = useNavigate();
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    let mounted = true;
+    reportsService.getReports().then(data => {
+      if (mounted) {
+        setReports(data);
+        setLoading(false);
+      }
+    });
+    return () => { mounted = false; };
   }, []);
 
-  const reports = [
-    { id: '1', title: 'Cierre Mensual Consolidado', type: 'PDF', size: '2.4 MB', date: '01 Abr 2026' },
-    { id: '2', title: 'Matriz de Ventas por Vendedor', type: 'XLSX', size: '1.1 MB', date: '21 Abr 2026' },
-    { id: '3', title: 'Análisis de Cartera Vencida', type: 'PDF', size: '3.8 MB', date: '15 Abr 2026' },
-    { id: '4', title: 'Inventario Crítico Regional', type: 'XLSX', size: '0.9 MB', date: '22 Abr 2026' },
-  ];
+  const handleDownload = async (report: ReportItem) => {
+    if (downloadingId) return;
+    setDownloadingId(report.id);
+    try {
+      await reportsService.downloadReport(report);
+    } catch (e) {
+      console.error('Error downloading report', e);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
     <MobilePage>
@@ -71,8 +85,16 @@ export default function DirectorReportesPage() {
                         </div>
                      </div>
                   </div>
-                  <button className="p-3 bg-slate-50 text-slate-300 rounded-xl hover:text-brand-blue hover:bg-brand-blue/10 transition-all">
-                     <Download size={18} />
+                  <button 
+                    onClick={() => handleDownload(report)}
+                    disabled={downloadingId !== null}
+                    className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-brand-blue hover:bg-brand-blue/10 transition-all disabled:opacity-50"
+                  >
+                     {downloadingId === report.id ? (
+                       <Loader2 size={18} className="animate-spin text-brand-blue" />
+                     ) : (
+                       <Download size={18} />
+                     )}
                   </button>
                </div>
              ))
