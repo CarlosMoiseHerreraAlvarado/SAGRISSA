@@ -6,6 +6,14 @@ export interface InvoiceItem {
   price: number;
 }
 
+export interface CreditNote {
+  id: string;
+  number: string;
+  date: string;
+  amount: number;
+  reason: string;
+}
+
 export interface InvoiceDetail {
   id: string;
   number: string;
@@ -20,6 +28,7 @@ export interface InvoiceDetail {
     id: string;
   };
   items: InvoiceItem[];
+  creditNotes?: CreditNote[];
   delivery: {
     address: string;
     notes: string;
@@ -33,7 +42,7 @@ const MOCK_INVOICE: InvoiceDetail = {
   date: '30 Abr, 2022',
   dueDate: '30 May, 2022',
   total: 580000,
-  balance: 580000,
+  balance: 530000,
   status: 'pending',
   customer: {
     name: 'Cliente SAGRISA',
@@ -44,11 +53,21 @@ const MOCK_INVOICE: InvoiceDetail = {
     { name: 'PRODUCTO INDUSTRIAL SAGRISA - PRESENTACIÓN 60 UNIDADES', quantity: 150, price: 1200 },
     { name: 'PRODUCTO INDUSTRIAL SAGRISA - PRESENTACIÓN 30 UNIDADES PACK BÁSICO', quantity: 100, price: 600 },
   ],
+  creditNotes: [
+    { id: 'nc1', number: 'NC-5020', date: '02 May, 2022', amount: 50000, reason: 'Descuento por pronto pago' }
+  ],
   delivery: {
     address: 'Urb. Industrial - Bodega 01KJH, San Salvador.',
     notes: 'Presentación renovada. Entrega en horario matutino.',
   },
 };
+
+export async function downloadInvoicePdf(id: string): Promise<void> {
+  console.log(`[PDF] Generando PDF para factura ${id}...`);
+  await new Promise(r => setTimeout(r, 1500));
+  // En producción: window.open(`${API_URL}/invoices/${id}/pdf`, '_blank');
+  alert('Factura PDF generada y lista para descarga.');
+}
 
 export async function getFacturaById(id: string): Promise<InvoiceDetail> {
   try {

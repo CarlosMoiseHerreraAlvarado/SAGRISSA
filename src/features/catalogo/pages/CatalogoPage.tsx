@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, PackageOpen, ArrowLeft } from 'lucide-react';
+import { Search, Filter, PackageOpen, ArrowLeft, Plus, Edit2, X, Save, Loader2 } from 'lucide-react';
 import { catalogService } from '../services/catalog.service';
 import type { Product } from '../../../types';
 import { Skeleton } from '../../../core/ui/Skeleton';
@@ -16,12 +16,80 @@ export default function CatalogoPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filterStock, setFilterStock] = useState('all');
 
-  useEffect(() => {
+  // Estado para el Modal de Producto
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<Omit<Product, 'id'>>({
+    sku: '',
+    name: '',
+    description: '',
+    family: 'Fertilizantes',
+    price: 0,
+    stock: 0,
+    warehouse: 'Bodega Central',
+    presentation: 'Unidad'
+  });
+
+  const fetchProducts = () => {
+    setLoading(true);
     catalogService.getProducts().then(data => {
       setProducts(data);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
+
+  const openCreateModal = () => {
+    setEditingProduct(null);
+    setFormData({
+      sku: '',
+      name: '',
+      description: '',
+      family: 'Fertilizantes',
+      price: 0,
+      stock: 0,
+      warehouse: 'Bodega Central',
+      presentation: 'Unidad'
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      sku: product.sku,
+      name: product.name,
+      description: product.description,
+      family: product.family,
+      price: product.price,
+      stock: product.stock,
+      warehouse: product.warehouse,
+      presentation: product.presentation
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      if (editingProduct) {
+        await catalogService.updateProduct(editingProduct.id, formData);
+      } else {
+        await catalogService.createProduct(formData);
+      }
+      setIsModalOpen(false);
+      fetchProducts();
+    } catch (error) {
+      console.error('Error saving product:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const filtered = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -51,11 +119,21 @@ export default function CatalogoPage() {
                 </button>
                 <h2 className="font-black text-xl md:text-2xl text-slate-800 tracking-tight">Catálogo</h2>
              </div>
-             {filterStock !== 'all' && (
-                <button onClick={() => setFilterStock('all')} className="text-[9px] font-black text-brand-blue uppercase bg-brand-blue/5 px-3 py-1 rounded-full">
-                  Limpiar Filtros
+             
+             <div className="flex items-center gap-2">
+                {filterStock !== 'all' && (
+                  <button onClick={() => setFilterStock('all')} className="text-[9px] font-black text-brand-blue uppercase bg-brand-blue/5 px-3 py-1 rounded-full mr-2">
+                    Limpiar Filtros
+                  </button>
+                )}
+                <button 
+                  onClick={openCreateModal}
+                  className="bg-brand-blue text-white px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-brand-blue/20 hover:scale-105 transition-all"
+                >
+                  <Plus size={16} />
+                  <span className="hidden md:inline">Nuevo Producto</span>
                 </button>
-             )}
+             </div>
           </div>
           
           <div className="flex items-center gap-2">
@@ -140,6 +218,129 @@ export default function CatalogoPage() {
           </div>
         )}
 
+        {/* Product Form Modal (Create/Edit) */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+              <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <div>
+                  <h3 className="text-lg font-black text-slate-800 tracking-tight">
+                    {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Maestro de Artículos</p>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">SKU / Código</label>
+                    <input 
+                      required
+                      type="text" 
+                      placeholder="Ej: BIO-11-BL"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all"
+                      value={formData.sku}
+                      onChange={e => setFormData({...formData, sku: e.target.value.toUpperCase()})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Familia</label>
+                    <select 
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all appearance-none"
+                      value={formData.family}
+                      onChange={e => setFormData({...formData, family: e.target.value})}
+                    >
+                      {categories.filter(c => c !== 'Todos').map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
+                  <input 
+                    required
+                    type="text" 
+                    placeholder="Nombre descriptivo del artículo..."
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all"
+                    value={formData.name}
+                    onChange={e => setFormData({...formData, name: e.target.value})}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción Técnica</label>
+                  <textarea 
+                    rows={3}
+                    placeholder="Detalles, usos y especificaciones..."
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all resize-none"
+                    value={formData.description}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio ($)</label>
+                    <input 
+                      required
+                      type="number" 
+                      step="0.01"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all"
+                      value={formData.price}
+                      onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stock</label>
+                    <input 
+                      required
+                      type="number" 
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all"
+                      value={formData.stock}
+                      onChange={e => setFormData({...formData, stock: parseInt(e.target.value)})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pres.</label>
+                    <input 
+                      required
+                      type="text" 
+                      placeholder="Galón, Saco..."
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all"
+                      value={formData.presentation}
+                      onChange={e => setFormData({...formData, presentation: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                   <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-4 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+                   >
+                     Cancelar
+                   </button>
+                   <button 
+                    disabled={isSaving}
+                    type="submit"
+                    className="flex-[2] bg-brand-blue text-white py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-brand-blue/20 flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
+                   >
+                     {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                     {editingProduct ? 'Guardar Cambios' : 'Crear Artículo'}
+                   </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* ─── Scrollable List ─── */}
         <div className="flex-1 overflow-y-auto pb-24 z-10 scrollbar-hide">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -172,7 +373,15 @@ export default function CatalogoPage() {
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <span className="text-[10px] font-bold text-brand-blue mb-1 uppercase tracking-wider">{item.sku}</span>
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-bold text-brand-blue mb-1 uppercase tracking-wider">{item.sku}</span>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-300 hover:text-brand-blue transition-all"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    </div>
                     <h4 className="font-bold text-[13px] text-slate-800 leading-tight mb-1 truncate">{item.name}</h4>
                     <p className="text-[11px] text-slate-400 font-medium mb-3 line-clamp-1">{item.description}</p>
                     

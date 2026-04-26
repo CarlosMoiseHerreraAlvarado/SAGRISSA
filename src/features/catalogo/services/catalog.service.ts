@@ -1,46 +1,8 @@
 import type { Product } from '../../../types';
 import { syncService } from '../../../core/api/sync.service';
 
-/**
- * Servicio de Catálogo e Inventario
- * Lee directamente desde la base de datos Espejo (Mirror SQL) para consultas de ultra-alta velocidad.
- */
-export const catalogService = {
-  // Obtiene los productos filtrables. En producción va al Mirror SQL vía APIM.
-  getProducts: async (): Promise<Product[]> => {
-    try {
-      if (navigator.onLine) {
-        // En producción: await fetchApi<Product[]>('/catalog/products');
-        // Para demo, simulamos la respuesta y la guardamos localmente
-        await new Promise(r => setTimeout(r, 600));
-        const data = MOCK_PRODUCTS;
-        
-        // Guardamos en IndexedDB para uso futuro offline (Paso 2)
-        await syncService.saveCatalogLocally(data);
-        return data;
-      } else {
-        // Si estamos offline, intentamos recuperar de IndexedDB
-        console.warn('[Offline] Recuperando catálogo desde IndexedDB...');
-        const localData = await syncService.getCatalogLocally() as Product[];
-        return localData || [];
-      }
-    } catch (e) {
-      console.error('Error in getProducts:', e);
-      // Fallback a IndexedDB incluso si falla la red de forma inesperada
-      const localData = await syncService.getCatalogLocally() as Product[];
-      return localData || [];
-    }
-  },
-
-  getProductBySku: async (sku: string): Promise<Product | undefined> => {
-    // return await fetchApi<Product>(`/catalog/products/${sku}`);
-    await new Promise(r => setTimeout(r, 300));
-    return MOCK_PRODUCTS.find(p => p.sku === sku);
-  }
-};
-
-// ------------------ MOCKS ------------------ //
-const MOCK_PRODUCTS: Product[] = [
+// Variable mutable para simular persistencia en memoria durante la sesión
+let MOCK_PRODUCTS_DATA: Product[] = [
   {
     id: 'p1',
     sku: 'BIO-11-BL',
@@ -108,4 +70,47 @@ const MOCK_PRODUCTS: Product[] = [
     presentation: 'Bolsa'
   }
 ];
+
+export const catalogService = {
+  getProducts: async (): Promise<Product[]> => {
+    try {
+      if (navigator.onLine) {
+        await new Promise(r => setTimeout(r, 600));
+        const data = MOCK_PRODUCTS_DATA;
+        await syncService.saveCatalogLocally(data);
+        return data;
+      } else {
+        const localData = await syncService.getCatalogLocally() as Product[];
+        return localData || [];
+      }
+    } catch (e) {
+      console.error('Error in getProducts:', e);
+      const localData = await syncService.getCatalogLocally() as Product[];
+      return localData || [];
+    }
+  },
+
+  getProductBySku: async (sku: string): Promise<Product | undefined> => {
+    await new Promise(r => setTimeout(r, 300));
+    return MOCK_PRODUCTS_DATA.find(p => p.sku === sku);
+  },
+
+  createProduct: async (product: Omit<Product, 'id'>): Promise<Product> => {
+    await new Promise(r => setTimeout(r, 800));
+    const newProduct = { ...product, id: Math.random().toString(36).substr(2, 9) };
+    MOCK_PRODUCTS_DATA = [newProduct, ...MOCK_PRODUCTS_DATA];
+    return newProduct;
+  },
+
+  updateProduct: async (id: string, product: Partial<Product>): Promise<Product> => {
+    await new Promise(r => setTimeout(r, 800));
+    MOCK_PRODUCTS_DATA = MOCK_PRODUCTS_DATA.map(p => 
+      p.id === id ? { ...p, ...product } : p
+    );
+    const updated = MOCK_PRODUCTS_DATA.find(p => p.id === id);
+    if (!updated) throw new Error('Product not found');
+    return updated;
+  }
+};
+
 

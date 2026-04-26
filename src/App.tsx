@@ -11,6 +11,7 @@ import AccountCliente from './features/facturacion/pages/AccountCliente';
 import FacturasCliente from './features/facturacion/pages/FacturasCliente';
 import FacturaDetailCliente from './features/facturacion/pages/FacturaDetailCliente';
 import PedidosCliente from './features/pedidos/pages/PedidosCliente';
+import PedidoDetailPage from './features/pedidos/pages/PedidoDetailPage';
 
 import DashboardVendedor from './features/dashboards/pages/DashboardVendedor';
 import DashboardSupervisor from './features/dashboards/pages/DashboardSupervisor';
@@ -27,9 +28,12 @@ import SupervisorMetasPage from './features/dashboards/pages/SupervisorMetasPage
 import DirectorAnalyticsPage from './features/dashboards/pages/DirectorAnalyticsPage';
 import DirectorReportesPage from './features/dashboards/pages/DirectorReportesPage';
 import ProfilePage from './features/auth/pages/ProfilePage';
+import HistorialPagosPage from './features/cobros/pages/HistorialPagosPage';
+import RegistroCobrosPage from './features/cobros/pages/RegistroCobrosPage';
+import CarteraPage from './features/cartera/pages/CarteraPage';
+import VendedorReportesPage from './features/dashboards/pages/VendedorReportesPage';
 
 import ClientesAsignadosPage from './features/dashboards/pages/ClientesAsignadosPage';
-import EstadoCarteraPage from './features/dashboards/pages/EstadoCarteraPage';
 import PedidoDetailVendedorPage from './features/dashboards/pages/PedidoDetailVendedorPage';
 
 
@@ -57,6 +61,7 @@ function App() {
               <Route path="cliente/facturas" element={<FacturasCliente />} />
               <Route path="cliente/facturas/:id" element={<FacturaDetailCliente />} />
               <Route path="cliente/pedidos" element={<PedidosCliente />} />
+              <Route path="cliente/pedidos/:id" element={<PedidoDetailPage />} />
 
             </Route>
 
@@ -64,7 +69,10 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['vendedor']} />}>
               <Route path="vendedor/home" element={<DashboardVendedor />} />
               <Route path="clientes" element={<ClientesAsignadosPage />} />
-              <Route path="cobros" element={<EstadoCarteraPage />} />
+              <Route path="cartera" element={<CarteraPage />} />
+              <Route path="cobros" element={<HistorialPagosPage />} />
+              <Route path="cobros/nuevo" element={<RegistroCobrosPage />} />
+              <Route path="reportes" element={<VendedorReportesPage />} />
               <Route path="catalogo" element={<CatalogoPage />} />
 
               <Route path="pedidos" element={<PedidosVendedorPage />} />
