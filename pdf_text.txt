@@ -1,0 +1,600 @@
+                                                  
+uso de mirror SQL como capa de consulta.  
+autenticación  con Entra ID, documentación OpenAPI/Swagger, observabilidad con Application Insights y 
+con la decisión final adoptada: frontend React PWA, servicios ASP.NET Core, consumo vía APIM, 
+matriz de roles existente; sin embargo, normaliza y reemplaza varias premisas preliminares  para alinearse 
+Nota técnica.  Este documento toma como antecedente la Ruta Digital, el Plan de Implementación y la 
+ 
+OpenAPI/Swagger + Application Insights.  
+Arquitectura objetivo                        consulta + Dynamics 365 como sistema fuente + Microsoft Entra ID + 
+React PWA + Azure API Management + ASP.NET Core APIs + Mirror SQL de 
+implementación, estimación,  desarrollo y futuras propuestas técnicas. 
+Propósito del documento 
+Consolidar una fuente técnica madre para servir como base de diseño, 
+Proyecto                                                   Plataforma Multicanal / Modernización técnica  sobre entorno Microsoft  
+Cliente                                                      SAGRISA S.A. de C.V.  
+ 
+Versión base consolidada a partir de las fuentes funcionales y estratégicas del proyecto 
+Documento técnico de referencia 
+ 
+Multicanal
+Integración y Gobierno de la Plataforma 
+Fuente Técnica Maestra de Arquitectura, 
+SAGRISA 
+----------------Page (0) Break----------------
+El segundo corresponde al Plan de Implementación de Fase 1, que aterriza componentes, etapas y actores 
+conectada  y en tiempo real, así como el rol central del entorno Dynamics Cloud dentro de la transformación. 
+Digital SAGRISA 2026, donde se describe la evolución del negocio hacia una experiencia multicanal, 
+La consolidación aquí presentada parte de tres grupos de insumos. El primero está conformado por la Ruta 
+ 
+2. Fuentes base consideradas y criterio de consolidación
+dependencias  frágiles o en una arquitectura difícil de sostener. 
+deben respetar y cuáles son las reglas que permitirán que la plataforma evolucione sin caer nuevamente en 
+componen la solución, por qué se eligieron, qué problema resuelven, cómo se relacionan entre sí, qué límites 
+En consecuencia,  este documento asume una postura deliberadamente técnica. Explica qué componentes 
+diagramas  o TDR internos. 
+quinto, convertirse en la nueva fuente madre desde la cual puedan derivarse anexos, cronogramas, matrices, 
+integración y seguridad; cuarto, servir como base de futuras propuestas técnicas o documentos de alcance; y 
+objetivo; segundo, establecer criterios claros para diseño y desarrollo; tercero, dejar trazadas las reglas de 
+documento técnico de referencia  que sirva para cinco  fines concretos: primero, documentar la arquitectura 
+Su propósito no es repetir el discurso comercial de las rutas previas, sino transformar ese material en un 
+funcional. 
+alineado con Microsoft, pero bajo una lógica de costo razonable, control arquitectónico y desacople 
+tecnológica que SAGRISA adoptará para modernizar su plataforma actual dentro de un entorno plenamente 
+Esta fuente técnica maestra tiene  como objetivo consolidar, ordenar y explicar de forma amplia la solución 
+ 
+1. Naturaleza y objetivo de la fuente técnica
+20. 20. Fuentes base y premisas sustituidas 
+19. 19. Criterios de aceptación técnica 
+18. 18. Riesgos técnicos y mitigaciones 
+17. 17. Ambientes, calidad técnica  y ruta de implementación 
+16. 16. Lineamientos de integración con Dynamics 365 
+15. 15. Reglas transversales de negocio, lectura y escritura 
+14. 14. Roles, permisos y modelo de acceso 
+13. 13. Dominios funcionales del sistema 
+12. 12. Monitoreo, trazabilidad y observabilidad con Application Insights 
+11. 11. Contrato API, OpenAPI/Swagger y lineamientos de versionado 
+10. 10. Seguridad, identidad y autorización 
+9.   9. Capa de datos e integración: Mirror SQL y Dynamics 365 
+8.   8. Capa de servicios: ASP.NET Core Web APIs 
+7.   7. Capa de exposición y gobierno: Azure API Management 
+6.   6. Capa de experiencia:  React PWA 
+5.   5. Arquitectura objetivo por capas 
+4.   4. Decisiones de arquitectura adoptadas 
+3.   3. Contexto actual de SAGRISA y premisas de diseño 
+2.   2. Fuentes base consideradas y criterio de consolidación 
+1.   1. Naturaleza y objetivo de la fuente técnica 
+ 
+Contenido
+----------------Page (1) Break----------------
+monitoreo.  
+•     Centralizar el acceso a  través de un gateway de APIs que permita reglas, seguridad, trazabilidad y 
+solo para lectura.   
+•     Separar consultas de alta demanda de operaciones transaccionales sensibles, utilizando un mirror SQL 
+•     Crear una capa  propia de servicios para desacoplar la experiencia  de usuario respecto al sistema fuente.         
+•     No exponer directamente Dynamics al frontend ni convertir al ERP en una API pública improvisada.           
+De ese contexto surgen las premisas de diseño que gobiernan esta fuente técnica:         
+control.  
+plataforma debe responder tanto a una realidad transaccional y operativa como a una realidad analítica  y de 
+metas comerciales,  autorizaciones jerárquicas,  visibilidad  regional y soporte interno. Es decir, la nueva 
+muestran que la operación deseada abarca  consulta de productos y precios, pedidos, cobros, facturas, 
+El proyecto, además, no debe interpretarse como una simple renovación visual. Las fuentes existentes 
+principal.  
+para no depender de componentes legados, integraciones rígidas o un canal móvil aislado de la arquitectura 
+sabido invertir en tecnología con visión; y segundo, que el punto actual exige una actualización estructural 
+antecedente  es importante porque demuestra dos cosas al mismo tiempo: primero, que la empresa ha 
+original todavía activa  en un esquema separado y no totalmente alineado al nuevo entorno cloud. Ese 
+útil durante años, y que posteriormente migró todo su entorno Dynamics a la nube, dejando a la aplicación 
+organización desarrolló hace aproximadamente una década  una aplicación  móvil que se mantuvo operativa y 
+SAGRISA ya cuenta con una trayectoria tecnológica relevante. Las fuentes previas describen  que la 
+ 
+3. Contexto actual de SAGRISA y premisas de diseño
+dejar  una versión técnica más coherente, ejecutable  y sostenible.     
+Este documento, por tanto, no invalida las fuentes previas  como antecedentes; las reordena y las depura para 
+Dynamics y  el sistema fuente siguen concentrando la verdad transaccional.       
+incorpora como premisa central el uso de una base espejo SQL para consultas de alta demanda, mientras 
+OpenAPI/Swagger para contrato técnico y Application Insights como capa de observabilidad. Asimismo, se 
+gateway,  ASP.NET Core como capa de servicios, Microsoft Entra ID como proveedor de identidad, 
+técnica  cambia  ese  planteamiento a una solución centrada en React PWA, Azure API Management como 
+del uso de Azure Active Directory con nomenclatura antigua. La arquitectura final acordada para esta fuente 
+En términos prácticos, las fuentes anteriores hablaban de una app React Native, de un middleware con N8N y 
+implementación preliminares que ya  no representan la arquitectura final acordada.        
+trazabilidad y  el soporte al usuario interno y externo. Por otro lado, se sustituyeron algunas decisiones de 
+negocio: la experiencia  multicanal, la conexión con Dynamics, la orientación a tiempo real, la analítica, la 
+separar dos capas de información. Por un lado, se conservó aquello que sigue siendo válido como visión de 
+El criterio de consolidación aplicado no fue copiar cada premisa textual de los documentos existentes, sino 
+Fuente base funcional y estratégica  consolidada a partir de RUTA-DIGITAL / PLAN-DE-IMPLEMENTACION / SAGRISA ROLES.
+ 
+Version 2 (1).pdf, PLAN -DE-IMPLEMENTACION (2).pdf y SAGRISA ROLES (1).docx. 
+facturación, metas, inventario  y autorización. Fuente base analizada:  RUTA-DIGITAL.pdf, RUTA -DIGITAL 2026 
+comportamiento esperado por perfil, la operación cotidiana y las necesidades de consulta, pedido, cobro, 
+de roles y los artes o pantallas de cliente, director, gerente, supervisor y vendedor. Estas fuentes describen el 
+del proyecto. El tercero reúne las fuentes funcionales de roles y pantallas, incluyendo la matriz consolidada 
+----------------Page (2) Break----------------
+funcional y consumo ordenado 
+técnica,  facilita  pruebas, revisión 
+Contrato API                                                   OpenAPI + Swagger UI                               Formaliza  la documentación 
+estados y operaciones críticas. 
+autorizaciones, actualización  de 
+autorizados                                                    operativa  para escritura, 
+Transacción                                                    Dynamics 365 + sistemas fuente         Mantiene una única  verdad 
+e indicadores  consultivos. 
+búsquedas, catálogos, históricos 
+sistema fuente y acelera 
+Consultas                                                        Mirror SQL / Base espejo                          Descarga la presión de lectura del 
+de seguridad. 
+de acceso  y un modelo estándar 
+tokens, integración con políticas 
+corporativa, SSO, emisión de 
+Identidad                                                         Microsoft Entra ID                                        Resuelve autenticación 
+desacoplados. 
+construir endpoints propios 
+del dominio de negocio y permite 
+en backend, ofrece  control total 
+Servicios                                                           ASP.NET Core Web APIs                           Alinea  la solución con Microsoft 
+control de entrada.  
+límites, versionado, analítica  y 
+validación  de tokens, políticas, 
+Gateway                                                            Azure API Management                             Centraliza exposición de APIs, 
+una app nativa independiente. 
+multiplataforma sin el costo de 
+despliegue rápido y operación 
+experiencia  web moderna, 
+Frontend                                                           React PWA                                                      Permite una sola base de código, 
+Componente                                                 Decisión adoptada                                    Justificación técnica  
+Microsoft, sino de usar los que realmente aportan orden estructural al proyecto.   
+sostenibilidad operativa y control de costos. No se trata de usar cada producto posible del ecosistema 
+La arquitectura final adoptada para SAGRISA obedece  a un criterio de equilibrio entre alineación corporativa, 
+ 
+4. Decisiones de arquitectura adoptadas
+componentes sin rehacer la solución completa.  
+•     Construir una base que pueda crecer luego hacia atención al cliente, IA interna, analítica y otros 
+multiplataforma.  
+•     Usar un frontend unificado que reduzca costos de desarrollo y mantenimiento sin perder experiencia 
+----------------Page (3) Break----------------
+obliga a evolucionar como una plataforma.  
+esencial  porque impide que la solución crezca como un conjunto de conexiones puntuales y, en cambio, la 
+capacidades  transversales son identidad/seguridad y observabilidad/documentación. Esta organización es 
+principales son experiencia,  exposición  y gobierno, servicios de negocio, y datos e integración. Las 
+La arquitectura objetivo se compone de cuatro capas principales y dos capacidades  transversales. Las capas 
+Figura 1. Arquitectura técnica objetivo consolidada para SAGRISA.
+ 
+ 
+ 
+5. Arquitectura objetivo por capas
+correcto como núcleo de operación y fuente autorizada.  
+ser una tentación de escritura y se convierte en un acelerador de lectura; y Dynamics recupera su papel 
+el gateway  deja  de ser una simple publicación; la API se vuelve la pieza  donde vive el negocio; el mirror deja de 
+contratos definidos, capas distinguibles y responsabilidades claras. El frontend deja de cargar con la lógica; 
+Estas decisiones tienen un efecto importante sobre el proyecto: convierten la plataforma en un sistema con 
+operativas. 
+errores, latencia y trazas 
+de disponibilidad, rendimiento, 
+Observabilidad                                              Application Insights                                    Permite monitoreo centralizado 
+técnicos. 
+por parte de APIM y equipos 
+----------------Page (4) Break----------------
+revisión de facturas, validaciones       trazabilidad de decisiones. 
+Gerente                                                             Metas, inventario, autorizaciones,      Necesita  autorización formal y 
+operativo 
+facturas, metas grupales, control       alcance. 
+seguimiento de pedidos, cobros,        vendedor pero con mayor 
+Supervisor                                                       Búsqueda de clientes,                               Comparte parte del flujo con 
+personales 
+cobros, historial, metas                            tiempos de respuesta ágiles. 
+Vendedor                                                         Clientes, inventario, pedidos,                Requiere interacción  constante y 
+de acceso 
+detalle de pedido, configuración 
+historial, antigüedad de saldo,              autoservicio. 
+Cliente                                                              Estado de cuenta, facturas,                   Predomina la lectura y 
+PWA 
+Perfil                                                                   Experiencias principales en                Observación técnica  
+autorización para gerente; y experiencia  ejecutiva  de indicadores para  director. 
+comercial  para vendedor; experiencia  de seguimiento operativo para supervisor; experiencia  de control y 
+menos, cinco grandes experiencias  de usuario: experiencia  de consulta de cuenta para cliente; experiencia 
+La información funcional proveniente de las fuentes de roles permite identificar que la PWA deberá cubrir, al 
+ 
+6.2 Alcances  funcionales  de la PWA
+permite que toda la conversación entre interfaz y backend se apoye  en contratos HTTP bien definidos. 
+duplicidad de lógica de  presentación, facilita ciclos  de publicación más rápidos, mejora la mantenibilidad y 
+La ventaja  de esta decisión  no es únicamente presupuestaria. Desde el punto de vista técnico, la PWA reduce 
+móvil con comportamiento similar al de una aplicación instalable.  
+experiencia  en una sola capa  tecnológica que podrá operar desde navegador de escritorio, tablet o dispositivo 
+decisión sustituye la idea preliminar de una app móvil separada  y de un portal distinto, concentrando la 
+La PWA será la puerta principal de interacción para los perfiles comerciales,  operativos y de consulta. Esta 
+ 
+6.1 Rol de la PWA dentro  del  ecosistema
+ 
+6. Capa de experiencia: React PWA
+capa  API y el gateway. 
+hablar directamente ni con Dynamics ni con la base de datos espejo. Todo consumo debe pasar por la 
+Nota técnica.  El principio estructural más importante es el siguiente: ningún cliente, portal o PWA debe 
+Insights/OpenAPI para monitoreo y control técnico.   
+sistemas fuente. Sobre todas ellas operan Microsoft Entra ID para autenticación y Application 
+interpreta el negocio y ejecuta reglas. La capa  de datos e integración consume información del mirror y de los 
+encarga  de canalizar  las solicitudes, validar acceso y  aplicar políticas comunes. La capa  de servicios 
+La capa  de experiencia  concentra todo lo que los usuarios ven y operan. La capa de exposición y gobierno se 
+----------------Page (5) Break----------------
+ 
+8. Capa de servicios: ASP.NET Core Web APIs
+de estados de pedido. 
+bodega, autorización de descuento, validación  de crédito, consolidación de cobro múltiple o interpretación 
+enrutamiento por versión. Ejemplos de reglas que deben quedar en la API son cálculo de disponibilidad según 
+Ejemplos de reglas aptas para APIM son validación de JWT, límites por cliente, validación de cabeceras y 
+negocio viven  en ASP.NET Core. 
+deja  establecido que las validaciones  generales y las políticas transversales viven en APIM; las reglas del 
+parecer  rápida al inicio,  pero termina fragmentando el comportamiento del sistema. En esta fuente técnica se 
+tipo de proyectos es empezar a resolver reglas funcionales directamente en el gateway. Esa práctica puede 
+APIM sí debe gobernar la exposición, pero no debe reemplazar la lógica de negocio. La tentación típica en este 
+ 
+7.2 Qué sí hace  APIM y qué no debe  hacer
+•     Convertirse en la fachada técnica  estable del proyecto, aunque los servicios internos evolucionen. 
+resultado y en qué volumen.  
+•     Concentrar analítica básica  de consumo y facilitar trazabilidad sobre qué endpoint se llamó, con qué 
+o respuestas y control de versiones.  
+•     Aplicar políticas comunes como rate limiting, validación de headers, transformación simple de solicitudes 
+•     Validar tokens emitidos por Microsoft Entra ID antes de permitir el paso al backend.   
+•     Recibir todas las llamadas originadas por la PWA o por futuros consumidores autorizados.    
+ 
+7.1 Responsabilidades  concretas  de  APIM
+desigual, reglas duplicadas y una seguridad difícil  de sostener. 
+futuras integraciones externas, la falta de un gateway central terminaría generando APIs expuestas de forma 
+como SAGRISA, donde coexistirán perfiles internos, operaciones críticas, contratos múltiples y posiblemente 
+introduce solo para 'publicar APIs', sino para ordenar el gobierno técnico del ecosistema. En un proyecto 
+Azure API Management será la puerta única de entrada hacia  los servicios del proyecto. Esta pieza no se 
+ 
+7. Capa de exposición  y gobierno:  Azure API Management
+comprobante, firma o selección de método de pago.  
+ejemplo cuando un pedido cambia de pendiente a  problema de crédito o cuando un cobro requiere 
+consistente de errores, consumo controlado por API y estados visibles para operaciones sensibles, por 
+A nivel técnico,  esto implica usar un esquema claro de módulos, navegación basada en permisos, manejo 
+una operación requiera validación  o consulta en varias fuentes. 
+para operar o decidir. El tercero es rendimiento percibido: el usuario debe sentir continuidad, incluso cuando 
+estructura interna de Dynamics. El segundo es foco por rol: cada perfil debe ver solo aquello que necesita 
+La PWA debe diseñarse  bajo tres criterios. El primero es desacople: ninguna vista debe depender de una 
+ 
+6.3 Principios de  diseño de  la capa  de  experiencia
+consolidado, visión ejecutiva 
+por país/área, inventario                          lectura estratégica. 
+Director                                                            Metas regionales, ventas y cobros      Debe mantenerse como perfil de 
+----------------Page (6) Break----------------
+negocio y la interfaz. 
+donde el frontend termina rearmando significado. En SAGRISA, la API debe ser la traductora formal entre el 
+Esto es importante porque muchas arquitecturas caen en el error de construir servicios demasiado crudos, 
+•     Las operaciones deben distinguir claramente lectura, prevalidación  y confirmación transaccional. 
+autorizaciones y cambios  de precio. 
+•     Las APIs deben dejar trazabilidad  de operaciones críticas,  especialmente  en pedidos, cobros, 
+recomponer reglas de negocio.  
+•     Las respuestas deben devolver estructuras ya útiles para la PWA, evitando que el frontend tenga que 
+•     Las APIs deben ser expresivas  para el frontend; no meros proxys del ERP.  
+•     Cada endpoint debe responder a un caso de uso concreto y no a una simple tabla del sistema fuente.   
+ 
+8.2 Reglas  de construcción  de la capa  API
+controlada, observaciones 
+formales                                                           denegación,  anulación 
+Approvals                                                        Flujos jerárquicos y decisiones             Autorización de facturas, 
+por periodo y rol                                            vendedor, por país y por área  
+Goals & Analytics                                         Metas, ventas, cobros y tableros         Mensual, trimestral, anual, por 
+autorizaciones relacionadas                  factura, estados, saldos  
+Invoices                                                            Facturas, detalle, estados y                   Consulta por cliente, detalle de 
+firma 
+historial y trazabilidad                               pago múltiple, comprobante y 
+Collections                                                      Cobros, métodos de pago,                      Anticipo, pago parcial, pago total, 
+direcciones 
+seguimiento de pedidos                           detalle, observaciones, fechas  y 
+Orders                                                               Creación, edición,  confirmación y     Pedidos abiertos, histórico, 
+precios, costos y disponibilidad           base, costo, familias, filtros  
+Catalog                                                             Productos, bodegas, lotes,                     Inventario por bodega, precio 
+antigüedad 
+crédito y datos asociados                       saldo, crédito disponible, 
+Customers                                                       Consulta de clientes, cuenta,               Búsqueda de clientes, cuenta, 
+permisos efectivos 
+sesión y datos de inicio                             datos básicos del usuario y 
+Identity / Session                                          Intermediar claims, perfiles,                  Perfil activo,  módulos visibles, 
+Dominio API                                                   Responsabilidad                                        Ejemplos de capacidades  
+ 
+8.1 Organización  por dominios
+Dynamics, sino de una fachada  de servicios  propia, controlada y expresiva. 
+autorizada. Esta capa  es la que permite que la modernización de SAGRISA no dependa del modelo interno de 
+funcional de pantalla en un contrato, una regla, una validación, una consulta consolidada o una transacción 
+La capa  de servicios  es el corazón real de la solución. Aquí vive el negocio. Aquí se transforma una necesidad 
+----------------Page (7) Break----------------
+ 
+10.  Seguridad, identidad y autorización
+operaciones huérfanas y  discusiones futuras sobre cuál base 'manda' realmente. 
+Nota técnica.  La separación lectura/escritura no es decorativa. Es la condición que evita dobles verdades, 
+preparados 
+Reportería agregada               PWA -> APIM -> API                 Mirror SQL y/o servicios        Consulta y resumen  
+denegación                                                                                            Dynamics                                     formal 
+Autorización /                             PWA -> APIM -> API                 Sistema fuente /                        Decisión jerárquica 
+Dynamics                                     consistencia 
+Registro de cobro                     PWA -> APIM -> API                 Sistema fuente /                        Trazabilidad  y 
+pedido                                                                                                      Dynamics 
+Creación/edición  de              PWA -> APIM -> API                 Sistema fuente /                        Transacción oficial 
+historial/cuenta  
+Consulta de                                 PWA -> APIM -> API                 Mirror SQL                                     Experiencia  consultiva 
+catálogo/inventario                                                                                                                                      frecuencia 
+Consulta de                                 PWA -> APIM -> API                 Mirror SQL                                     Velocidad  y alta 
+Tipo de operación                   Origen recomendado           Destino autorizado                Criterio 
+empresarial. 
+autorizaciones, flujos que comprometen integridad y cualquier operación que deba reflejarse como verdad 
+operación del negocio: generación y actualización  oficial  de transacciones,  estados definitivos, 
+Dynamics 365 y los sistemas oficiales asociados conservan la autoridad sobre aquello que constituye la 
+ 
+9.2 Rol de Dynamics  y el sistema  fuente
+operaciones oficiales. 
+aplicación.  Bajo  ninguna circunstancia debe convertirse en el lugar donde la PWA crea, modifica o confirma 
+Sin embargo, esta fuente técnica deja  una regla innegociable: el mirror es read-only desde la lógica de la 
+consulta ricos y rápidos, especialmente para experiencias  de inventario,  búsqueda y dashboard. 
+castigar el núcleo transaccional. También facilita  que el equipo de desarrollo construya endpoints de 
+consultar con comodidad catálogos, productos, existencias, históricos, facturas, saldos o agregados, sin 
+El mirror SQL existe para acelerar y estabilizar. Su propósito es ofrecer una superficie de lectura que permita 
+ 
+9.1 Rol del mirror  SQL
+365 y los sistemas fuente autorizados.  
+SQL que SAGRISA proveerá para atender lecturas. El plano de verdad transaccional lo mantienen Dynamics 
+plano de consulta y un plano de verdad transaccional. El plano de consulta lo ocupa la base espejo o mirror 
+La capa  de datos de esta solución no es una sola cosa. Se compone, en realidad, de dos planos distintos: un 
+ 
+9. Capa de datos e integración: Mirror SQL y Dynamics 365
+----------------Page (8) Break----------------
+OpenAPI será el estándar que describe la API y Swagger UI la cara visible para  leerla y probarla. Esto tiene un 
+Swagger UI se utilizará como interfaz de exploración y prueba del contrato OpenAPI. En términos sencillos, 
+entre backend, frontend, pruebas, gateway y futuro mantenimiento.  
+oral. Cada API deberá describirse formalmente mediante OpenAPI, y esa  definición  será la base del contrato 
+Una plataforma de esta naturaleza no puede sostenerse a punta de endpoints opacos o de documentación 
+ 
+11.  Contrato API, OpenAPI/Swagger y lineamientos de versionado
+no únicamente por etiqueta organizacional.  
+acceso  ampliado a ciertos reportes. Por eso el rol efectivo  debe quedar determinado por permisos explícitos y 
+perfectamente  posible que en el futuro exista un usuario gerente sin privilegio de reversa, o un supervisor con 
+La separación  anterior permitirá que el sistema crezca sin quedar amarrado al nombre del cargo. Es 
+estratégica                                                      a día. 
+Director                                                            Usuario ejecutivo de lectura                  No ejecuta  transacciones del día 
+operativo                                                          procesos sensibles.  
+Gerente                                                             Usuario aprobador / táctico -                 Aprueba, deniega  y controla 
+alcance  sobre cartera/equipo. 
+Supervisor                                                       Usuario supervisor comercial                Opera y  supervisa, con mayor 
+cobros dentro de su alcance.  
+Vendedor                                                         Usuario comercial operativo                  Puede crear  pedidos y registrar 
+administrar su acceso. 
+Cliente                                                              Cliente externo de consulta                    Debe ver solo su información y 
+Rol organizacional                                     Perfil funcional del sistema                 Observación 
+esta fuente técnica  recomienda  separar la capa  organizacional de la capa  de permisos del sistema. 
+casos existen solapamientos entre supervisor y vendedor, o entre niveles de consulta y validación. Por eso 
+embargo, también muestran que el nombre del cargo no basta por sí solo para definir permisos. En varios 
+Las fuentes de roles muestran una organización clara: cliente, director, gerente, supervisor y vendedor. Sin 
+ 
+10.2  Autorización funcional y rol efectivo
+APIM validará  el acceso  inicial;  y ASP.NET Core aplicará la autorización fina. 
+identidad y una base más  segura para crecimiento futuro. La PWA se encargará de solicitar y portar el token; 
+El resultado práctico es que SAGRISA obtiene inicio de sesión estandarizado, SSO, manejo ordenado de 
+que emitirá los tokens necesarios para iniciar sesión y consumir APIs.  
+la identidad del usuario no se resolverá con una base local improvisada, sino con el proveedor corporativo, 
+El login de la PWA se apoyará en Microsoft Entra ID mediante OAuth 2.0 y OpenID Connect. Esto significa que 
+ 
+10.1  Autenticación  con Microsoft Entra  ID
+negocio que determinan qué puede hacer un usuario dentro del sistema según su perfil real.   
+del token y de los claims mínimos para invocar APIs. La autorización funcional corresponde a las reglas de 
+funcional. La autenticación  la resuelve Microsoft Entra ID. La autorización técnica corresponde a la validación 
+La seguridad de la solución se compone de tres niveles: autenticación, autorización técnica y autorización 
+----------------Page (9) Break----------------
+conviene  verlos como dominios de negocio que luego se expresan en servicios, permisos y operaciones. 
+solución debe cubrir. Aunque la PWA los presentará como módulos o secciones, desde la arquitectura 
+La matriz de roles y pantallas permite identificar con claridad los dominios funcionales principales que la 
+ 
+13.  Dominios funcionales del  sistema
+el inicio,  después será mucho más difícil reconstruir incidentes. 
+cadena  completa que involucra identidad, gateway,  APIs, mirror y sistema fuente. Si no se instrumenta desde 
+Esto es especialmente importante en SAGRISA porque la solución no será una pantalla aislada, sino una 
+usuario, operación y dependencia      transacción 
+Trazabilidad                                                    Correlación entre solicitud,                    Entender el recorrido de una 
+relevantes 
+integración, respuestas 5xx y 4xx 
+Errores                                                               Excepciones,  fallos de                             Acelerar  diagnóstico 
+dependencia 
+Rendimiento                                                  Latencia  por API, operación y               Detectar cuellos de botella  
+servicio 
+Disponibilidad                                               Endpoints críticos y salud del                Detectar caídas  o interrupciones 
+Dimensión                                                      Qué debe observarse                              Uso esperado 
+es almacenar  ruido, sino generar visibilidad útil. 
+de endpoints, errores y excepciones,  trazas relevantes  del negocio y pruebas de disponibilidad. Su objetivo no 
+Desde la perspectiva  operativa, Application Insights debe registrar al menos cuatro dimensiones: desempeño 
+escale. 
+comportamiento por endpoint, trazas de ejecución y señales de degradación antes de que el problema 
+punto ciego. Esta capacidad permitirá conocer disponibilidad, tiempos de respuesta, errores, 
+cuando algo falla, nadie sabe dónde mirar. Application Insights se incorpora precisamente para eliminar ese 
+Uno de los vacíos más costosos en muchos proyectos es que la solución se construye, se publica y luego, 
+ 
+12.  Monitoreo, trazabilidad y observabilidad  con Application Insights
+correspondiente.  
+paralelo al desarrollo. Ningún endpoint debería darse por finalizado sin un documento OpenAPI 
+La regla práctica  será trabajar siempre  bajo un modelo contrato primero o, como mínimo, contrato en 
+•     Las APIs deben versionarse desde el diseño para evitar rupturas futuras con la PWA.  
+•     Las operaciones sensibles deben declarar claramente  sus requisitos de seguridad y autorización. 
+•     Los códigos de respuesta deben estar documentados y ser consistentes.   
+•     Los esquemas de request/response deben representar casos de uso, no solo tablas técnicas.   
+•     Cada endpoint debe tener propósito, descripción y ejemplos claros.  
+ 
+11.1  Reglas mínimas del  contrato
+cada  operación y ordena la conversación entre equipos. 
+valor técnico muy alto: elimina ambigüedad, facilita  revisión  de payloads, hace visible  la seguridad aplicada  a 
+----------------Page (10) Break----------------
+Gerente                                         Control táctico                          Aprobar, denegar y                  Debe mantener 
+mayores 
+equipo                                            autorizaciones formales 
+Supervisor                                    Operación  y seguimiento     Controlar ejecución del         No debe concentrar 
+cobros                                            operaciones sensibles 
+Vendedor                                      Ejecución  comercial               Crear pedidos y registrar      No aprueba ni anula 
+información                                 negocio 
+Cliente                                           Consulta de cuenta                 Ver su propia                               No altera procesos del 
+Rol                                                   Enfoque                                        Acción predominante           Restricción estructural  
+interfaz. 
+observa de forma estratégica.  Esa lógica debe quedar expresada  en el diseño de permisos, las APIs y la 
+vendedor ejecuta;  el supervisor combina operación y seguimiento; el gerente controla y autoriza; y el director 
+Las fuentes revisadas  permiten reconstruir un modelo bastante claro de acceso  por rol. El cliente consulta; el 
+ 
+14.  Roles, permisos y modelo de acceso
+periodo; indicadores de cumplimiento y vistas agregadas para supervisión y dirección. 
+Comprende metas mensuales, trimestrales y anuales; ventas y cobros por área, por vendedor, por país y por 
+ 
+13.6  Dominio de metas  y analítica
+eventualmente participa  en reversa controlada. Es uno de los dominios que más exige trazabilidad formal.  
+Abarca  consulta de facturas, detalle, revisión de estados y flujos donde un gerente aprueba, deniega o 
+ 
+13.5  Dominio de facturación  y autorizaciones
+referencia,  cheque  o transacción; comprobante; firma digital; DUI opcional y confirmación final de cobro. 
+Incluye anticipo, pago parcial, pago total y pago múltiple; selección de método de pago; captura de banco, 
+ 
+13.4  Dominio de cobros
+efectos financieros  y logísticos. 
+dirección  de entrega, consulta de pedidos abiertos, histórico y detalle. Es un dominio operativo, pero con 
+Abarca  búsqueda de clientes, selección de productos, modificación de cantidades, observaciones,  fecha  y 
+ 
+13.3  Dominio de pedidos
+transversal porque lo consumen vendedor, supervisor, gerente y director en distintos niveles.   
+Incluye productos, categorías, familias, bodegas, lotes, vencimientos, precios base y costos. Tiene alto valor 
+ 
+13.2  Dominio de inventario  y  catálogo
+saldo y detalle de movimientos asociados.  
+usuarios. Incluye saldo adeudado, crédito disponible, estado de cuenta, historial de facturas, antigüedad de 
+Este dominio está fuertemente ligado al perfil cliente, pero también alimenta consultas parciales de otros 
+ 
+13.1  Dominio de cuenta  y consulta  financiera
+----------------Page (11) Break----------------
+ejecución.  La  propia documentación base ya planteaba una secuencia  de  análisis y arquitectura, desarrollo e 
+Aun cuando este documento no es un cronograma contractual, sí debe dejar lineamientos mínimos de 
+ 
+17.  Ambientes, calidad técnica y ruta de implementación
+transacción contra el sistema oficial. Lo importante es que la PWA siga viendo una sola fachada coherente.  
+Por ejemplo, puede consultar datos de apoyo desde el mirror, validar reglas propias y finalmente confirmar la 
+Cuando una operación requiera combinar mirror y fuente oficial, la API deberá hacerlo de manera explícita. 
+interactuar con él, qué datos exponer, qué validar antes y qué responder después.  
+corporativo que participa como fuente oficial para  operaciones. La API propia es la que decide  cómo y cuándo 
+En esta arquitectura, Dynamics no es el frontend ni el gateway ni el contrato externo; es el sistema 
+aislar cambios  y evitar que el frontend se rompa cuando una integración de backend evolucione. 
+funcional de la PWA a las interfaces de Dynamics  y del sistema fuente. Esto permite encapsular complejidad, 
+directo de pantalla a ERP. El backend ASP.NET Core es quien se responsabiliza de traducir la necesidad 
+La integración con Dynamics 365 debe concebirse como una relación formal entre sistemas, no como acceso 
+ 
+16.  Lineamientos de integración con Dynamics 365
+artesanalmente en la PWA. 
+•     Las respuestas agregadas para metas y tableros deben salir preparadas desde la API, no armadas 
+•     Las operaciones de cobro deben ser rastreables de extremo a extremo, incluyendo adjuntos y firma.  
+justificación  cuando aplique. 
+•     Las autorizaciones jerárquicas  deben registrar usuario, fecha, operación, estado previo, decisión y 
+backend. 
+•     Ningún cambio sensible debe ejecutarse  solo desde la interfaz; siempre debe existir validación  en 
+•     Toda escritura oficial debe  pasar por la API y terminar en el sistema fuente autorizado. 
+•     Toda lectura de alta demanda debe priorizar el mirror SQL cuando la consistencia inmediata no sea crítica. 
+gobernar el proyecto independientemente del módulo.  
+Además  de la separación de capas,  esta fuente técnica  deja  definidas varias  reglas transversales que deben 
+ 
+15.  Reglas transversales de negocio, lectura y escritura
+cargo, de modo que el sistema administre privilegios por capacidad y no solo por nombre de rol.   
+Nota técnica. Una futura evolución deseable es construir una matriz de permisos técnica desacoplada del 
+completa de método, referencia, comprobante, firma y usuario ejecutor.  
+restringido; la anulación de cobros debe mantenerse supercontrolada; y todo cobro debe dejar evidencia 
+vendedor comparten operación pero deben diferenciarse por límites; el cambio de precios debe quedar 
+operativos; el director no ejecuta transacciones; el gerente conserva la autorización formal; supervisor y 
+Del análisis CRUD existente también se derivan reglas de diseño muy importantes: el cliente no altera datos 
+cumplimiento                             diarias 
+Director                                         Visión ejecutiva                         Consultar agregados y           No opera transacciones 
+decisiones 
+validar                                            trazabilidad de sus 
+----------------Page (12) Break----------------
+no estructuras directas de ERP.  
+Frontend demasiado acoplado            Rupturas ante cambios internos          Consumir solo servicios propios y 
+endpoint relevante. 
+Endpoints sin contrato formal              Ambigüedad entre equipos                    Exigir OpenAPI/Swagger en todo 
+incidentes                                                        desde fases  tempranas. 
+Falta de telemetría                                      Dificultad para diagnosticar                   Instrumentar Application Insights 
+organizacional. 
+efectiva  separada  del rol 
+Permisos basados solo en cargo         Autorizaciones ambiguas                        Diseñar matriz de permisos 
+negocio. 
+mantenimiento difícil                                 transversal y backend para 
+Mover lógica a APIM                                    Fragmentación de reglas y                      Dejar APIM para gobierno 
+fuente. 
+oficial                                                                 verdades                                                          mirror y escritura solo por sistema 
+Confundir mirror con fuente                   Inconsistencias y dobles                         Regla estricta de read-only para 
+Riesgo                                                               Impacto                                                           Mitigación propuesta  
+ 
+18.  Riesgos técnicos y mitigaciones
+telemetría conectada. 
+Asimismo, cada  endpoint relevante debe llegar a QA con su contrato OpenAPI, sus pruebas mínimas y su 
+El proyecto debe contar al menos con ambientes de desarrollo, prueba/preproducción y producción. 
+validación  y acompañamiento              gobierno técnico 
+Salida a  producción                                   Publicación  controlada,                          Plataforma operativa  bajo 
+rendimiento y trazabilidad                       incidentes críticas  resueltas 
+QA y  endurecimiento                                 Pruebas funcionales, seguridad,         Release Candidate con 
+Construcción funcional                            Desarrollar módulos por dominio        Flujos operativos utilizables  
+observabilidad 
+Core, PWA base, identidad y 
+Construcción base                                      Levantar APIM, APIs ASP.NET                Esqueleto funcional integrado  
+consultivo/transaccional  
+de datos 
+permisos, integración y modelo           mapa  API inicial 
+Arquitectura y contrato                             Definir dominios, endpoints,                  Documento técnico aprobado y 
+Fase técnica                                                  Objetivo                                                           Resultado esperado 
+la arquitectura final adoptada. 
+integración, pruebas y validación,  y puesta en marcha. Esa lógica sigue siendo válida,  pero aterrizada ahora a 
+----------------Page (13) Break----------------
+                                                  
+decisiones  preliminares y arquitectura técnica  definitiva. 
+versionado y fecha,  para evitar  que futuras conversaciones mezclen nuevamente visión  comercial, 
+Nota técnica. Recomendación final: conservar este documento como fuente madre controlada, con 
+debería  derivarse  de esta base y no de las versiones previas por separado. 
+anexos funcionales, historias de usuario, matriz de endpoints, plan de pruebas o documento de ambientes—  
+etapa del proyecto. Cualquier documento técnico posterior — alcance detallado, propuesta económica, 
+Con ello, la presente fuente queda establecida como la referencia técnica  consolidada para SAGRISA en esta 
+•    Ausencia  de una línea explícita  de observabilidad,  cubierta mediante Application Insights. 
+•    Ausencia  de una capa  formal de contrato técnico, corregida mediante OpenAPI/Swagger. 
+•    Nomenclatura antigua de Azure AD, normalizada a Microsoft Entra ID. 
+lectura/escritura. 
+•    Consumo ambiguo del ERP, sustituido por un modelo formal de fachada API y separación 
+través de APIM. 
+•    N8N como middleware central, sustituido por una capa propia de APIs ASP.NET Core con gobierno a 
+•    React Native  como frontend principal, sustituido por React PWA. 
+Premisas preliminares que esta fuente sustituye o normaliza: 
+•    Rol Vendedor - 30novT.pdf 
+•    Rol Supervisor - 30novT.pdf 
+•    Rol Gerente - 30novT.pdf 
+•    Rol Director - 30novT (1).pdf 
+•    Rol Cliente - 30novT.pdf 
+•    SAGRISA ROLES (1).docx 
+•     PLAN-DE-IMPLEMENTACION (2).pdf 
+•     RUTA -DIGITAL.pdf / RUTA -DIGITAL 2026 Version 2 (1).pdf   
+Fuentes base consideradas como antecedente  funcional y estratégico: 
+ 
+20.  Fuentes base y premisas sustituidas
+•     Los flujos de cobro, pedido, consulta y autorización dejan trazabilidad suficiente.  
+•     Application Insights captura disponibilidad, errores y rendimiento de forma útil.   
+•     Los endpoints están documentados en OpenAPI y pueden probarse en Swagger UI.   
+•     Las operaciones de escritura y  autorización llegan al sistema fuente oficial. 
+•     El mirror SQL es utilizado solo en escenarios de lectura definidos.  
+•     Los servicios ASP.NET Core encapsulan la lógica de negocio por dominio.  
+•     Todas las llamadas pasan por APIM y respetan políticas de autenticación y gobierno.  
+•     La PWA opera por rol sin acceder directamente a sistemas fuente.  
+con los siguientes criterios:  
+A nivel técnico,  la solución deberá considerarse correctamente implantada cuando cumpla, como mínimo, 
+ 
+19.  Criterios de aceptación técnica
+----------------Page (14) Break----------------
+ 
+Configuración                        Sí                                   Sí                                   Sí                                   Sí                                   Sí 
+Autorizaciones                     No                         No visible                           Sí                              Parcial                            No 
+Cobros                               Consulta                      Parcial                         Parcial                              Sí                                   Sí 
+Metas                                        No                                  Sí                                   Sí                                   Sí                                   Sí 
+Inventario                           Parcial                              Sí                                   Sí                                   Sí                                   Sí 
+Pedidos                             Consulta                          No                                  Sí                                   Sí                                   Sí 
+Facturas                                    Sí                              Parcial                              Sí                                   Sí                              Parcial 
+de cuenta 
+Cuenta / estado                    Sí                                 No                                 No                            Parcial                        Parcial 
+Autenticación                         Sí                                   Sí                                   Sí                                   Sí                                   Sí 
+Módulo                      Cliente                      Director                    Gerente                    Supervisor               Vendedor 
+principales, derivada  de  la matriz de roles existente. 
+Como complemento rápido, se deja la siguiente tabla de correspondencia entre módulos visibles y perfiles 
+ 
+Apéndice A. Resumen de módulos  y su correspondencia con roles
+----------------Page (15) Break----------------

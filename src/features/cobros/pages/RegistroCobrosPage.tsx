@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Loader2, Landmark, Wallet, CreditCard, Receipt, User, Search } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Landmark, Wallet, CreditCard, Receipt, User, Search, Upload, X } from 'lucide-react';
+import SignatureCanvas from 'react-signature-canvas';
 import { cobrosService } from '../services/cobros.service';
 import { Card } from '../../../core/ui/Card';
 
@@ -8,6 +9,8 @@ export default function RegistroCobrosPage() {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [step, setStep] = useState(1); // 1: Cliente, 2: Factura, 3: Monto
+  const sigPad = useRef<SignatureCanvas>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   
   const [formData, setFormData] = useState({
     customerId: '',
@@ -52,7 +55,9 @@ export default function RegistroCobrosPage() {
         customerName: formData.customerName,
         amount: formData.amount,
         paymentMethod: formData.paymentMethod,
-        reference: formData.reference
+        reference: formData.reference,
+        signature: sigPad.current?.isEmpty() ? null : sigPad.current?.getTrimmedCanvas().toDataURL('image/png'),
+        receiptFile: receiptFile
       });
       alert('Cobro registrado exitosamente');
       navigate('/app/vendedor/cobros');
@@ -215,6 +220,36 @@ export default function RegistroCobrosPage() {
                     value={formData.reference}
                     onChange={e => setFormData({ ...formData, reference: e.target.value })}
                   />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-2">Comprobante Físico (Foto/PDF)</label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 bg-slate-50 border border-slate-100 border-dashed hover:border-brand-blue/40 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all">
+                      <Upload size={20} className="text-slate-400 mb-2" />
+                      <span className="text-[11px] font-bold text-slate-500 text-center">Subir documento</span>
+                      <input type="file" className="hidden" accept="image/*,.pdf" onChange={e => setReceiptFile(e.target.files?.[0] || null)} />
+                    </label>
+                    {receiptFile && (
+                      <div className="flex-1 bg-brand-blue/5 border border-brand-blue/10 rounded-2xl p-4 relative flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-brand-blue truncate pr-4">{receiptFile.name}</span>
+                        <button type="button" onClick={() => setReceiptFile(null)} className="text-slate-400 hover:text-red-500 absolute top-2 right-2"><X size={14} /></button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 flex justify-between items-end">
+                    <span>Firma del Cliente</span>
+                    <button type="button" onClick={() => sigPad.current?.clear()} className="text-brand-blue hover:underline text-[10px]">Limpiar</button>
+                  </label>
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden w-full h-40">
+                    <SignatureCanvas 
+                      ref={sigPad}
+                      canvasProps={{ className: 'w-full h-full' }}
+                    />
+                  </div>
                 </div>
               </div>
             </Card>

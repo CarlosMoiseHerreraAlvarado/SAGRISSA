@@ -10,6 +10,8 @@ export interface User {
   role: Role;
   email?: string;
   department?: string;
+  claims: string[];
+  isOfflineCapable: boolean;
 }
 
 // ------------------

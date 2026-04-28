@@ -7,12 +7,12 @@ import type { Role } from '../../../types';
 /**
  * DUIs de prueba (solo ambiente local de desarrollo).
  */
-const DEV_USERS: Record<string, { id: string; name: string; role: Role; to: string }> = {
-  '05678945-8': { id: 'c1', name: 'Andrea Montoya', role: 'cliente',  to: '/app/cliente/home' },
-  '02888123-1': { id: 'v1', name: 'Luis Navarro',   role: 'vendedor', to: '/app/vendedor/home' },
-  '03999234-2': { id: 's1', name: 'Carlos Ruíz',    role: 'supervisor', to: '/app/supervisor/home' },
-  '04777345-3': { id: 'g1', name: 'Roberto Sosa',   role: 'gerente',   to: '/app/gerente/home' },
-  '01666456-4': { id: 'd1', name: 'Elena Méndez',   role: 'director',  to: '/app/director/home' },
+const DEV_USERS: Record<string, { id: string; name: string; role: Role; to: string; claims: string[]; isOfflineCapable: boolean }> = {
+  '05678945-8': { id: 'c1', name: 'Andrea Montoya', role: 'cliente',  to: '/app/cliente/home', claims: ['view:account', 'view:orders'], isOfflineCapable: false },
+  '02888123-1': { id: 'v1', name: 'Luis Navarro',   role: 'vendedor', to: '/app/vendedor/home', claims: ['view:dashboard_operativo', 'action:create_order', 'action:register_payment', 'view:facturas'], isOfflineCapable: true },
+  '03999234-2': { id: 's1', name: 'Carlos Ruíz',    role: 'supervisor', to: '/app/supervisor/home', claims: ['view:dashboard_operativo', 'view:team_metrics', 'action:approve_operations', 'view:facturas'], isOfflineCapable: true },
+  '04777345-3': { id: 'g1', name: 'Roberto Sosa',   role: 'gerente',   to: '/app/gerente/home', claims: ['view:dashboard_estrategico', 'action:approve_operations', 'view:metas_globales', 'view:facturas'], isOfflineCapable: false },
+  '01666456-4': { id: 'd1', name: 'Elena Méndez',   role: 'director',  to: '/app/director/home', claims: ['view:dashboard_estrategico', 'view:metas_globales', 'view:analytics_avanzado', 'view:facturas'], isOfflineCapable: false },
 };
 
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
       setStep('pin');
     } else if (step === 'pin' && pin.length >= 4) {
       const u = matchedUser ?? DEV_USERS['05678945-8']; // Fallback for unmatched
-      login({ id: u.id, name: u.name, dui: dui || '05678945-8', role: u.role }, 'apim-token-xyz');
+      login({ id: u.id, name: u.name, dui: dui || '05678945-8', role: u.role, claims: u.claims, isOfflineCapable: u.isOfflineCapable }, 'apim-token-xyz');
       navigate(u.to);
     }
   };
@@ -40,7 +40,7 @@ export default function LoginPage() {
     setShowBiometric(true);
     setTimeout(() => {
       const u = matchedUser ?? DEV_USERS['05678945-8'];
-      login({ id: u.id, name: u.name, dui: dui || '05678945-8', role: u.role }, 'apim-token-xyz');
+      login({ id: u.id, name: u.name, dui: dui || '05678945-8', role: u.role, claims: u.claims, isOfflineCapable: u.isOfflineCapable }, 'apim-token-xyz');
       navigate(u.to);
     }, 1800);
   };

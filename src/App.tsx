@@ -35,7 +35,8 @@ import VendedorReportesPage from './features/dashboards/pages/VendedorReportesPa
 
 import ClientesAsignadosPage from './features/dashboards/pages/ClientesAsignadosPage';
 import PedidoDetailVendedorPage from './features/dashboards/pages/PedidoDetailVendedorPage';
-
+import FacturasPage from './features/facturacion/pages/FacturasPage';
+import GerenteMetasPage from './features/dashboards/pages/GerenteMetasPage';
 
 
 
@@ -79,6 +80,7 @@ function App() {
               <Route path="pedidos/:id" element={<PedidoDetailVendedorPage />} />
               <Route path="pedidos/:id/editar" element={<NuevoPedidoPage />} />
               <Route path="pedidos/nuevo" element={<NuevoPedidoPage />} />
+              <Route path="facturas" element={<FacturasPage />} />
 
 
             </Route>
@@ -89,6 +91,7 @@ function App() {
               <Route path="supervisor/equipo" element={<SupervisorEquipoPage />} />
               <Route path="supervisor/metas" element={<SupervisorMetasPage />} />
               <Route path="supervisor/aprobaciones" element={<SupervisorApprovalsPage />} />
+              <Route path="supervisor/facturas" element={<FacturasPage />} />
             </Route>
 
 
@@ -96,6 +99,9 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['gerente']} />}>
               <Route path="gerente/home" element={<DashboardGerente />} />
               <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
+              <Route path="gerente/metas" element={<GerenteMetasPage />} />
+              <Route path="gerente/reportes" element={<GerenteMetasPage />} />
+              <Route path="gerente/facturas" element={<FacturasPage />} />
             </Route>
 
 
@@ -104,6 +110,7 @@ function App() {
               <Route path="director/home" element={<DashboardDirector />} />
               <Route path="director/analytics" element={<DirectorAnalyticsPage />} />
               <Route path="director/reportes" element={<DirectorReportesPage />} />
+              <Route path="director/facturas" element={<FacturasPage />} />
             </Route>
 
 

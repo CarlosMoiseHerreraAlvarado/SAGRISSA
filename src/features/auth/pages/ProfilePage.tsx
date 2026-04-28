@@ -161,6 +161,30 @@ export default function ProfilePage() {
            </div>
         </div>
 
+        {/* Effective Permissions (Claims) */}
+        <div className="flex flex-col gap-4">
+           <h4 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Capacidades Efectivas (Claims)</h4>
+           <div className="bg-white border border-slate-100 rounded-[40px] p-8 shadow-sm flex flex-col gap-4">
+             <div className="flex flex-wrap gap-2">
+               {user?.claims?.map(claim => (
+                 <span key={claim} className="px-3 py-1.5 bg-brand-blue/10 text-brand-blue border border-brand-blue/20 rounded-lg text-[11px] font-bold tracking-wide">
+                   {claim}
+                 </span>
+               )) || <span className="text-slate-400 text-sm">Sin capacidades especiales</span>}
+             </div>
+             
+             <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                <div>
+                  <p className="text-[13px] font-black text-slate-800">Acceso Offline Habilitado</p>
+                  <p className="text-[11px] font-medium text-slate-400">Permite ingreso sin internet</p>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${user?.isOfflineCapable ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+                  {user?.isOfflineCapable ? 'Habilitado' : 'Bloqueado'}
+                </div>
+             </div>
+           </div>
+        </div>
+
         {/* System Diagnostics (PWA Integration Visibility) */}
         <div className="flex flex-col gap-4">
            <h4 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Diagnóstico de Sistema</h4>
