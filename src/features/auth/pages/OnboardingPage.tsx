@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, PackageSearch, BarChart3 } from 'lucide-react';
 
@@ -34,13 +34,20 @@ export default function OnboardingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(prev => prev + 1);
     } else {
       navigate('/login');
     }
-  };
+  }, [currentSlide, navigate]);
+
+  // Auto-advance splash screen after 2.5s
+  useEffect(() => {
+    if (currentSlide !== 0) return;
+    const timer = setTimeout(handleNext, 2500);
+    return () => clearTimeout(timer);
+  }, [currentSlide, handleNext]);
 
   const slide = slides[currentSlide];
 
