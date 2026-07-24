@@ -28,8 +28,8 @@ export default function VendedorReportesPage() {
       await reportsService.downloadReport(report);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    } catch (e) {
-      console.error(e);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible descargar el reporte.');
     } finally {
       setDownloadingId(null);
     }

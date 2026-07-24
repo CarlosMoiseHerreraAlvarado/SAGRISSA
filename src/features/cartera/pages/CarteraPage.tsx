@@ -131,18 +131,15 @@ export default function CarteraPage() {
             </Card>
 
             <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-               <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Próximos Vencimientos</h4>
+               <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Facturas vencidas</h4>
                <div className="space-y-6">
-                 {[
-                   { client: 'Agrícola S.J.', date: 'En 2 días', amount: '$4,200.00' },
-                   { client: 'Distribuidora Z', date: 'En 5 días', amount: '$1,850.00' },
-                 ].map((v, i) => (
-                   <div key={i} className="flex justify-between items-center">
+                 {invoices.length === 0 ? <p className="text-sm font-semibold text-slate-400">No hay facturas vencidas.</p> : invoices.slice(0, 4).map(invoice => (
+                   <div key={invoice.id} className="flex items-center justify-between gap-4">
                      <div className="flex flex-col">
-                       <span className="text-[13px] font-black text-slate-700">{v.client}</span>
-                       <span className="text-[10px] font-bold text-amber-500 uppercase">{v.date}</span>
+                       <span className="truncate text-[13px] font-black text-slate-700">{invoice.customerName}</span>
+                       <span className="text-[10px] font-bold uppercase text-amber-500">{invoice.daysOverdue} días vencida</span>
                      </div>
-                     <span className="text-sm font-black text-slate-400">{v.amount}</span>
+                     <span className="text-sm font-black text-slate-400">${invoice.amount.toLocaleString()}</span>
                    </div>
                  ))}
                </div>

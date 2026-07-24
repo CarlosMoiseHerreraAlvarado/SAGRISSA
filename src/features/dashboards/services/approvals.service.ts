@@ -1,4 +1,5 @@
 import { fetchApi } from '../../../core/api/api.config';
+import { trackEvent } from '../../../core/utils/appInsights';
 
 export interface ApprovalRequest {
   id: string;
@@ -13,8 +14,12 @@ export interface ApprovalRequest {
 
 export const approvalsService = {
   getPending: (): Promise<ApprovalRequest[]> => fetchApi<ApprovalRequest[]>('/approvals'),
-  decide: (id: string, decision: 'approve' | 'reject', comment?: string): Promise<ApprovalRequest> => fetchApi<ApprovalRequest>(`/approvals/${encodeURIComponent(id)}/decision`, {
-    method: 'POST',
-    body: JSON.stringify({ decision, comment }),
-  }),
+  decide: async (id: string, decision: 'approve' | 'reject', comment?: string): Promise<ApprovalRequest> => {
+    const result = await fetchApi<ApprovalRequest>(`/approvals/${encodeURIComponent(id)}/decision`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, comment }),
+    });
+    trackEvent('approvals.decision', { approvalId: id, decision });
+    return result;
+  },
 };

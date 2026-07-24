@@ -29,6 +29,8 @@ paths:
     get: { summary: Obtener perfil y capacidades efectivas, responses: { '200': { description: Perfil } } }
   /customers:
     get: { summary: Clientes dentro del alcance del usuario, responses: { '200': { description: Clientes } } }
+  /team:
+    get: { summary: Equipo de vendedores dentro del alcance del supervisor, responses: { '200': { description: Equipo asignado } } }
   /catalog/products:
     get: { summary: Catálogo y existencias, responses: { '200': { description: Productos } } }
   /orders:
@@ -65,7 +67,7 @@ paths:
   /approvals/{id}/decision:
     post: { summary: Aprobar o rechazar con auditoría, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '200': { description: Decisión registrada }, '409': { description: Estado incompatible } } }
   /goals:
-    get: { summary: Metas, responses: { '200': { description: Metas } } }
+    get: { summary: Metas, parameters: [{ name: scope, in: query, required: false, schema: { type: string, enum: [supervisor, gerente, director] } }], responses: { '200': { description: Metas } } }
   /analytics:
     get: { summary: Analytics ejecutivos, responses: { '200': { description: Indicadores agregados } } }
   /reports:

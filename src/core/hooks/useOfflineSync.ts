@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { syncService } from '../api/sync.service';
 import { fetchApi } from '../api/api.config';
+import { trackEvent } from '../utils/appInsights';
 
 export function useOfflineSync() {
   useEffect(() => {
@@ -9,7 +10,8 @@ export function useOfflineSync() {
       
       // Esperamos un momento para asegurar que el socket esté listo
       setTimeout(async () => {
-        await syncService.processQueue(fetchApi);
+        const result = await syncService.processQueue(fetchApi);
+        trackEvent('offline.sync.completed', result);
         
         // Opcional: Mostrar una notificación nativa si tenemos permiso
         if ('Notification' in window && Notification.permission === 'granted') {
@@ -30,7 +32,7 @@ export function useOfflineSync() {
 
     // Verificación inicial por si la app carga directamente offline
     if (navigator.onLine) {
-       syncService.processQueue(fetchApi);
+       void syncService.processQueue(fetchApi).then(result => trackEvent('offline.sync.completed', result));
     }
 
     return () => {

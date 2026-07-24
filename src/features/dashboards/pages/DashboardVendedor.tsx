@@ -4,6 +4,9 @@ import { PackageSearch, Users, Landmark, FileText, Activity, MapPin, Loader2 } f
 import { useAuth } from '../../../core/hooks/useAuth';
 import { Skeleton } from '../../../core/ui/Skeleton';
 import { getGeoLocation } from '../../../core/utils/geolocation';
+import { orderService } from '../../pedidos/services/order.service';
+import { cobrosService } from '../../cobros/services/cobros.service';
+import type { Order } from '../../../types';
 
 export default function DashboardVendedor() {
   const { user } = useAuth();
@@ -12,10 +15,20 @@ export default function DashboardVendedor() {
   const [geoLoading, setGeoLoading] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [salesTotal, setSalesTotal] = useState<number | null>(null);
+  const [collectionsTotal, setCollectionsTotal] = useState<number | null>(null);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [dataError, setDataError] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    Promise.all([orderService.getMyOrders(), cobrosService.getPaymentHistory()])
+      .then(([orders, payments]) => {
+        setRecentOrders(orders.slice(0, 3));
+        setSalesTotal(orders.reduce((total, order) => total + order.totalAmount, 0));
+        setCollectionsTotal(payments.reduce((total, payment) => total + payment.amount, 0));
+      })
+      .catch(caught => setDataError(caught instanceof Error ? caught.message : 'No fue posible cargar tus indicadores.'))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleGetLocation = async () => {
@@ -60,7 +73,8 @@ export default function DashboardVendedor() {
           <div className="flex flex-col gap-8 md:gap-10">
 
             {/* Metas Card - Solid Style, no gradients */}
-            <div className="bg-[#00A9F4] rounded-[32px] p-6 text-white shadow-lg relative overflow-hidden">
+          <div className="bg-[#00A9F4] rounded-[32px] p-6 text-white shadow-lg relative overflow-hidden">
+               {dataError && <p role="alert" className="mb-4 rounded-xl bg-white/15 p-3 text-xs font-semibold">{dataError}</p>}
                <div className="flex items-center gap-3 mb-6">
                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
                     <Activity size={20} />
@@ -71,16 +85,16 @@ export default function DashboardVendedor() {
                <div className="grid grid-cols-2 gap-6">
                  <div>
                    <p className="text-[10px] font-bold text-white/60 mb-2 uppercase tracking-wider">Ventas</p>
-                   {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">$45,200</p>}
+                   {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">{salesTotal === null ? '—' : `$${salesTotal.toLocaleString()}`}</p>}
                    <div className="w-full h-1.5 bg-black/10 rounded-full mt-3 overflow-hidden">
-                     <div className="h-full bg-white rounded-full" style={{ width: '90%' }} />
+                     <div className="h-full bg-white rounded-full" style={{ width: salesTotal === null ? '0%' : '100%' }} />
                    </div>
                  </div>
                  <div>
                    <p className="text-[10px] font-bold text-white/60 mb-2 uppercase tracking-wider">Cobros</p>
-                   {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">$22,800</p>}
+                   {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">{collectionsTotal === null ? '—' : `$${collectionsTotal.toLocaleString()}`}</p>}
                    <div className="w-full h-1.5 bg-black/10 rounded-full mt-3 overflow-hidden">
-                     <div className="h-full bg-white rounded-full" style={{ width: '75%' }} />
+                     <div className="h-full bg-white rounded-full" style={{ width: collectionsTotal === null ? '0%' : '100%' }} />
                    </div>
                  </div>
                </div>
@@ -142,31 +156,12 @@ export default function DashboardVendedor() {
               <div className="bg-white border border-slate-100 rounded-[32px] p-5 shadow-sm space-y-4">
                 {loading ? (
                    Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between group cursor-pointer" onClick={() => navigate('/app/pedidos')}>
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-bold text-slate-800">Luis Armando S.</span>
-                        <span className="text-[10px] font-medium text-slate-400">ORD-99020 · Hace 2h</span>
-                      </div>
-                      <div className="bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#00A9F4]" />
-                        <span className="text-[10px] font-bold text-slate-600 uppercase">Borrador</span>
-                      </div>
-                    </div>
-                    <div className="w-full h-px bg-slate-50" />
-                    <div className="flex items-center justify-between group cursor-pointer" onClick={() => navigate('/app/pedidos')}>
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-bold text-slate-800">Andrea Montoya</span>
-                        <span className="text-[10px] font-medium text-slate-400">ORD-99018 · Ayer</span>
-                      </div>
-                      <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase">Enviado</span>
-                      </div>
-                    </div>
-                  </>
-                )}
+                ) : recentOrders.length === 0 ? <p className="py-4 text-center text-sm font-semibold text-ink-muted">No hay pedidos recientes.</p> : recentOrders.map(order => (
+                  <button type="button" key={order.id} className="flex w-full items-center justify-between gap-4 text-left" onClick={() => navigate(`/app/pedidos/${order.id}`)}>
+                    <span className="flex flex-col"><span className="text-[13px] font-bold text-slate-800">{order.customerName}</span><span className="text-[10px] font-medium text-slate-400">{order.orderNumber} · {new Date(order.dateCreated).toLocaleDateString('es-SV')}</span></span>
+                    <span className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5 text-[10px] font-bold uppercase text-slate-600">{order.status}</span>
+                  </button>
+                ))}
               </div>
             </div>
 

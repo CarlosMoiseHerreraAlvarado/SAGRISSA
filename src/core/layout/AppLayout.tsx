@@ -4,6 +4,7 @@ import { Home, DollarSign, FileText, Package, ClipboardList, Settings, LogOut, U
 import { useAuth } from '../hooks/useAuth';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { syncService } from '../api/sync.service';
+import { fetchApi } from '../api/api.config';
 import type { Permission, Role } from '../../types';
 import { hasPermission } from '../auth/permissions';
 
@@ -63,9 +64,16 @@ export default function AppLayout() {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [failedCount, setFailedCount] = useState(0);
+  const [syncMessage, setSyncMessage] = useState('');
 
   useEffect(() => {
-    const refreshQueue = () => { void syncService.getQueue().then(queue => setPendingCount(queue.length)); };
+    const refreshQueue = () => {
+      void Promise.all([syncService.getQueue(), syncService.getFailedQueue()]).then(([queue, failed]) => {
+        setPendingCount(queue.length);
+        setFailedCount(failed.length);
+      });
+    };
     refreshQueue();
     const interval = window.setInterval(refreshQueue, 5000);
     return () => window.clearInterval(interval);
@@ -84,9 +92,21 @@ export default function AppLayout() {
   const handleManualSync = async () => {
     if (!isOnline) return;
     setIsSyncing(true);
-    // Simulación de forzar sincronización
-    await new Promise(r => setTimeout(r, 2000));
-    setIsSyncing(false);
+    setSyncMessage('Sincronizando operaciones pendientes...');
+    try {
+      const result = await syncService.processQueue(fetchApi);
+      setPendingCount(result.pending);
+      setFailedCount(result.failed);
+      setSyncMessage(result.pending > 0
+        ? `${result.pending} operación(es) requieren atención.`
+        : result.failed > 0 ? `${result.failed} operación(es) fallaron y requieren revisión.`
+        : 'Sincronización completada.');
+    } catch (caught) {
+      setSyncMessage(caught instanceof Error ? caught.message : 'No fue posible sincronizar.');
+    } finally {
+      setIsSyncing(false);
+      window.setTimeout(() => setSyncMessage(''), 4000);
+    }
   };
 
   const navItems = user
@@ -147,6 +167,8 @@ export default function AppLayout() {
               <CloudSync size={14} className={isSyncing ? 'text-brand-blue animate-spin' : 'text-slate-300'} />
            </div>
            {pendingCount > 0 && <p className="mb-3 text-[10px] font-bold text-amber-700">{pendingCount} operación{pendingCount === 1 ? '' : 'es'} pendiente{pendingCount === 1 ? '' : 's'}</p>}
+           {failedCount > 0 && <p className="mb-3 text-[10px] font-bold text-red-700">{failedCount} operación{failedCount === 1 ? '' : 'es'} fallida{failedCount === 1 ? '' : 's'}</p>}
+           {syncMessage && <p role="status" className="mb-3 text-[10px] font-bold text-brand-blue">{syncMessage}</p>}
            <button 
              onClick={handleManualSync}
              disabled={!isOnline || isSyncing}

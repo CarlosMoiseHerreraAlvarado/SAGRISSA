@@ -1,4 +1,5 @@
 import { fetchApi } from '../../../core/api/api.config';
+import { trackEvent } from '../../../core/utils/appInsights';
 
 export interface PendingInvoice {
   id: string;
@@ -41,7 +42,12 @@ export const cobrosService = {
       method: 'POST',
       body: JSON.stringify(payment),
     });
-    return response._offlineQueued ? { ...response, status: 'pending', queuedOffline: true } : response;
+    if (response._offlineQueued) {
+      trackEvent('collections.created.offline', { invoiceId: payment.invoiceId, amount: payment.amount });
+      return { ...response, status: 'pending', queuedOffline: true };
+    }
+    trackEvent('collections.created', { invoiceId: payment.invoiceId, amount: payment.amount });
+    return response;
   },
 
   getPaymentHistory: async (): Promise<PaymentRecord[]> => {

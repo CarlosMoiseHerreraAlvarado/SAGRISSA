@@ -57,51 +57,67 @@ function App() {
           <Route element={<AppLayout />}>
 
             {/* ─── Cliente ─── */}
-            <Route element={<ProtectedRoute allowedRoles={['cliente']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['cliente']} requiredPermissions="account.read" />}>
               <Route path="cliente/home" element={<HomeCliente />} />
-              <Route path="cliente/operaciones" element={<OperacionesCliente />} />
-              <Route path="cliente/catalogo" element={<CatalogoPage readOnly />} />
+              <Route element={<ProtectedRoute requiredPermissions="orders.read" />}>
+                <Route path="cliente/operaciones" element={<OperacionesCliente />} />
+                <Route path="cliente/pedidos" element={<PedidosCliente />} />
+                <Route path="cliente/pedidos/:id" element={<PedidoDetailPage />} />
+              </Route>
+              <Route element={<ProtectedRoute requiredPermissions="catalog.read" />}>
+                <Route path="cliente/catalogo" element={<CatalogoPage readOnly />} />
+              </Route>
               <Route path="cliente/cartera" element={<AccountCliente />} />
-              <Route path="cliente/facturas" element={<FacturasCliente />} />
-              <Route path="cliente/facturas/:id" element={<FacturaDetailCliente />} />
-              <Route path="cliente/pedidos" element={<PedidosCliente />} />
-              <Route path="cliente/pedidos/:id" element={<PedidoDetailPage />} />
+              <Route element={<ProtectedRoute requiredPermissions="invoices.read" />}>
+                <Route path="cliente/facturas" element={<FacturasCliente />} />
+                <Route path="cliente/facturas/:id" element={<FacturaDetailCliente />} />
+              </Route>
 
             </Route>
 
             {/* ─── Vendedor ─── */}
-            <Route element={<ProtectedRoute allowedRoles={['vendedor']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['vendedor']} requiredPermissions="orders.read" />}>
               <Route path="vendedor/home" element={<DashboardVendedor />} />
               <Route path="clientes" element={<ClientesAsignadosPage />} />
               <Route path="cartera" element={<CarteraPage />} />
               <Route path="cobros" element={<HistorialPagosPage />} />
-              <Route path="cobros/nuevo" element={<RegistroCobrosPage />} />
+              <Route element={<ProtectedRoute requiredPermissions={['collections.read', 'collections.create']} />}>
+                <Route path="cobros/nuevo" element={<RegistroCobrosPage />} />
+              </Route>
               <Route path="reportes" element={<VendedorReportesPage />} />
               <Route path="catalogo" element={<CatalogoPage />} />
 
               <Route path="pedidos" element={<PedidosVendedorPage />} />
               <Route path="pedidos/:id" element={<PedidoDetailVendedorPage />} />
-              <Route path="pedidos/:id/editar" element={<NuevoPedidoPage />} />
-              <Route path="pedidos/nuevo" element={<NuevoPedidoPage />} />
+              <Route element={<ProtectedRoute requiredPermissions={['orders.read', 'orders.update']} />}>
+                <Route path="pedidos/:id/editar" element={<NuevoPedidoPage />} />
+              </Route>
+              <Route element={<ProtectedRoute requiredPermissions="orders.create" />}>
+                <Route path="pedidos/nuevo" element={<NuevoPedidoPage />} />
+              </Route>
               <Route path="facturas" element={<FacturasPage />} />
 
 
             </Route>
 
             {/* ─── Supervisor ─── */}
-            <Route element={<ProtectedRoute allowedRoles={['supervisor']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['supervisor']} requiredPermissions="goals.read" />}>
               <Route path="supervisor/home" element={<DashboardSupervisor />} />
               <Route path="supervisor/equipo" element={<SupervisorEquipoPage />} />
               <Route path="supervisor/metas" element={<SupervisorMetasPage />} />
-              <Route path="supervisor/aprobaciones" element={<SupervisorApprovalsPage />} />
+              <Route element={<ProtectedRoute requiredPermissions={['approvals.read', 'approvals.decide']} />}>
+                <Route path="supervisor/aprobaciones" element={<SupervisorApprovalsPage />} />
+              </Route>
               <Route path="supervisor/facturas" element={<FacturasPage />} />
             </Route>
 
 
             {/* ─── Gerente ─── */}
-            <Route element={<ProtectedRoute allowedRoles={['gerente']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['gerente']} requiredPermissions="approvals.read" />}>
               <Route path="gerente/home" element={<DashboardGerente />} />
-              <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
+              <Route element={<ProtectedRoute requiredPermissions={['approvals.read', 'approvals.decide']} />}>
+                <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
+              </Route>
               <Route path="gerente/metas" element={<GerenteMetasPage />} />
               <Route path="gerente/reportes" element={<DirectorReportesPage />} />
               <Route path="gerente/facturas" element={<FacturasPage />} />
@@ -109,7 +125,7 @@ function App() {
 
 
             {/* ─── Director ─── */}
-            <Route element={<ProtectedRoute allowedRoles={['director']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['director']} requiredPermissions="analytics.read" />}>
               <Route path="director/home" element={<DashboardDirector />} />
               <Route path="director/analytics" element={<DirectorAnalyticsPage />} />
               <Route path="director/reportes" element={<DirectorReportesPage />} />

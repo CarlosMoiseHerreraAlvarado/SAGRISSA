@@ -5,6 +5,7 @@ import { useAuth } from '../../../core/hooks/useAuth';
 import { fetchApi } from '../../../core/api/api.config';
 import { ROLE_OFFLINE_CAPABILITIES, ROLE_PERMISSIONS } from '../../../core/auth/permissions';
 import type { BackendLoginResponse, Role, User } from '../../../types';
+import { trackEvent } from '../../../core/utils/appInsights';
 
 const DEFAULT_ROUTES: Record<Role, string> = {
   vendedor: '/app/vendedor/home',
@@ -94,8 +95,10 @@ export default function LoginPage() {
       });
       const nextUser = buildUser(response, cleanDui);
       login(nextUser, response.accessToken ?? response.token, response.expiresAt);
+      trackEvent('auth.login.success', { role: nextUser.role });
       navigate(DEFAULT_ROUTES[nextUser.role], { replace: true });
     } catch (caught: unknown) {
+      trackEvent('auth.login.failure', { reason: caught instanceof Error ? caught.message : 'unknown' });
       setError(caught instanceof Error ? caught.message : 'No fue posible iniciar sesión.');
     } finally {
       setLoading(false);

@@ -1,5 +1,6 @@
 import { fetchApi } from '../../../core/api/api.config';
 import type { BackendPedidoEncabezado, BackendPedidoResponse, Order, OrderStatus } from '../../../types';
+import { trackEvent } from '../../../core/utils/appInsights';
 
 function mapEstatus(estatus: string): OrderStatus {
   const map: Record<string, OrderStatus> = {
@@ -57,8 +58,10 @@ export const orderService = {
       body: JSON.stringify(orderPayload),
     });
     if (isOfflineQueued(response)) {
+      trackEvent('orders.created.offline', { customerId: String(orderPayload.customerId ?? '') });
       return { ...orderPayload, id: `offline-${Date.now()}`, orderNumber: 'PENDIENTE', status: 'pending_approval', dateCreated: new Date().toISOString(), queuedOffline: true } as Order;
     }
+    trackEvent('orders.created', { orderId: response.id });
     return response;
   },
 
@@ -68,8 +71,10 @@ export const orderService = {
       body: JSON.stringify(orderPayload),
     });
     if (isOfflineQueued(response)) {
+      trackEvent('orders.updated.offline', { orderId: id });
       return { ...orderPayload, id, orderNumber: 'PENDIENTE', status: 'pending_approval', queuedOffline: true } as Order;
     }
+    trackEvent('orders.updated', { orderId: id });
     return response;
   },
 };

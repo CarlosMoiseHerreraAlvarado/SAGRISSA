@@ -11,10 +11,12 @@ export interface SyncTask {
   timestamp: number;
   attempts: number;
   lastError?: string;
+  lastStatus?: number;
 }
 
 const catalogStore = localforage.createInstance({ name: 'sagrissa_catalog' });
 const syncQueueStore = localforage.createInstance({ name: 'sagrissa_sync_queue' });
+const failedQueueStore = localforage.createInstance({ name: 'sagrissa_failed_queue' });
 
 async function readQueue(): Promise<SyncTask[]> {
   return (await syncQueueStore.getItem<SyncTask[]>('queue')) ?? [];
@@ -48,21 +50,39 @@ export const syncService = {
 
   getQueue: readQueue,
 
+  getFailedQueue: async (): Promise<SyncTask[]> => (await failedQueueStore.getItem<SyncTask[]>('queue')) ?? [],
+
   clearQueue: async () => {
     await syncQueueStore.setItem('queue', []);
+  },
+
+  retryFailed: async (taskId?: string) => {
+    const failed = await syncService.getFailedQueue();
+    const retryable = taskId ? failed.filter(task => task.id === taskId) : failed;
+    const remainingFailed = taskId ? failed.filter(task => task.id !== taskId) : [];
+    const pending = await readQueue();
+    const restored = retryable.map(task => ({ ...task, attempts: 0, lastError: undefined, lastStatus: undefined }));
+    await syncQueueStore.setItem('queue', [...pending, ...restored]);
+    await failedQueueStore.setItem('queue', remainingFailed);
   },
 
   processQueue: async (apiCallback: (endpoint: string, options: RequestInit) => Promise<unknown>) => {
     const queue = await readQueue();
     const remaining: SyncTask[] = [];
+    const failed = await syncService.getFailedQueue();
+    const failedBefore = failed.length;
     for (const task of queue) {
       try {
         await apiCallback(task.endpoint, { method: task.method, body: JSON.stringify(task.payload) });
       } catch (caught) {
-        remaining.push({ ...task, attempts: task.attempts + 1, lastError: caught instanceof Error ? caught.message : 'Error desconocido' });
+        const status = typeof caught === 'object' && caught !== null && 'status' in caught && typeof caught.status === 'number' ? caught.status : undefined;
+        const nextTask = { ...task, attempts: task.attempts + 1, lastError: caught instanceof Error ? caught.message : 'Error desconocido', lastStatus: status };
+        if (status === 409 || nextTask.attempts >= 3) failed.push(nextTask);
+        else remaining.push(nextTask);
       }
     }
     await syncQueueStore.setItem('queue', remaining);
-    return { processed: queue.length - remaining.length, pending: remaining.length };
+    await failedQueueStore.setItem('queue', failed);
+    return { processed: queue.length - remaining.length - (failed.length - failedBefore), pending: remaining.length, failed: failed.length };
   },
 };

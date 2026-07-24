@@ -1,99 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Landmark, DollarSign, Calendar, ChevronRight, AlertCircle } from 'lucide-react';
-
+import { ArrowLeft, Calendar, ChevronRight, DollarSign, Landmark } from 'lucide-react';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { carteraService, type CarteraSummary, type OverdueInvoice } from '../../cartera/services/cartera.service';
 
 export default function EstadoCarteraPage() {
   const navigate = useNavigate();
+  const [summary, setSummary] = useState<CarteraSummary | null>(null);
+  const [invoices, setInvoices] = useState<OverdueInvoice[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const facturasVencidas = [
-    { id: '1', invoice: 'FAC-2024-001', customer: 'Agropecuaria El Sol', amount: '$1,200.00', days: '15 días', status: 'critical' },
-    { id: '2', invoice: 'FAC-2024-015', customer: 'Distribuidora X', amount: '$450.00', days: '3 días', status: 'warning' },
-  ];
-
-  return (
-    <MobilePage>
-      <header className="px-6 md:px-0 pt-16 md:pt-0 pb-6 flex items-center gap-4 z-10 relative">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors">
-          <ArrowLeft size={24} />
-        </button>
-        <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Estado de Cartera</h1>
-          <p className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Cobros y Vencimientos</p>
-        </div>
-      </header>
-
-      <div className="flex flex-col gap-8 px-6 md:px-0 z-10 relative pb-24">
-        
-        {/* Collection Summary */}
-        <div className="bg-brand-blue rounded-[40px] p-8 text-white shadow-lg shadow-brand-blue/20 relative overflow-hidden">
-           <div className="relative z-10">
-              <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-2">Total Pendiente de Cobro</p>
-              <h2 className="text-3xl font-black mb-6">$12,450.00</h2>
-              
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="bg-white/10 p-4 rounded-2xl">
-                    <p className="text-[9px] font-bold text-white/60 uppercase">Vencido</p>
-                    <p className="text-lg font-black">$1,650.00</p>
-                 </div>
-                 <div className="bg-white/10 p-4 rounded-2xl">
-                    <p className="text-[9px] font-bold text-white/60 uppercase">Próximo</p>
-                    <p className="text-lg font-black">$2,200.00</p>
-                 </div>
-              </div>
-           </div>
-           <Landmark size={120} className="absolute -bottom-10 -right-10 text-white/5" />
-        </div>
-
-        {/* Facturas Section */}
-        <div className="flex flex-col gap-4">
-           <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Facturas por Cobrar</h3>
-           <div className="flex flex-col gap-3">
-              {loading ? (
-                Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-[32px]" />)
-              ) : (
-                facturasVencidas.map((fac) => (
-                  <div key={fac.id} className="bg-white border border-slate-50 p-6 rounded-[32px] shadow-sm flex items-center justify-between group">
-                    <div className="flex items-center gap-4">
-                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${fac.status === 'critical' ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-500'}`}>
-                          {fac.status === 'critical' ? <AlertCircle size={24} /> : <Calendar size={24} />}
-                       </div>
-                       <div>
-                          <p className="text-[14px] font-black text-slate-800">{fac.customer}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{fac.invoice} · Vence en {fac.days}</p>
-                       </div>
-                    </div>
-                    <div className="text-right flex items-center gap-4">
-                       <div>
-                          <p className="text-[15px] font-black text-slate-700">{fac.amount}</p>
-                          <button className="text-[9px] font-black text-brand-blue uppercase hover:underline">Registrar Cobro</button>
-                       </div>
-                       <ChevronRight size={18} className="text-slate-100" />
-                    </div>
-                  </div>
-                ))
-              )}
-           </div>
-        </div>
-
-        {/* Action Button */}
-        <button className="w-full py-5 bg-slate-900 text-white rounded-[32px] font-black text-[13px] uppercase tracking-widest shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2">
-           <DollarSign size={18} /> Registrar Recibo de Caja
-        </button>
-
-      </div>
-
-      <svg className="absolute bottom-[5%] left-6 w-2 h-40 pointer-events-none opacity-20" viewBox="0 0 10 100" fill="none">
-        <line x1="5" y1="0" x2="5" y2="100" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" />
-      </svg>
-    </MobilePage>
-  );
+  const [error, setError] = useState('');
+  useEffect(() => { Promise.all([carteraService.getSummary(), carteraService.getOverdueInvoices()]).then(([data, overdue]) => { setSummary(data); setInvoices(overdue); }).catch(caught => setError(caught instanceof Error ? caught.message : 'No fue posible cargar la cartera.')).finally(() => setLoading(false)); }, []);
+  return <MobilePage>
+    <header className="flex items-center gap-4 px-6 pb-6 pt-16 md:px-0 md:pt-0"><button type="button" onClick={() => navigate(-1)} aria-label="Volver" className="min-h-11 min-w-11 text-ink-muted"><ArrowLeft size={24} className="mx-auto" /></button><div><h1 className="text-xl font-black text-ink md:text-2xl">Estado de cartera</h1><p className="text-[10px] font-black uppercase tracking-widest text-brand-blue">Cobros y vencimientos</p></div></header>
+    <div className="space-y-8 px-6 pb-24 md:px-0">{error && <p role="alert" className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</p>}<section className="rounded-3xl bg-brand-blue p-8 text-white shadow-card"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-white/70">Total pendiente</p><h2 className="mt-2 text-3xl font-black">{summary ? `$${summary.totalDebt.toLocaleString()}` : '—'}</h2></div><Landmark size={48} className="text-white/50" /></div><div className="mt-6 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-white/10 p-4"><p className="text-xs text-white/70">Vencido</p><strong>${summary?.overdue90.toLocaleString() ?? '—'}</strong></div><div className="rounded-2xl bg-white/10 p-4"><p className="text-xs text-white/70">Corriente</p><strong>${summary?.current.toLocaleString() ?? '—'}</strong></div></div></section><section className="space-y-4"><h2 className="px-1 text-sm font-black uppercase tracking-widest text-ink">Facturas por cobrar</h2>{loading ? [1, 2].map(item => <Skeleton key={item} className="h-24 rounded-3xl" />) : invoices.length === 0 ? <div className="rounded-3xl border border-dashed border-surface-border p-8 text-center text-sm font-semibold text-ink-muted">No hay facturas vencidas.</div> : invoices.map(invoice => <article key={invoice.id} className="flex items-center justify-between gap-4 rounded-3xl border border-surface-border bg-white p-5 shadow-card"><div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><Calendar size={20} /></span><div><p className="font-black text-ink">{invoice.customerName}</p><p className="text-xs font-bold uppercase tracking-widest text-ink-muted">{invoice.number} · {invoice.daysOverdue} días</p></div></div><div className="flex items-center gap-3"><strong className="text-sm text-ink">${invoice.amount.toLocaleString()}</strong><ChevronRight size={18} className="text-ink-light" /></div></article>)}</section><button type="button" onClick={() => navigate('/app/vendedor/cobros/nuevo')} className="flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-slate-900 text-sm font-black uppercase tracking-widest text-white"><DollarSign size={18} /> Registrar cobro</button></div>
+  </MobilePage>;
 }

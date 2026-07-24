@@ -29,8 +29,8 @@ export default function DirectorReportesPage() {
     setDownloadingId(report.id);
     try {
       await reportsService.downloadReport(report);
-    } catch (e) {
-      console.error('Error downloading report', e);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible descargar el reporte.');
     } finally {
       setDownloadingId(null);
     }

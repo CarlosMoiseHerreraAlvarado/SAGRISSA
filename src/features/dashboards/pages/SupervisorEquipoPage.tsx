@@ -4,6 +4,7 @@ import { ArrowLeft, User, Phone, Mail, MapPin, MoreVertical, TrendingUp, Trendin
 
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { fetchApi } from '../../../core/api/api.config';
 
 interface TeamMember {
   id: string;
@@ -20,18 +21,13 @@ export default function SupervisorEquipoPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [team, setTeam] = useState<TeamMember[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTeam([
-        { id: 'v1', name: 'Luis Navarro', role: 'Vendedor Senior', status: 'online', lastActive: 'Ahora', monthlySales: 24500, performance: 92, region: 'San Salvador' },
-        { id: 'v2', name: 'Andrea Montoya', role: 'Vendedor Junior', status: 'online', lastActive: 'Hace 5m', monthlySales: 18200, performance: 75, region: 'La Libertad' },
-        { id: 'v3', name: 'Carlos Ruíz', role: 'Vendedor Senior', status: 'offline', lastActive: 'Hace 2h', monthlySales: 12800, performance: 60, region: 'Santa Ana' },
-        { id: 'v4', name: 'Roberto Sosa', role: 'Vendedor Junior', status: 'busy', lastActive: 'En reunión', monthlySales: 9500, performance: 45, region: 'San Miguel' },
-      ]);
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    fetchApi<TeamMember[]>('/team')
+      .then(setTeam)
+      .catch(caught => setError(caught instanceof Error ? caught.message : 'No fue posible cargar el equipo.'))
+      .finally(() => setLoading(false));
   }, []);
 
   const getStatusColor = (status: TeamMember['status']) => {
@@ -61,6 +57,7 @@ export default function SupervisorEquipoPage() {
       </header>
 
       <div className="flex flex-col gap-6 px-6 md:px-0 z-10 relative pb-24">
+        {error && <p role="alert" className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</p>}
         
         {/* Team Summary KPIs */}
         {!loading && (
@@ -83,6 +80,8 @@ export default function SupervisorEquipoPage() {
 
         {loading ? (
           Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-[32px]" />)
+        ) : team.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-surface-border p-8 text-center text-sm font-semibold text-ink-muted">No hay vendedores asignados para tu alcance.</div>
         ) : (
           <div className="flex flex-col gap-4">
             {team.map((member) => (

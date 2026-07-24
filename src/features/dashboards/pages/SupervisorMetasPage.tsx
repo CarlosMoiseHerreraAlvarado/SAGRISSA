@@ -1,129 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Target, CheckCircle2, AlertCircle } from 'lucide-react';
-
+import { ArrowLeft, CheckCircle2, Target } from 'lucide-react';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { goalsService, type GoalItem } from '../services/goals.service';
 
 export default function SupervisorMetasPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [goals, setGoals] = useState<GoalItem[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    goalsService.getGoals('supervisor')
+      .then(setGoals)
+      .catch(caught => setError(caught instanceof Error ? caught.message : 'No fue posible cargar las metas.'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const goals = [
-    { id: '1', title: 'Meta Ventas Abril', current: 55500, target: 80000, color: 'brand' },
-    { id: '2', title: 'Recuperación de Cartera', current: 12000, target: 15000, color: 'emerald' },
-    { id: '3', title: 'Nuevos Clientes', current: 8, target: 10, color: 'brand' },
-  ];
+  const current = goals.reduce((sum, goal) => sum + goal.current, 0);
+  const target = goals.reduce((sum, goal) => sum + goal.target, 0);
+  const totalProgress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
 
-  return (
-    <MobilePage>
-      {/* Pattern Background strictly following brand guidelines */}
-      <svg className="absolute top-0 right-10 w-24 h-32 pointer-events-none opacity-40 z-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 0 0 Q 10 60 70 40 Q 90 30 100 40" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" fill="none"/>
-      </svg>
-
-      <header className="px-6 md:px-0 pt-16 md:pt-0 pb-6 flex items-center gap-4 z-10 relative">
-
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors">
-          <ArrowLeft size={24} />
-        </button>
-        <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Metas de Equipo</h1>
-          <p className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Cumplimiento y Objetivos</p>
-        </div>
-      </header>
-
-      <div className="flex flex-col gap-6 px-6 md:px-0 z-10 relative pb-24">
-        
-        {/* Main Progress Circle / Hero - Consistent Light Style */}
-        <div className="bg-white border border-slate-100 rounded-[40px] p-8 relative overflow-hidden shadow-sm">
-           <div className="relative z-10 flex flex-col items-center">
-              <div className="w-40 h-40 rounded-full border-[12px] border-slate-50 flex flex-col items-center justify-center relative mb-6">
-                 <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                    <circle 
-                      cx="50" cy="50" r="44" 
-                      fill="none" 
-                      stroke="#00A9F4" 
-                      strokeWidth="12" 
-                      strokeDasharray="276" 
-                      strokeDashoffset="82" // Simulating 70%
-                      strokeLinecap="round"
-                    />
-                 </svg>
-                 <span className="text-4xl font-black tracking-tighter text-slate-800">70%</span>
-                 <span className="text-[10px] font-bold uppercase text-slate-400">Total</span>
-              </div>
-              <h3 className="font-black text-[18px] text-slate-800 mb-1">Cierre de Mes</h3>
-              <p className="text-slate-400 text-[11px] font-medium">Quedan 8 días para finalizar el periodo</p>
-           </div>
-        </div>
-
-
-        {/* Detailed Goals */}
-        <div className="flex flex-col gap-4">
-           <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-widest px-2 underline decoration-[#00A9F4] decoration-2 underline-offset-4 mb-2">Detalle de Objetivos</h3>
-           
-           {loading ? (
-             Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-[32px]" />)
-           ) : (
-             <div className="flex flex-col gap-4">
-               {goals.map((goal) => {
-                 const progress = (goal.current / goal.target) * 100;
-                 return (
-                   <div key={goal.id} className="bg-white border border-slate-100 p-6 rounded-[32px] shadow-sm flex flex-col gap-4">
-                      <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl ${goal.color === 'emerald' ? 'bg-emerald-50 text-emerald-500' : 'bg-brand-blue/10 text-brand-blue'} flex items-center justify-center`}>
-                               {goal.color === 'emerald' ? <CheckCircle2 size={20} /> : <Target size={20} />}
-                            </div>
-                            <span className="font-black text-[14px] text-slate-800">{goal.title}</span>
-                         </div>
-                         <span className="text-sm font-black text-slate-800">{progress.toFixed(0)}%</span>
-                      </div>
-
-                      <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                         <div 
-                           className={`h-full rounded-full transition-all duration-1000 ${goal.color === 'emerald' ? 'bg-emerald-500' : 'bg-brand-blue'}`} 
-                           style={{ width: `${progress}%` }} 
-                         />
-                      </div>
-
-                      <div className="flex justify-between items-center text-[11px] font-bold">
-                         <div className="flex items-center gap-1 text-slate-400">
-                            Actual: <span className="text-slate-700">${goal.current.toLocaleString()}</span>
-                         </div>
-                         <div className="flex items-center gap-1 text-slate-400">
-                            Meta: <span className="text-slate-700">${goal.target.toLocaleString()}</span>
-                         </div>
-                      </div>
-                   </div>
-                 );
-               })}
-             </div>
-           )}
-        </div>
-
-        {/* Insight Alert */}
-        <div className="bg-amber-50 border border-amber-100 p-6 rounded-[32px] flex gap-4">
-           <AlertCircle className="text-amber-500 shrink-0" size={24} />
-           <div>
-              <p className="text-[13px] font-black text-amber-800 mb-1">Atención Requerida</p>
-              <p className="text-[11px] font-medium text-amber-700 leading-relaxed">
-                El equipo se encuentra un 5% por debajo de la tendencia esperada para el cierre de mes. Se recomienda revisar los pedidos en estado "Draft".
-              </p>
-           </div>
-        </div>
-
-      </div>
-
-      <svg className="absolute bottom-[10%] right-6 w-2 h-40 pointer-events-none opacity-20" viewBox="0 0 10 100" fill="none">
-        <line x1="5" y1="0" x2="5" y2="100" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" />
-      </svg>
-    </MobilePage>
-  );
+  return <MobilePage>
+    <header className="px-6 pb-6 pt-16 md:px-0 md:pt-0 flex items-center gap-4">
+      <button type="button" onClick={() => navigate(-1)} className="min-h-11 min-w-11 text-ink-muted" aria-label="Volver"><ArrowLeft size={24} className="mx-auto" /></button>
+      <div><h1 className="text-xl font-black text-ink md:text-2xl">Metas de equipo</h1><p className="text-[10px] font-black uppercase tracking-widest text-brand-blue">Cumplimiento y objetivos</p></div>
+    </header>
+    <div className="space-y-6 px-6 pb-24 md:px-0">
+      {error && <p role="alert" className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</p>}
+      <section className="rounded-3xl border border-surface-border bg-white p-8 text-center shadow-card">
+        <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-full border-[12px] border-brand-blue/15 text-4xl font-black text-ink">{totalProgress}%</div>
+        <h2 className="mt-5 text-lg font-black text-ink">Progreso agregado</h2>
+        <p className="mt-1 text-sm text-ink-muted">Datos recibidos desde el servicio de metas.</p>
+      </section>
+      <section className="space-y-4">
+        <h2 className="px-1 text-sm font-black uppercase tracking-widest text-ink">Detalle de objetivos</h2>
+        {loading ? [1, 2, 3].map(item => <Skeleton key={item} className="h-32 w-full rounded-3xl" />) : goals.length === 0 ? <div className="rounded-3xl border border-dashed border-surface-border p-8 text-center text-sm font-semibold text-ink-muted">No hay metas disponibles para tu alcance.</div> : goals.map(goal => {
+          const progress = goal.target > 0 ? Math.min(100, (goal.current / goal.target) * 100) : 0;
+          return <article key={goal.id} className="rounded-3xl border border-surface-border bg-white p-6 shadow-card">
+            <div className="flex items-center justify-between gap-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">{progress >= 100 ? <CheckCircle2 size={20} /> : <Target size={20} />}</span><div><h3 className="font-black text-ink">{goal.title}</h3>{goal.owner && <p className="text-xs text-ink-muted">{goal.owner}</p>}</div></div><strong className="text-sm text-ink">{progress.toFixed(0)}%</strong></div>
+            <div className="mt-5 h-3 overflow-hidden rounded-full bg-surface-soft"><div className="h-full rounded-full bg-brand-blue" style={{ width: `${progress}%` }} /></div>
+            <div className="mt-3 flex justify-between text-xs font-semibold text-ink-muted"><span>Actual: {goal.current.toLocaleString()} {goal.unit}</span><span>Meta: {goal.target.toLocaleString()} {goal.unit}</span></div>
+          </article>;
+        })}
+      </section>
+    </div>
+  </MobilePage>;
 }
