@@ -11,13 +11,14 @@ export default function VendedorReportesPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     reportsService.getReports().then(data => {
       // Filtrar o adaptar reportes específicos para el vendedor si fuera necesario
       setReports(data);
       setLoading(false);
-    });
+    }).catch(caught => setError(caught instanceof Error ? caught.message : 'No fue posible cargar los reportes.')).finally(() => setLoading(false));
   }, []);
 
   const handleDownload = async (report: ReportItem) => {
@@ -69,6 +70,7 @@ export default function VendedorReportesPage() {
         </div>
 
         {/* Report Cards */}
+        {error && <p role="alert" className="mx-4 mb-4 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 md:px-0">
           {loading ? (
             Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-[32px]" />)

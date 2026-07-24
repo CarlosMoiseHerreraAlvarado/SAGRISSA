@@ -7,7 +7,7 @@ import { ListCard, ListCardHeader, ListCardFooter } from '../../../core/ui/ListC
 import { StatusBadge } from '../../../core/ui/StatusBadge';
 import { EmptyState } from '../../../core/ui/EmptyState';
 import { SkeletonListItem } from '../../../core/ui/Skeleton';
-import { facturaService } from '../services/factura.service';
+import { facturaService, type InvoiceSummary } from '../services/factura.service';
 import { FileSpreadsheet } from 'lucide-react';
 import { reportsService } from '../../dashboards/services/reports.service';
 
@@ -16,7 +16,7 @@ export default function FacturasCliente() {
   const [activeTab, setActiveTab] = useState('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
 
   useEffect(() => {
     facturaService.getInvoices().then(data => {

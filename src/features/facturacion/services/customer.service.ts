@@ -3,7 +3,7 @@ import type { BackendCliente, CustomerAccount } from '../../../types';
 
 /**
  * Mapea un ClienteDto del backend al CustomerAccount del frontend.
- * Algunos campos (aging, DUI) no existen aun en el backend mock.
+ * Algunos campos (aging, DUI) pueden ser opcionales según el contrato de APIM.
  */
 function mapCliente(c: BackendCliente): CustomerAccount {
   return {
@@ -22,11 +22,11 @@ function mapCliente(c: BackendCliente): CustomerAccount {
 
 /**
  * Servicio de Clientes.
- * Conecta a GET /api/clientes del backend ASP.NET Core.
+ * Conecta a GET /v1/customers mediante APIM.
  */
 export const customerService = {
   getCustomersList: async () => {
-    const data = await fetchApi<BackendCliente[]>('/api/clientes');
+    const data = await fetchApi<BackendCliente[]>('/customers');
     return data.map(mapCliente);
   }
 };

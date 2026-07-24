@@ -7,6 +7,7 @@ import AppLayout from './core/layout/AppLayout';
 
 // Páginas del Cliente
 import HomeCliente from './features/dashboards/pages/HomeCliente';
+import OperacionesCliente from './features/dashboards/pages/OperacionesCliente';
 import AccountCliente from './features/facturacion/pages/AccountCliente';
 import FacturasCliente from './features/facturacion/pages/FacturasCliente';
 import FacturaDetailCliente from './features/facturacion/pages/FacturaDetailCliente';
@@ -58,6 +59,8 @@ function App() {
             {/* ─── Cliente ─── */}
             <Route element={<ProtectedRoute allowedRoles={['cliente']} />}>
               <Route path="cliente/home" element={<HomeCliente />} />
+              <Route path="cliente/operaciones" element={<OperacionesCliente />} />
+              <Route path="cliente/catalogo" element={<CatalogoPage readOnly />} />
               <Route path="cliente/cartera" element={<AccountCliente />} />
               <Route path="cliente/facturas" element={<FacturasCliente />} />
               <Route path="cliente/facturas/:id" element={<FacturaDetailCliente />} />
@@ -100,7 +103,7 @@ function App() {
               <Route path="gerente/home" element={<DashboardGerente />} />
               <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
               <Route path="gerente/metas" element={<GerenteMetasPage />} />
-              <Route path="gerente/reportes" element={<GerenteMetasPage />} />
+              <Route path="gerente/reportes" element={<DirectorReportesPage />} />
               <Route path="gerente/facturas" element={<FacturasPage />} />
             </Route>
 

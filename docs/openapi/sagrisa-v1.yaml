@@ -1,0 +1,92 @@
+openapi: 3.0.3
+info:
+  title: SAGRISA Business API
+  version: 1.0.0
+  description: Contrato frontend/APIM para la PWA SAGRISA.
+servers:
+  - url: https://sagrissa-bac.onrender.com
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      security: []
+      summary: Autenticar por DUI y PIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dui, pin]
+              properties:
+                dui: { type: string, minLength: 5 }
+                pin: { type: string, minLength: 4 }
+      responses:
+        '200': { description: Sesión creada, content: { application/json: { schema: { $ref: '#/components/schemas/LoginResponse' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /me:
+    get: { summary: Obtener perfil y capacidades efectivas, responses: { '200': { description: Perfil } } }
+  /customers:
+    get: { summary: Clientes dentro del alcance del usuario, responses: { '200': { description: Clientes } } }
+  /catalog/products:
+    get: { summary: Catálogo y existencias, responses: { '200': { description: Productos } } }
+  /orders:
+    get: { summary: Pedidos dentro del alcance, responses: { '200': { description: Pedidos } } }
+    post: { summary: Crear pedido, responses: { '201': { description: Pedido creado } } }
+  /orders/{id}:
+    get: { summary: Detalle de pedido, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '200': { description: Pedido } } }
+    put: { summary: Editar pedido, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '200': { description: Pedido actualizado } } }
+  /orders/{id}/submit:
+    post: { summary: Enviar pedido a validación, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '202': { description: Pedido pendiente } } }
+  /collections:
+    get: { summary: Historial de cobros, responses: { '200': { description: Cobros } } }
+    post: { summary: Registrar cobro con evidencia, responses: { '201': { description: Cobro registrado } } }
+  /collections/pending-invoices:
+    get: { summary: Facturas con saldo, parameters: [{ name: customerId, in: query, required: true, schema: { type: string } }], responses: { '200': { description: Facturas pendientes } } }
+  /accounts/me:
+    get: { summary: Estado de cuenta propio, responses: { '200': { description: Estado de cuenta } } }
+  /accounts/me/summary:
+    get: { summary: Resumen de cartera, responses: { '200': { description: Cartera } } }
+  /accounts/me/overdue-invoices:
+    get: { summary: Facturas vencidas, responses: { '200': { description: Facturas vencidas } } }
+  /accounts/me/statement/pdf:
+    get: { summary: Descargar estado de cuenta, responses: { '200': { description: PDF, content: { application/pdf: {} } } } }
+  /accounts/me/statement/email:
+    post: { summary: Enviar estado de cuenta, responses: { '202': { description: Solicitud aceptada } } }
+  /invoices:
+    get: { summary: Facturas según alcance, responses: { '200': { description: Facturas } } }
+  /invoices/{id}:
+    get: { summary: Detalle de factura, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '200': { description: Factura } } }
+  /invoices/{id}/pdf:
+    get: { summary: Descargar factura, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '200': { description: PDF, content: { application/pdf: {} } } } }
+  /approvals:
+    get: { summary: Bandeja de aprobaciones, responses: { '200': { description: Aprobaciones } } }
+  /approvals/{id}/decision:
+    post: { summary: Aprobar o rechazar con auditoría, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '200': { description: Decisión registrada }, '409': { description: Estado incompatible } } }
+  /goals:
+    get: { summary: Metas, responses: { '200': { description: Metas } } }
+  /analytics:
+    get: { summary: Analytics ejecutivos, responses: { '200': { description: Indicadores agregados } } }
+  /reports:
+    get: { summary: Reportes disponibles, responses: { '200': { description: Reportes } } }
+  /reports/{id}/download:
+    get: { summary: Descargar reporte, parameters: [{ $ref: '#/components/parameters/Id' }], responses: { '200': { description: Archivo generado } } }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string } }
+  responses:
+    Unauthorized: { description: Credenciales inválidas o sesión expirada }
+  schemas:
+    LoginResponse:
+      type: object
+      required: [accessToken, expiresAt, user, permissions, scope, offlineCapabilities]
+      properties:
+        accessToken: { type: string }
+        expiresAt: { type: string, format: date-time }
+        user: { type: object, required: [id, name, dui, role], properties: { id: { type: string }, name: { type: string }, dui: { type: string }, role: { type: string, enum: [cliente, vendedor, supervisor, gerente, director] }, department: { type: string } } }
+        permissions: { type: array, items: { type: string } }
+        scope: { type: object }
+        offlineCapabilities: { type: array, items: { type: string, enum: [orders.write, collections.write] } }

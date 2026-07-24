@@ -16,7 +16,7 @@ export const initializeAppInsights = () => {
   appInsights.trackPageView(); // Registra la primera carga
 };
 
-export const trackEvent = (name: string, properties?: { [key: string]: any }) => {
+export const trackEvent = (name: string, properties?: Record<string, string | number | boolean>) => {
   appInsights.trackEvent({ name }, properties);
 };
 

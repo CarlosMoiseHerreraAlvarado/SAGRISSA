@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { User, Mail, Shield, Smartphone, Bell, Moon, LogOut, ChevronRight, Briefcase, CheckCircle2, MapPin } from 'lucide-react';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { useAuth } from '../../../core/hooks/useAuth';
@@ -7,18 +7,13 @@ export default function ProfilePage() {
   const { user, logout } = useAuth();
   const [success, setSuccess] = useState(false);
   
-  // Persistencia real vía LocalStorage (Simulando persistencia en Dynamics 365)
-  const [preferences, setPreferences] = useState({
-    notifications: true,
-    darkMode: false,
-    offlineSync: true,
-    biometrics: false
+  // Las preferencias no contienen credenciales y se conservan solo en la sesión actual.
+  const [preferences, setPreferences] = useState(() => {
+    const defaults = { notifications: true, darkMode: false, offlineSync: true, biometrics: false };
+    const saved = sessionStorage.getItem('sagrissa_prefs');
+    if (!saved) return defaults;
+    try { return { ...defaults, ...JSON.parse(saved) as Partial<typeof defaults> }; } catch { return defaults; }
   });
-
-  useEffect(() => {
-    const saved = localStorage.getItem('sagrissa_prefs');
-    if (saved) setPreferences(JSON.parse(saved));
-  }, []);
 
   const togglePreference = async (key: keyof typeof preferences) => {
     const isActivating = !preferences[key];
@@ -30,7 +25,7 @@ export default function ProfilePage() {
         if (permission === 'granted') {
           new Notification('SAGRISA', {
             body: '¡Notificaciones activadas exitosamente! Recibirás alertas importantes aquí.',
-            icon: '/vite.svg'
+            icon: '/icons/icon-192.svg'
           });
         } else {
           newPrefs.notifications = false; // Revert if denied
@@ -41,7 +36,7 @@ export default function ProfilePage() {
     }
 
     setPreferences(newPrefs);
-    localStorage.setItem('sagrissa_prefs', JSON.stringify(newPrefs));
+    sessionStorage.setItem('sagrissa_prefs', JSON.stringify(newPrefs));
     
     // Feedback de persistencia
     setSuccess(true);

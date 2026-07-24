@@ -5,14 +5,17 @@
 
 import { syncService } from './sync.service';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.sagrissa.com/v1';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://sagrissa-bac.onrender.com').replace(/\/$/, '');
+export const AUTH_EXPIRED_EVENT = 'sagrissa:auth-expired';
 
-// Interceptor básico de fetch (simulado) para inyectar token de Entra ID cuando aplique y manejar roles
+// Interceptor central para APIM: inyecta la sesión y correlaciona cada solicitud.
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('sagrissa_auth_token');
+  const token = sessionStorage.getItem('sagrissa_auth_token');
+  const requestId = crypto.randomUUID();
   
   const headers = {
     'Content-Type': 'application/json',
+    'X-Correlation-Id': requestId,
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options?.headers,
   };
@@ -23,10 +26,11 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     
     // Si es una petición de ESCRITURA (POST/PUT/PATCH), la encolamos
     const method = options?.method?.toUpperCase() || 'GET';
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    const isOfflineWrite = endpoint.includes('/orders') || endpoint.includes('/collections');
+    if (isOfflineWrite && ['POST', 'PUT', 'PATCH'].includes(method)) {
       await syncService.enqueueRequest(endpoint, options || {});
-      // Devolvemos un mock genérico para que la UI no se rompa y muestre éxito "local"
-      return { _offlineQueued: true, message: 'Guardado en cola local' } as unknown as T;
+      // La UI recibe un estado explícito de cola; no se reporta como sincronizado.
+      return { _offlineQueued: true, message: 'Guardado localmente, pendiente de sincronización' } as unknown as T;
     }
     
     throw new Error('Sin conexión de red para realizar esta consulta.');
@@ -38,6 +42,10 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
       headers,
     });
 
+    if (response.status === 401) {
+      window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || errorData.mensaje || 'Error en la petición API');
@@ -48,4 +56,23 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     console.error(`[API Call Failed] ${endpoint}:`, error);
     throw error;
   }
+}
+
+export async function downloadApiFile(endpoint: string, filename: string): Promise<void> {
+  const token = sessionStorage.getItem('sagrissa_auth_token');
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'X-Correlation-Id': crypto.randomUUID(),
+    },
+  });
+  if (response.status === 401) window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+  if (!response.ok) throw new Error(`No fue posible descargar el archivo (${response.status}).`);
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }

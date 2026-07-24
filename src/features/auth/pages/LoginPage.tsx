@@ -1,208 +1,182 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Fingerprint } from 'lucide-react';
+import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../../core/hooks/useAuth';
 import { fetchApi } from '../../../core/api/api.config';
-import type { BackendLoginResponse } from '../../../types';
-import type { Role } from '../../../types';
+import { ROLE_OFFLINE_CAPABILITIES, ROLE_PERMISSIONS } from '../../../core/auth/permissions';
+import type { BackendLoginResponse, Role, User } from '../../../types';
 
-/**
- * Mapeo del rol del backend al role del frontend.
- * El backend devuelve "Vendedor", "Admin", etc.
- * El frontend espera los valores del tipo Role.
- */
-const ROLE_MAP: Record<string, Role> = {
-  'Vendedor': 'vendedor',
-  'Admin': 'gerente',
-};
-
-/**
- * Rutas por defecto segun el rol del usuario.
- */
 const DEFAULT_ROUTES: Record<Role, string> = {
-  'vendedor': '/app/vendedor/home',
-  'supervisor': '/app/supervisor/home',
-  'gerente': '/app/gerente/home',
-  'director': '/app/director/home',
-  'cliente': '/app/cliente/home',
+  vendedor: '/app/vendedor/home',
+  supervisor: '/app/supervisor/home',
+  gerente: '/app/gerente/home',
+  director: '/app/director/home',
+  cliente: '/app/cliente/home',
 };
+
+function normalizeRole(value: string): Role {
+  const role = value.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const aliases: Record<string, Role> = {
+    cliente: 'cliente',
+    customer: 'cliente',
+    vendedor: 'vendedor',
+    seller: 'vendedor',
+    supervisor: 'supervisor',
+    gerente: 'gerente',
+    manager: 'gerente',
+    admin: 'gerente',
+    director: 'director',
+    director_general: 'director',
+  };
+
+  const normalized = aliases[role];
+  if (!normalized) throw new Error('El rol recibido no está habilitado para SAGRISA.');
+  return normalized;
+}
+
+function buildUser(response: BackendLoginResponse, dui: string): User {
+  const role = normalizeRole(response.rol);
+  const permissions = response.permissions?.length ? response.permissions : ROLE_PERMISSIONS[role];
+  const offlineCapabilities = response.offlineCapabilities ?? ROLE_OFFLINE_CAPABILITIES[role];
+
+  return {
+    id: response.codVendedor,
+    name: response.nombre,
+    dui,
+    role,
+    email: response.email,
+    department: response.cargo,
+    claims: response.claims ?? [],
+    permissions,
+    scope: response.scope ?? {},
+    offlineCapabilities,
+    isOfflineCapable: offlineCapabilities.length > 0,
+  };
+}
 
 export default function LoginPage() {
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState<'dui' | 'pin'>('dui');
   const [dui, setDui] = useState('');
   const [pin, setPin] = useState('');
-  const [showBiometric, setShowBiometric] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  useEffect(() => {
+    if (user) navigate(DEFAULT_ROUTES[user.role], { replace: true });
+  }, [navigate, user]);
 
-  const handleLogin = async (duiValue: string, pinValue: string) => {
-    setError('');
+  const fieldValue = step === 'dui' ? dui : pin;
+  const fieldLabel = step === 'dui' ? 'DUI' : 'PIN';
+  const isValid = useMemo(() => step === 'dui' ? dui.trim().length >= 5 : pin.trim().length >= 4, [dui, pin, step]);
+
+  const handleLogin = async () => {
+    const cleanDui = dui.trim();
+    const cleanPin = pin.trim();
+    if (cleanDui.length < 5) {
+      setError('Escriba un DUI válido para continuar.');
+      setStep('dui');
+      return;
+    }
+    if (cleanPin.length < 4) {
+      setError('Escriba un PIN de al menos 4 caracteres.');
+      setStep('pin');
+      return;
+    }
+
     setLoading(true);
+    setError('');
     try {
-      const response = await fetchApi<BackendLoginResponse>('/api/auth/login', {
+      const response = await fetchApi<BackendLoginResponse>('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ dui: duiValue, pin: pinValue }),
+        body: JSON.stringify({ dui: cleanDui, pin: cleanPin }),
       });
-
-      const frontendRole = ROLE_MAP[response.rol] ?? 'vendedor';
-
-      login(
-        {
-          id: response.codVendedor,
-          name: response.nombre,
-          dui: duiValue,
-          role: frontendRole,
-          email: undefined,
-          department: response.cargo,
-          claims: [],
-          isOfflineCapable: frontendRole === 'vendedor' || frontendRole === 'supervisor',
-        },
-        response.token,
-      );
-
-      navigate(DEFAULT_ROUTES[frontendRole]);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error al iniciar sesion';
-      setError(msg);
+      const nextUser = buildUser(response, cleanDui);
+      login(nextUser, response.accessToken ?? response.token, response.expiresAt);
+      navigate(DEFAULT_ROUTES[nextUser.role], { replace: true });
+    } catch (caught: unknown) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible iniciar sesión.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleAction = () => {
-    if (step === 'dui' && dui.length > 5) {
+    setError('');
+    if (step === 'dui') {
+      if (!isValid) {
+        setError('Escriba un DUI válido para continuar.');
+        return;
+      }
       setStep('pin');
-    } else if (step === 'pin' && pin.length >= 4) {
-      handleLogin(dui, pin);
+      return;
     }
-  };
-
-  const handleBiometric = () => {
-    setShowBiometric(true);
-    setTimeout(() => {
-      setShowBiometric(false);
-      handleLogin(dui, pin);
-    }, 1800);
+    void handleLogin();
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f6f9] flex items-center justify-center p-0 md:p-6">
-
-      {/* Contenedor tipo Web App Card (Full en Móvil, Card en PC) */}
-      <div className="w-full h-screen md:h-auto md:min-h-[700px] md:max-w-md bg-white md:rounded-[40px] md:shadow-2xl relative overflow-hidden flex flex-col">
-
-        {/* Decoraciones SVG (Replicadas del Mockup) */}
-        {/* Superior derecho */}
-        <svg className="absolute top-0 right-10 w-24 h-32 pointer-events-none" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 0 0 Q 10 60 70 40 Q 90 30 100 40" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" fill="none"/>
-        </svg>
-
-        {/* Inferior Izquierdo */}
-        <svg className="absolute top-[60%] left-[-20px] w-24 h-24 pointer-events-none" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 0 50 Q 50 20 80 80" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" fill="none"/>
-        </svg>
-
-        {/* Inferior Derecho */}
-        <svg className="absolute bottom-[20%] right-6 w-2 h-40 pointer-events-none" viewBox="0 0 10 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="5" y1="0" x2="5" y2="100" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" />
-        </svg>
-
-        {/* ─── Contenido Principal ─── */}
-        <div className="flex-1 px-8 pt-24 z-10 flex flex-col">
-
-          <h1 className="text-[#00A9F4] font-logo font-black text-[28px] tracking-tight mb-8">SAGRISA</h1>
-
-          <div className="mb-8">
-            <h2 className="text-[#1a1a1a] font-black text-xl mb-1">Bienvenido/a!</h2>
-            <p className="text-slate-600 text-[13px] font-medium leading-relaxed max-w-[250px]">
-              Para iniciar, escriba su numero de DUI y PIN
+    <main className="min-h-screen bg-surface-soft flex items-center justify-center p-0 md:p-6">
+      <section className="w-full min-h-screen md:min-h-[680px] md:h-auto md:max-w-md bg-white md:rounded-[32px] md:shadow-card-hover relative overflow-hidden flex flex-col">
+        <div className="absolute inset-x-0 top-0 h-1 bg-brand-blue" />
+        <div className="flex-1 px-6 py-12 sm:px-8 md:py-16 flex flex-col relative z-10">
+          <div className="mb-12">
+            <p className="font-logo font-black text-3xl tracking-tight text-brand-blue">SAGRISA</p>
+            <div className="mt-10 flex items-center gap-3 text-brand-blue">
+              <ShieldCheck size={22} aria-hidden="true" />
+              <span className="text-[11px] font-black uppercase tracking-[0.18em]">Acceso seguro</span>
+            </div>
+            <h1 className="mt-5 text-2xl font-black tracking-tight text-ink">Bienvenido/a</h1>
+            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+              Ingrese su DUI y PIN para entrar a la experiencia correspondiente a sus permisos.
             </p>
           </div>
 
-          <div className="mb-6">
-            <input
-              type={step === 'dui' ? 'text' : 'password'}
-              autoFocus
-              value={step === 'dui' ? dui : pin}
-              onChange={(e) => {
-                setError('');
-                step === 'dui' ? setDui(e.target.value) : setPin(e.target.value);
-              }}
-              placeholder={step === 'dui' ? 'Escriba su DUI (ej: 00123456-7)' : 'Escriba su PIN'}
-              className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:border-[#00A9F4] text-slate-800 text-sm font-medium outline-none transition-colors"
-              onKeyDown={e => e.key === 'Enter' && handleAction()}
-            />
+          <div className="flex items-center gap-2 mb-4">
+            {step === 'pin' && (
+              <button type="button" onClick={() => { setStep('dui'); setError(''); }} className="min-h-11 min-w-11 rounded-xl text-ink-muted hover:bg-surface-soft" aria-label="Volver al DUI">
+                <ArrowLeft size={20} className="mx-auto" aria-hidden="true" />
+              </button>
+            )}
+            <label htmlFor="login-value" className="text-xs font-black uppercase tracking-widest text-ink-muted">
+              {fieldLabel}
+            </label>
           </div>
+          <input
+            id="login-value"
+            autoFocus
+            type={step === 'pin' ? 'password' : 'text'}
+            inputMode={step === 'pin' ? 'numeric' : 'text'}
+            value={fieldValue}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? 'login-error' : undefined}
+            placeholder={step === 'dui' ? '00123456-7' : 'Ingrese su PIN'}
+            onChange={event => {
+              setError('');
+              if (step === 'dui') setDui(event.target.value);
+              else setPin(event.target.value);
+            }}
+            onKeyDown={event => { if (event.key === 'Enter') handleAction(); }}
+            className="min-h-14 w-full rounded-2xl border border-surface-border bg-white px-5 text-base font-semibold text-ink outline-none transition focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10"
+          />
 
-          {error && (
-            <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-[13px] font-medium">
-              {error}
-            </div>
-          )}
+          {error && <p id="login-error" role="alert" className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
 
           <button
+            type="button"
             onClick={handleAction}
             disabled={loading}
-            className="w-full bg-[#00A9F4] text-white font-bold py-3.5 rounded-xl transition-all hover:bg-[#0095D8] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-6 min-h-14 w-full rounded-2xl bg-brand-blue px-5 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-brand-blue/20 transition hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand-blue/20 disabled:cursor-wait disabled:opacity-60"
           >
-            {loading ? 'Ingresando...' : 'Iniciar'}
+            {loading ? <span className="flex items-center justify-center gap-2"><Loader2 size={18} className="animate-spin" aria-hidden="true" /> Validando</span> : step === 'dui' ? 'Continuar' : 'Iniciar sesión'}
           </button>
 
-          {/* Biometria */}
-          {step === 'pin' && (
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <p className="text-[13px] font-bold text-[#1a1a1a]">Iniciar con huella digital</p>
-              <button onClick={handleBiometric} disabled={loading} className="active:scale-95 transition-transform p-1">
-                <Fingerprint size={42} className="text-[#888888]" strokeWidth={1} />
-              </button>
-            </div>
-          )}
-
-          {/* Dev Hints — DUIs de prueba del backend */}
-          {step === 'dui' && (
-             <div className="mt-auto pb-10">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Acceso Rapido (Dev)</p>
-                <div className="grid grid-cols-2 gap-2">
-                   <button className="text-center bg-white border border-slate-200 py-2 rounded-lg text-[10px] font-bold text-[#00A9F4] hover:bg-brand-blue/5" onClick={() => setDui('00123456-7')}>Marcos (Vendedor)</button>
-                   <button className="text-center bg-white border border-slate-200 py-2 rounded-lg text-[10px] font-bold text-[#00A9F4] hover:bg-brand-blue/5" onClick={() => setDui('00765432-1')}>Juan (Vendedor Sr)</button>
-                   <button className="col-span-2 text-center bg-white border border-slate-200 py-2 rounded-lg text-[10px] font-bold text-[#00A9F4] hover:bg-brand-blue/5" onClick={() => setDui('00987654-3')}>Maria (Admin)</button>
-                </div>
-             </div>
-          )}
-
-        </div>
-
-        {/* Modal Biometrico */}
-        {showBiometric && (
-          <div className="absolute inset-0 bg-[#2b2b2b] z-50 flex flex-col items-center justify-center p-8 animate-in fade-in duration-300">
-             <div className="w-full bg-[#363636]/0 flex flex-col items-center">
-               <div className="w-24 h-24 bg-[#3d3d3d] rounded-full flex items-center justify-center mb-10 shadow-inner">
-               </div>
-               <h3 className="text-white font-bold text-[18px] mb-2 text-center">Uso de huella digital</h3>
-               <p className="text-[#a0a0a0] text-[13px] text-center mb-10 px-2 leading-relaxed">
-                 Use su huella digital para ingresar a la plataforma.
-               </p>
-               <div className="w-full relative mb-8">
-                 <div className="absolute -top-2 left-6 px-1 bg-[#2b2b2b] text-[10px] text-[#888] font-bold">Ingresar DUI</div>
-                 <div className="w-full h-14 border border-[#444] rounded-xl flex items-center px-4 justify-between bg-[#2d2d2d]">
-                    <span className="text-[#666] text-xl tracking-widest pl-2 font-mono">|</span>
-                    <Fingerprint size={28} className="text-[#666]" strokeWidth={1} />
-                 </div>
-               </div>
-               <button
-                 className="w-full bg-[#3d3d3d] text-[#666] font-bold py-3.5 rounded-xl cursor-not-allowed"
-                 onClick={() => setShowBiometric(false)}
-               >
-                 Iniciar
-               </button>
-             </div>
+          <div className="mt-auto pt-12 text-center">
+            <p className="text-xs font-medium text-ink-muted">El rol y las capacidades se asignan desde el servidor.</p>
+            <p className="mt-2 text-[11px] font-semibold text-ink-light">SAGRISA · Plataforma comercial</p>
           </div>
-        )}
-
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 }

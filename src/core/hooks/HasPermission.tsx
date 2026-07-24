@@ -1,23 +1,23 @@
 import type { ReactNode } from 'react';
 import { useAuth } from './useAuth';
+import type { Permission } from '../../types';
+import { hasPermission } from '../auth/permissions';
 
 interface HasPermissionProps {
-  claim: string | string[];
+  claim: Permission | Permission[];
+  mode?: 'some' | 'every';
   children: ReactNode;
   fallback?: ReactNode;
 }
 
-export const HasPermission = ({ claim, children, fallback = null }: HasPermissionProps) => {
+export const HasPermission = ({ claim, mode = 'some', children, fallback = null }: HasPermissionProps) => {
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated || !user) {
     return <>{fallback}</>;
   }
 
-  const claimsToCheck = Array.isArray(claim) ? claim : [claim];
-  
-  // Require at least one of the claims
-  const hasAccess = claimsToCheck.some(c => user.claims?.includes(c));
+  const hasAccess = hasPermission(user.permissions, claim, mode);
 
   if (!hasAccess) {
     return <>{fallback}</>;

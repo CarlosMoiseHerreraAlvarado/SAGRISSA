@@ -3,6 +3,32 @@
 // ------------------
 export type Role = 'cliente' | 'vendedor' | 'supervisor' | 'gerente' | 'director';
 
+export type Permission =
+  | 'account.read'
+  | 'catalog.read'
+  | 'customers.read'
+  | 'orders.read'
+  | 'orders.create'
+  | 'orders.update'
+  | 'collections.read'
+  | 'collections.create'
+  | 'approvals.read'
+  | 'approvals.decide'
+  | 'goals.read'
+  | 'analytics.read'
+  | 'reports.read'
+  | 'reports.export'
+  | 'invoices.read';
+
+export type OfflineCapability = 'orders.write' | 'collections.write';
+
+export interface AccessScope {
+  country?: string;
+  region?: string;
+  sellerIds?: string[];
+  customerIds?: string[];
+}
+
 export interface User {
   id: string;
   name: string;
@@ -11,6 +37,9 @@ export interface User {
   email?: string;
   department?: string;
   claims: string[];
+  permissions: Permission[];
+  scope: AccessScope;
+  offlineCapabilities: OfflineCapability[];
   isOfflineCapable: boolean;
 }
 
@@ -56,6 +85,7 @@ export interface Order {
   totalAmount: number;
   latitude?: number;
   longitude?: number;
+  queuedOffline?: boolean;
 }
 
 // ------------------
@@ -103,6 +133,13 @@ export interface BackendLoginResponse {
   cargo: string;
   rol: string;
   token: string;
+  accessToken?: string;
+  expiresAt?: string;
+  email?: string;
+  permissions?: Permission[];
+  claims?: string[];
+  scope?: AccessScope;
+  offlineCapabilities?: OfflineCapability[];
 }
 
 export interface BackendCliente {

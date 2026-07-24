@@ -4,6 +4,7 @@ import { ArrowLeft, Package, Clock, User, MapPin, Printer, Share2, ChevronRight 
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { StatusBadge } from '../../../core/ui/StatusBadge';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import type { OrderStatus } from '../../../types';
 
 export default function PedidoDetailVendedorPage() {
   const { id: _id } = useParams();
@@ -63,7 +64,7 @@ export default function PedidoDetailVendedorPage() {
             <div className="bg-white border border-slate-100 rounded-[40px] p-8 shadow-sm">
                <div className="flex justify-between items-start mb-8">
                   <div>
-                     <StatusBadge status={order.status as any} />
+                     <StatusBadge status={order.status as OrderStatus} />
                      <p className="text-[11px] font-bold text-slate-400 mt-2 uppercase flex items-center gap-1">
                         <Clock size={12} /> {order.date}
                      </p>

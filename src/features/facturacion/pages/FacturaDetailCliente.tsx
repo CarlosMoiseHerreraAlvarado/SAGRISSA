@@ -20,7 +20,6 @@ export default function FacturaDetailCliente() {
     if (!id) return;
     let mounted = true;
     
-    setLoading(true);
     getFacturaById(id).then(data => {
       if (mounted) {
         setInvoice(data);

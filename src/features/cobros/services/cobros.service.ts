@@ -1,4 +1,12 @@
+import { fetchApi } from '../../../core/api/api.config';
 
+export interface PendingInvoice {
+  id: string;
+  number: string;
+  total: number;
+  balance: number;
+  date: string;
+}
 
 export interface PaymentRecord {
   id: string;
@@ -8,51 +16,39 @@ export interface PaymentRecord {
   amount: number;
   paymentMethod: 'efectivo' | 'transferencia' | 'cheque';
   reference?: string;
+  receiptFileName?: string;
+  signatureDataUrl?: string;
   date: string;
-  status: 'applied' | 'pending';
+  status: 'applied' | 'pending' | 'rejected';
+  queuedOffline?: boolean;
 }
 
-let MOCK_PAYMENTS: PaymentRecord[] = [
-  {
-    id: 'pay-1',
-    invoiceId: '2',
-    invoiceNumber: 'FAC-99201-2',
-    customerName: 'Luis Armando S.',
-    amount: 245000,
-    paymentMethod: 'transferencia',
-    reference: 'TRF-990201',
-    date: '2026-03-15T14:30:00Z',
-    status: 'applied'
-  }
-];
+export interface RegisterPaymentInput {
+  invoiceId: string;
+  invoiceNumber: string;
+  customerName: string;
+  amount: number;
+  paymentMethod: PaymentRecord['paymentMethod'];
+  reference: string;
+  receiptFileName?: string;
+  receiptContentBase64?: string;
+  signatureDataUrl?: string;
+}
 
 export const cobrosService = {
-  // Registrar un nuevo pago (abono o total)
-  registerPayment: async (payment: Omit<PaymentRecord, 'id' | 'status' | 'date'>): Promise<PaymentRecord> => {
-    await new Promise(r => setTimeout(r, 1200));
-    const newPayment: PaymentRecord = {
-      ...payment,
-      id: `pay-${Math.random().toString(36).substr(2, 9)}`,
-      status: 'applied',
-      date: new Date().toISOString()
-    };
-    MOCK_PAYMENTS = [newPayment, ...MOCK_PAYMENTS];
-    return newPayment;
+  registerPayment: async (payment: RegisterPaymentInput): Promise<PaymentRecord> => {
+    const response = await fetchApi<PaymentRecord & { _offlineQueued?: boolean }>('/collections', {
+      method: 'POST',
+      body: JSON.stringify(payment),
+    });
+    return response._offlineQueued ? { ...response, status: 'pending', queuedOffline: true } : response;
   },
 
-  // Obtener historial de pagos
   getPaymentHistory: async (): Promise<PaymentRecord[]> => {
-    await new Promise(r => setTimeout(r, 800));
-    return MOCK_PAYMENTS;
+    return fetchApi<PaymentRecord[]>('/collections');
   },
 
-  // Obtener facturas pendientes de un cliente para abonar
-  getPendingInvoices: async (_customerId: string): Promise<any[]> => {
-    await new Promise(r => setTimeout(r, 600));
-    // Simulación de facturas con saldo
-    return [
-      { id: '1', number: 'FAC-99201-1', total: 580000, balance: 530000, date: '30 Abr, 2022' },
-      { id: '5', number: 'FAC-99205', total: 120000, balance: 120000, date: '05 May, 2022' },
-    ];
-  }
+  getPendingInvoices: async (customerId: string): Promise<PendingInvoice[]> => {
+    return fetchApi<PendingInvoice[]>(`/collections/pending-invoices?customerId=${encodeURIComponent(customerId)}`);
+  },
 };

@@ -5,7 +5,11 @@ import type { Product } from '../../../types';
 import { Skeleton } from '../../../core/ui/Skeleton';
 import { useNavigate } from 'react-router-dom';
 
-export default function CatalogoPage() {
+interface CatalogoPageProps {
+  readOnly?: boolean;
+}
+
+export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,13 +130,15 @@ export default function CatalogoPage() {
                     Limpiar Filtros
                   </button>
                 )}
-                <button 
-                  onClick={openCreateModal}
-                  className="bg-brand-blue text-white px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-brand-blue/20 hover:scale-105 transition-all"
-                >
-                  <Plus size={16} />
-                  <span className="hidden md:inline">Nuevo Producto</span>
-                </button>
+                {!readOnly && (
+                  <button 
+                    onClick={openCreateModal}
+                    className="min-h-11 bg-brand-blue text-white px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-brand-blue/20 hover:scale-105 transition-all"
+                  >
+                    <Plus size={16} />
+                    <span className="hidden md:inline">Nuevo Producto</span>
+                  </button>
+                )}
              </div>
           </div>
           
@@ -375,12 +381,15 @@ export default function CatalogoPage() {
                   <div className="flex-1 flex flex-col justify-center min-w-0">
                     <div className="flex justify-between items-start">
                       <span className="text-[10px] font-bold text-brand-blue mb-1 uppercase tracking-wider">{item.sku}</span>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-300 hover:text-brand-blue transition-all"
-                      >
-                        <Edit2 size={14} />
-                      </button>
+                      {!readOnly && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
+                          className="min-h-11 min-w-11 opacity-0 group-hover:opacity-100 p-1.5 text-slate-300 hover:text-brand-blue transition-all"
+                          aria-label={`Editar ${item.name}`}
+                        >
+                          <Edit2 size={14} className="mx-auto" />
+                        </button>
+                      )}
                     </div>
                     <h4 className="font-bold text-[13px] text-slate-800 leading-tight mb-1 truncate">{item.name}</h4>
                     <p className="text-[11px] text-slate-400 font-medium mb-3 line-clamp-1">{item.description}</p>

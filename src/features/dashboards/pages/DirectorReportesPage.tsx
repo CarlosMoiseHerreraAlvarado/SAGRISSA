@@ -11,6 +11,7 @@ export default function DirectorReportesPage() {
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -19,7 +20,7 @@ export default function DirectorReportesPage() {
         setReports(data);
         setLoading(false);
       }
-    });
+    }).catch(caught => { if (mounted) setError(caught instanceof Error ? caught.message : 'No fue posible cargar los reportes.'); }).finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
 
@@ -54,6 +55,7 @@ export default function DirectorReportesPage() {
       </header>
 
       <div className="flex flex-col gap-6 px-6 md:px-0 z-10 relative pb-24">
+        {error && <p role="alert" className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</p>}
         
         {/* Search & Filter */}
         <div className="flex gap-2">

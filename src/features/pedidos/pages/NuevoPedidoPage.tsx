@@ -16,6 +16,7 @@ export default function NuevoPedidoPage() {
   const isEditing = !!id;
   const [step, setStep] = useState<Step>(isEditing ? 'productos' : 'cliente');
   const [loading, setLoading] = useState(isEditing);
+  const [queuedOffline, setQueuedOffline] = useState(false);
   
   // State for Selection
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerAccount | null>(null);
@@ -91,7 +92,7 @@ export default function NuevoPedidoPage() {
       }
     }
     return () => { mounted = false; };
-  }, [id, step, isEditing]);
+  }, [id, step, isEditing, customers.length, products.length]);
 
   // ─── Step Actions ────────────────────────────────────────────────────────
 
@@ -108,7 +109,7 @@ export default function NuevoPedidoPage() {
     }));
 
     // Capturar Geolocalización (Paso extra de seguridad/auditoría)
-    let coords = { latitude: undefined as number | undefined, longitude: undefined as number | undefined };
+    const coords = { latitude: undefined as number | undefined, longitude: undefined as number | undefined };
     try {
       const geo = await getGeoLocation();
       coords.latitude = geo.latitude;
@@ -132,11 +133,10 @@ export default function NuevoPedidoPage() {
         longitude: coords.longitude
       };
 
-      if (isEditing) {
-        await orderService.updateOrder(id!, payload);
-      } else {
-        await orderService.createOrder(payload);
-      }
+      const result = isEditing
+        ? await orderService.updateOrder(id!, payload)
+        : await orderService.createOrder(payload);
+      setQueuedOffline(Boolean(result.queuedOffline));
       setStep('success');
     } catch (e) {
       console.error(e);
@@ -358,6 +358,11 @@ export default function NuevoPedidoPage() {
        <div className="w-24 h-24 bg-emerald-50 rounded-[40px] flex items-center justify-center text-emerald-500 mb-8 border border-emerald-100 shadow-inner">
           <CheckCircle2 size={48} strokeWidth={2.5} />
        </div>
+       {queuedOffline && (
+         <div role="status" className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+           Guardado localmente. Se sincronizará automáticamente al recuperar la conexión.
+         </div>
+       )}
        <h2 className="text-2xl font-black text-slate-800 mb-2">{isEditing ? '¡Pedido Actualizado!' : '¡Pedido Realizado!'}</h2>
        <p className="text-sm font-medium text-slate-400 mb-10 leading-relaxed px-4">
          {isEditing ? 'Los cambios en el pedido se han guardado exitosamente.' : 'El pedido ha sido enviado exitosamente al sistema central para su validación y procesamiento.'}

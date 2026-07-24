@@ -3,18 +3,23 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, DollarSign, FileText, Package, ClipboardList, Settings, LogOut, Users, BarChart3, WifiOff, CloudSync, RefreshCcw } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useOfflineSync } from '../hooks/useOfflineSync';
-import type { Role } from '../../types';
+import { syncService } from '../api/sync.service';
+import type { Permission, Role } from '../../types';
+import { hasPermission } from '../auth/permissions';
 
 interface NavItem {
   label: string;
   path: string;
   Icon: typeof Home;
+  permission?: Permission;
 }
 
 const NAV_CONFIG: Record<Role, NavItem[]> = {
   cliente: [
     { label: 'Inicio', path: '/app/cliente/home', Icon: Home },
     { label: 'Cartera', path: '/app/cliente/cartera', Icon: DollarSign },
+    { label: 'Operaciones', path: '/app/cliente/operaciones', Icon: ClipboardList, permission: 'orders.read' },
+    { label: 'Catálogo', path: '/app/cliente/catalogo', Icon: Package, permission: 'catalog.read' },
     { label: 'Facturas', path: '/app/cliente/facturas', Icon: FileText },
     { label: 'Ajustes', path: '/app/config', Icon: Settings },
   ],
@@ -22,6 +27,8 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
     { label: 'Inicio', path: '/app/vendedor/home', Icon: Home },
     { label: 'Catálogo', path: '/app/catalogo', Icon: Package },
     { label: 'Pedidos', path: '/app/pedidos', Icon: ClipboardList },
+    { label: 'Clientes', path: '/app/clientes', Icon: Users, permission: 'customers.read' },
+    { label: 'Cobros', path: '/app/cobros', Icon: DollarSign, permission: 'collections.read' },
     { label: 'Ajustes', path: '/app/config', Icon: Settings },
   ],
   supervisor: [
@@ -55,6 +62,14 @@ export default function AppLayout() {
   useOfflineSync();
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const refreshQueue = () => { void syncService.getQueue().then(queue => setPendingCount(queue.length)); };
+    refreshQueue();
+    const interval = window.setInterval(refreshQueue, 5000);
+    return () => window.clearInterval(interval);
+  }, [isOnline]);
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
@@ -74,7 +89,9 @@ export default function AppLayout() {
     setIsSyncing(false);
   };
 
-  const navItems = user ? NAV_CONFIG[user.role] : [];
+  const navItems = user
+    ? NAV_CONFIG[user.role].filter(item => !item.permission || hasPermission(user.permissions, item.permission))
+    : [];
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath.includes(path);
@@ -129,6 +146,7 @@ export default function AppLayout() {
               </div>
               <CloudSync size={14} className={isSyncing ? 'text-brand-blue animate-spin' : 'text-slate-300'} />
            </div>
+           {pendingCount > 0 && <p className="mb-3 text-[10px] font-bold text-amber-700">{pendingCount} operación{pendingCount === 1 ? '' : 'es'} pendiente{pendingCount === 1 ? '' : 's'}</p>}
            <button 
              onClick={handleManualSync}
              disabled={!isOnline || isSyncing}

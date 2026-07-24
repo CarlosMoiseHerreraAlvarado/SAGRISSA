@@ -1,41 +1,29 @@
-# 🚀 SAGRISA PWA - Guía de Pruebas Locales
+# SAGRISA PWA
 
-¡Hola! Sigue esta guía paso a paso para probar en tu computadora todo lo que hemos construido (Vistas móviles responsivas, Estados Offline, Login con Roles, y Skeleton Loaders).
+Frontend mobile-first de SAGRISA. La identidad, permisos y datos de negocio se reciben mediante APIM; el frontend no accede directamente a Dynamics ni SQL.
 
-## 1. ¿Cómo encender la aplicación localmente?
-
-Si el entorno falla o está apagado, abre tu terminal (línea de comandos) en la carpeta `D:\SAGRISSA\SAGRISSA\frontend` y ejecuta:
+## Desarrollo local
 
 ```bash
+npm install
 npm run dev
 ```
 
-El sistema te responderá con algo parecido a:
-`➜  Local:   http://localhost:5173/`
+Para validar producción:
 
-## 2. Probar en "Modo Dispositivo Móvil" (Crucial para PWA)
+```bash
+npm run lint
+npm run build
+```
 
-Nuestra aplicación es "Mobile-First", pero se adapta a PC. Para probar ambos "modos" haz lo siguiente:
+## Roles y sesión
 
-1. Ingresa a `http://localhost:5173/` desde **Google Chrome** o **Microsoft Edge**.
-2. Presiona la tecla **F12** en tu teclado (esto abrirá las Herramientas de Desarrollador).
-3. Busca el ícono que parece un teléfono junto a una tablet 📱💻 (o presiona `Ctrl + Shift + M`).
-4. En la parte de arriba (donde dice 'Dimensiones'), elige un teléfono como **iPhone 12 Pro** o **Samsung Galaxy S20**.
-5. ¡Listo! Recarga la página (`F5`) y verás la aplicación interactiva comportándose exactamente como si estuvieras en el celular (la barra de navegación bajará al fondo de la pantalla).
-6. Si desactivas el ícono 📱💻 (o haces la pantalla grande), verás cómo el diseño muta al exquisito Modo Escritorio de forma nativa.
+El acceso visible usa DUI + PIN y consume `POST /v1/auth/login`. Los permisos efectivos vienen en la respuesta de sesión y se validan en navegación, rutas y acciones. No hay fallback silencioso a vendedor ni credenciales persistidas en `localStorage`.
 
-## 3. ¿Cómo probar los "distintos perfiles" (RBAC)?
+## PWA y offline
 
-Hemos diseñado la pantalla de Inicio de Sesión (`/login`) para facilitar tu control de calidad:
-- **Pestañas:** En la cabecera del login, cambia el botón entre "Vendedor" y "Cliente".
-- Ve a los inputs de texto y escríbeles cualquier cosa.
-- Da clic en los botones grandes para simular los llamados.
-- **Auto-inyección:** La plataforma te inyectará automáticamente un perfil gerencial simulado para que no tengas que conectarlo a la base de datos momentáneamente. Al entrar a `/app/home`, explora el menú para verificar cómo el sistema "sabe" qué mostrarte dependiendo de la pestaña de prueba que elegiste.
+VitePWA registra un único service worker. El app shell se precarga; catálogo y consultas usan red con caché de respaldo. Solo pedidos y cobros del vendedor pueden encolarse offline. La interfaz muestra explícitamente pendiente, sincronizando, sincronizado o error.
 
-## 4. ¿Cómo probar el aviso de "Caída de Internet"?
+## Contrato para backend/APIM
 
-Nuestra aplicación tiene un Banner Offline avanzado para proteger al usuario. Para forzar su aparición simulando una pérdida de red en tu computadora:
-1. Con F12 abierto, busca la pestaña llamada **Red (Network)** en la ventana de código de la derecha.
-2. Verás un selector que probablemente diga "Sin Limitaciones (No throttling)".
-3. Haz clic allí y selecciona **Sin conexión (Offline)**.
-4. Voltea a ver la aplicación de inmediato y el cintillo de PWA emergerá sin necesidad de recargar la ventana. (¡No olvides volver a seleccionarlo en "No throttling" para que sigan cargando los falsos llamados!)
+El contrato versionado está en [docs/openapi/sagrisa-v1.yaml](docs/openapi/sagrisa-v1.yaml). La configuración de ambientes y variables se documenta en [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md).

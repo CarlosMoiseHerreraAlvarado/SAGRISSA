@@ -2,14 +2,18 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../core/hooks/useAuth';
 import { useState, useEffect } from 'react';
 import { WifiOff } from 'lucide-react';
+import type { Permission } from '../../../types';
+import { hasPermission } from '../../../core/auth/permissions';
+import { AUTH_EXPIRED_EVENT } from '../../../core/api/api.config';
 
 interface ProtectedRouteProps {
   requiredClaims?: string[];
+  requiredPermissions?: Permission | Permission[];
   allowedRoles?: string[]; // Kept for legacy/fallback if needed in App.tsx briefly, though we will migrate to claims
 }
 
-export const ProtectedRoute = ({ requiredClaims, allowedRoles }: ProtectedRouteProps) => {
-  const { user, isAuthenticated } = useAuth();
+export const ProtectedRoute = ({ requiredClaims, requiredPermissions, allowedRoles }: ProtectedRouteProps) => {
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -23,6 +27,12 @@ export const ProtectedRoute = ({ requiredClaims, allowedRoles }: ProtectedRouteP
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  useEffect(() => {
+    const handleExpired = () => logout();
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+  }, [logout]);
 
   if (!isAuthenticated || !user) {
     // Redirige a login si no hay sesión
@@ -47,6 +57,10 @@ export const ProtectedRoute = ({ requiredClaims, allowedRoles }: ProtectedRouteP
   }
 
   // VALIDACIÓN POR CLAIMS
+  if (requiredPermissions && !hasPermission(user.permissions, requiredPermissions, 'every')) {
+    return <Navigate to={`/app/${user.role}/home`} state={{ reason: 'forbidden' }} replace />;
+  }
+
   if (requiredClaims && requiredClaims.length > 0) {
     const hasRequiredClaims = requiredClaims.some(claim => user.claims?.includes(claim));
     if (!hasRequiredClaims) {

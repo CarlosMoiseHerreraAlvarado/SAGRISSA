@@ -1,269 +1,104 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Loader2, Landmark, Wallet, CreditCard, Receipt, User, Search, Upload, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, CheckCircle2, CreditCard, Landmark, Loader2, Receipt, Search, Upload, User, Wallet } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
-import { cobrosService } from '../services/cobros.service';
+import { useNavigate } from 'react-router-dom';
+import { customerService } from '../../facturacion/services/customer.service';
 import { Card } from '../../../core/ui/Card';
+import { cobrosService, type PendingInvoice } from '../services/cobros.service';
+import type { CustomerAccount } from '../../../types';
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('No fue posible leer el comprobante.'));
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function RegistroCobrosPage() {
   const navigate = useNavigate();
-  const [isSaving, setIsSaving] = useState(false);
-  const [step, setStep] = useState(1); // 1: Cliente, 2: Factura, 3: Monto
-  const sigPad = useRef<SignatureCanvas>(null);
+  const signature = useRef<SignatureCanvas>(null);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [loading, setLoading] = useState(false);
+  const [customers, setCustomers] = useState<CustomerAccount[]>([]);
+  const [invoices, setInvoices] = useState<PendingInvoice[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  
-  const [formData, setFormData] = useState({
-    customerId: '',
-    customerName: '',
-    invoiceId: '',
-    invoiceNumber: '',
-    amount: 0,
-    paymentMethod: 'transferencia' as 'efectivo' | 'transferencia' | 'cheque',
-    reference: '',
-    maxAmount: 0
-  });
+  const [error, setError] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerAccount | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<PendingInvoice | null>(null);
+  const [form, setForm] = useState({ amount: 0, paymentMethod: 'transferencia' as 'efectivo' | 'transferencia' | 'cheque', reference: '' });
 
-  const [pendingInvoices, setPendingInvoices] = useState<any[]>([]);
+  useEffect(() => {
+    customerService.getCustomersList().then(setCustomers).catch(() => setError('No fue posible cargar los clientes asignados.'));
+  }, []);
 
-  // Simulación de búsqueda de cliente
-  const handleSelectCustomer = (id: string, name: string) => {
-    setFormData({ ...formData, customerId: id, customerName: name });
-    cobrosService.getPendingInvoices(id).then(invoices => {
-      setPendingInvoices(invoices);
+  const selectCustomer = async (customer: CustomerAccount) => {
+    setLoading(true);
+    setError('');
+    try {
+      setSelectedCustomer(customer);
+      setInvoices(await cobrosService.getPendingInvoices(customer.customerId));
       setStep(2);
-    });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible cargar las facturas pendientes.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSelectInvoice = (invoice: any) => {
-    setFormData({ 
-      ...formData, 
-      invoiceId: invoice.id, 
-      invoiceNumber: invoice.number,
-      maxAmount: invoice.balance,
-      amount: invoice.balance 
-    });
+  const selectInvoice = (invoice: PendingInvoice) => {
+    setSelectedInvoice(invoice);
+    setForm(current => ({ ...current, amount: invoice.balance }));
     setStep(3);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedCustomer || !selectedInvoice || form.amount <= 0 || form.amount > selectedInvoice.balance) return;
+    setLoading(true);
+    setError('');
     try {
-      await cobrosService.registerPayment({
-        invoiceId: formData.invoiceId,
-        invoiceNumber: formData.invoiceNumber,
-        customerName: formData.customerName,
-        amount: formData.amount,
-        paymentMethod: formData.paymentMethod,
-        reference: formData.reference,
+      const result = await cobrosService.registerPayment({
+        invoiceId: selectedInvoice.id,
+        invoiceNumber: selectedInvoice.number,
+        customerName: selectedCustomer.name,
+        amount: form.amount,
+        paymentMethod: form.paymentMethod,
+        reference: form.reference,
+        receiptFileName: receiptFile?.name,
+        receiptContentBase64: receiptFile ? await fileToDataUrl(receiptFile) : undefined,
+        signatureDataUrl: signature.current?.isEmpty() ? undefined : signature.current?.toDataURL(),
       });
-      alert('Cobro registrado exitosamente');
-      navigate('/app/vendedor/cobros');
-    } catch (error) {
-      console.error(error);
+      if (result.queuedOffline) {
+        setError('Cobro guardado localmente. Se sincronizará al recuperar la conexión.');
+        setStep(1);
+      } else {
+        navigate('/app/cobros');
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible registrar el cobro.');
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="w-full min-h-screen bg-white md:bg-transparent pb-20 md:pb-10">
-      <div className="w-full h-full xl:max-w-4xl mx-auto flex flex-col relative md:pt-6 md:px-8">
-        
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8 px-6 md:px-0">
-          <button 
-            onClick={() => step > 1 ? setStep(step - 1) : navigate(-1)}
-            className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-brand-blue shadow-sm transition-all"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h2 className="font-black text-xl text-slate-800 tracking-tight">Registro de Cobro</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Paso {step} de 3</p>
-          </div>
-        </div>
+    <main className="w-full min-h-full bg-white md:bg-transparent pb-24 md:pb-10">
+      <div className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-8">
+        <header className="mb-8 flex items-center gap-4">
+          <button type="button" onClick={() => step > 1 ? setStep((step - 1) as 1 | 2 | 3) : navigate(-1)} className="min-h-11 min-w-11 rounded-2xl border border-surface-border text-ink-muted hover:text-brand-blue" aria-label="Volver"><ArrowLeft size={20} className="mx-auto" /></button>
+          <div><h1 className="text-xl font-black tracking-tight text-ink">Registrar cobro</h1><p className="text-[11px] font-black uppercase tracking-widest text-ink-muted">Paso {step} de 3</p></div>
+        </header>
 
-        {/* ─── Paso 1: Selección de Cliente ─── */}
-        {step === 1 && (
-          <div className="px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4">
-            <h3 className="text-sm font-black text-slate-800 mb-6 px-2">Seleccione el Cliente</h3>
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-blue/20 transition-all">
-                <Search size={18} className="text-slate-300" />
-                <input type="text" placeholder="Buscar por nombre o DUI..." className="flex-1 bg-transparent outline-none text-sm font-bold text-slate-700" />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-3">
-                {[
-                  { id: 'C1', name: 'Luis Armando S.', dui: '05128392-1' },
-                  { id: 'C2', name: 'Agrícola San José', dui: '01293844-5' },
-                  { id: 'C3', name: 'Distribuidora Central', dui: '06654321-9' }
-                ].map(c => (
-                  <button 
-                    key={c.id}
-                    onClick={() => handleSelectCustomer(c.id, c.name)}
-                    className="bg-white p-5 rounded-3xl border border-slate-100 hover:border-brand-blue/40 flex items-center justify-between group transition-all"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-brand-blue/5 group-hover:text-brand-blue transition-all">
-                        <User size={20} />
-                      </div>
-                      <div className="text-left">
-                        <p className="font-black text-[14px] text-slate-800">{c.name}</p>
-                        <p className="text-[11px] font-bold text-slate-400">{c.dui}</p>
-                      </div>
-                    </div>
-                    <ArrowLeft size={18} className="text-slate-200 rotate-180 group-hover:text-brand-blue" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        {error && <div role="alert" className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900"><CheckCircle2 size={18} className="mt-0.5 shrink-0" />{error}</div>}
 
-        {/* ─── Paso 2: Selección de Factura ─── */}
-        {step === 2 && (
-          <div className="px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4">
-            <div className="bg-brand-blue/5 p-4 rounded-2xl mb-6 flex items-center gap-3 border border-brand-blue/10">
-              <User size={16} className="text-brand-blue" />
-              <span className="text-xs font-black text-brand-blue uppercase">{formData.customerName}</span>
-            </div>
-            <h3 className="text-sm font-black text-slate-800 mb-6 px-2">Documentos con Saldo Pendiente</h3>
-            <div className="grid grid-cols-1 gap-3">
-              {pendingInvoices.map(inv => (
-                <button 
-                  key={inv.id}
-                  onClick={() => handleSelectInvoice(inv)}
-                  className="bg-white p-6 rounded-[32px] border border-slate-100 hover:border-brand-blue/40 flex items-center justify-between group transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-brand-blue/5 group-hover:text-brand-blue transition-all">
-                      <Receipt size={20} />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-black text-[14px] text-slate-800">{inv.number}</p>
-                      <p className="text-[11px] font-bold text-slate-400">Emisión: {inv.date}</p>
-                    </div>
-                  </div>
-                  <div className="text-right mr-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo</p>
-                    <p className="font-black text-[15px] text-red-500">${inv.balance.toLocaleString()}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {step === 1 && <section aria-labelledby="customer-title"><h2 id="customer-title" className="mb-5 text-sm font-black uppercase tracking-widest text-ink">Seleccione el cliente</h2><div className="mb-4 flex items-center gap-3 rounded-2xl border border-surface-border bg-white px-4 py-3"><Search size={18} className="text-ink-light" /><input className="w-full outline-none" placeholder="Buscar cliente" aria-label="Buscar cliente" /></div><div className="grid gap-3">{customers.map(customer => <button key={customer.customerId} type="button" onClick={() => void selectCustomer(customer)} className="flex min-h-20 items-center justify-between rounded-3xl border border-surface-border bg-white p-5 text-left shadow-card hover:border-brand-blue/40"><span className="flex items-center gap-4"><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-soft text-brand-blue"><User size={20} /></span><span><strong className="block text-sm text-ink">{customer.name}</strong><small className="text-xs font-semibold text-ink-muted">{customer.customerId}</small></span></span><ArrowLeft size={18} className="rotate-180 text-ink-light" /></button>)}</div>{loading && <Loader2 className="mx-auto mt-6 animate-spin text-brand-blue" />}</section>}
 
-        {/* ─── Paso 3: Detalles del Pago ─── */}
-        {step === 3 && (
-          <form onSubmit={handleSave} className="px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4 space-y-6">
-            <Card padding="lg" className="shadow-xl shadow-slate-200/50">
-              <div className="flex justify-between items-start mb-8">
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Abono a Factura</p>
-                  <h4 className="text-lg font-black text-slate-800">{formData.invoiceNumber}</h4>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Actual</p>
-                  <p className="text-lg font-black text-brand-blue">${formData.maxAmount.toLocaleString()}</p>
-                </div>
-              </div>
+        {step === 2 && <section aria-labelledby="invoice-title"><h2 id="invoice-title" className="mb-5 text-sm font-black uppercase tracking-widest text-ink">Facturas con saldo</h2><div className="mb-5 rounded-2xl bg-brand-blue/5 p-4 text-sm font-black text-brand-blue">{selectedCustomer?.name}</div><div className="grid gap-3">{invoices.map(invoice => <button key={invoice.id} type="button" onClick={() => selectInvoice(invoice)} className="flex min-h-24 items-center justify-between rounded-3xl border border-surface-border bg-white p-5 text-left shadow-card hover:border-brand-blue/40"><span className="flex items-center gap-4"><Receipt className="text-brand-blue" size={20} /><span><strong className="block text-sm text-ink">{invoice.number}</strong><small className="text-xs font-semibold text-ink-muted">{invoice.date}</small></span></span><span className="text-right"><small className="block text-[10px] font-black uppercase tracking-widest text-ink-muted">Saldo</small><strong className="text-red-600">${invoice.balance.toLocaleString()}</strong></span></button>)}</div></section>}
 
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-2">Monto del Abono ($)</label>
-                  <input 
-                    required
-                    type="number"
-                    step="0.01"
-                    max={formData.maxAmount}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-800 outline-none focus:ring-4 focus:ring-brand-blue/10 transition-all"
-                    value={formData.amount}
-                    onChange={e => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
-                  />
-                  {formData.amount === formData.maxAmount && (
-                    <p className="text-[10px] font-bold text-emerald-500 uppercase mt-2 ml-1">Pago Total Detectado</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-3">Método de Pago</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { id: 'transferencia', label: 'Transf.', icon: Landmark },
-                      { id: 'efectivo', label: 'Efectivo', icon: Wallet },
-                      { id: 'cheque', label: 'Cheque', icon: CreditCard },
-                    ].map(m => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, paymentMethod: m.id as any })}
-                        className={`py-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${formData.paymentMethod === m.id ? 'bg-brand-blue border-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
-                      >
-                        <m.icon size={18} />
-                        <span className="text-[10px] font-black uppercase tracking-tight">{m.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-2">Referencia / Comprobante</label>
-                  <input 
-                    type="text"
-                    placeholder="Ej: # Transacción o Número de Cheque"
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all"
-                    value={formData.reference}
-                    onChange={e => setFormData({ ...formData, reference: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-2">Comprobante Físico (Foto/PDF)</label>
-                  <div className="flex items-center gap-3">
-                    <label className="flex-1 bg-slate-50 border border-slate-100 border-dashed hover:border-brand-blue/40 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all">
-                      <Upload size={20} className="text-slate-400 mb-2" />
-                      <span className="text-[11px] font-bold text-slate-500 text-center">Subir documento</span>
-                      <input type="file" className="hidden" accept="image/*,.pdf" onChange={e => setReceiptFile(e.target.files?.[0] || null)} />
-                    </label>
-                    {receiptFile && (
-                      <div className="flex-1 bg-brand-blue/5 border border-brand-blue/10 rounded-2xl p-4 relative flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-brand-blue truncate pr-4">{receiptFile.name}</span>
-                        <button type="button" onClick={() => setReceiptFile(null)} className="text-slate-400 hover:text-red-500 absolute top-2 right-2"><X size={14} /></button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 flex justify-between items-end">
-                    <span>Firma del Cliente</span>
-                    <button type="button" onClick={() => sigPad.current?.clear()} className="text-brand-blue hover:underline text-[10px]">Limpiar</button>
-                  </label>
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden w-full h-40">
-                    <SignatureCanvas 
-                      ref={sigPad}
-                      canvasProps={{ className: 'w-full h-full' }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <button 
-              disabled={isSaving || formData.amount <= 0}
-              type="submit"
-              className="w-full bg-brand-blue text-white py-5 rounded-[28px] font-black text-[13px] uppercase tracking-widest shadow-xl shadow-brand-blue/20 flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
-            >
-              {isSaving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-              Confirmar y Registrar Pago
-            </button>
-          </form>
-        )}
-
+        {step === 3 && selectedInvoice && <form onSubmit={submit} className="space-y-6"><Card padding="lg"><div className="mb-6 flex justify-between"><div><p className="text-[10px] font-black uppercase tracking-widest text-ink-muted">Abono a factura</p><h2 className="text-lg font-black text-ink">{selectedInvoice.number}</h2></div><strong className="text-brand-blue">${selectedInvoice.balance.toLocaleString()}</strong></div><label className="block text-xs font-black uppercase tracking-widest text-ink-muted">Monto<input required min="0.01" max={selectedInvoice.balance} step="0.01" type="number" value={form.amount} onChange={event => setForm({ ...form, amount: Number(event.target.value) })} className="mt-2 min-h-14 w-full rounded-2xl border border-surface-border px-5 text-xl font-black" /></label><fieldset><legend className="mb-3 text-xs font-black uppercase tracking-widest text-ink-muted">Método de pago</legend><div className="grid grid-cols-3 gap-3">{([{ id: 'transferencia', label: 'Transferencia', icon: Landmark }, { id: 'efectivo', label: 'Efectivo', icon: Wallet }, { id: 'cheque', label: 'Cheque', icon: CreditCard }] as const).map(method => <button key={method.id} type="button" onClick={() => setForm({ ...form, paymentMethod: method.id })} className={`min-h-20 rounded-2xl border text-xs font-black ${form.paymentMethod === method.id ? 'border-brand-blue bg-brand-blue text-white' : 'border-surface-border bg-surface-soft text-ink-muted'}`}><method.icon size={18} className="mx-auto mb-1" />{method.label}</button>)}</div></fieldset><label className="block text-xs font-black uppercase tracking-widest text-ink-muted">Referencia<input value={form.reference} onChange={event => setForm({ ...form, reference: event.target.value })} className="mt-2 min-h-12 w-full rounded-2xl border border-surface-border px-4" placeholder="Número de transacción" /></label><label className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-surface-border bg-surface-soft text-sm font-semibold text-ink-muted"><Upload size={20} /><span>{receiptFile?.name ?? 'Subir comprobante'}</span><input type="file" accept="image/*,.pdf" className="sr-only" onChange={event => setReceiptFile(event.target.files?.[0] ?? null)} /></label><div><div className="mb-2 flex justify-between text-xs font-black uppercase tracking-widest text-ink-muted"><span>Firma del cliente</span><button type="button" onClick={() => signature.current?.clear()} className="text-brand-blue">Limpiar</button></div><div className="h-40 overflow-hidden rounded-2xl border border-surface-border bg-surface-soft"><SignatureCanvas ref={signature} canvasProps={{ className: 'h-full w-full' }} /></div></div></Card><button type="submit" disabled={loading} className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand-blue text-sm font-black uppercase tracking-widest text-white disabled:opacity-60">{loading ? <Loader2 className="animate-spin" size={18} /> : <Receipt size={18} />} Confirmar cobro</button></form>}
       </div>
-    </div>
+    </main>
   );
 }

@@ -15,7 +15,7 @@ export function useOfflineSync() {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('SAGRISA', {
             body: '¡Sincronización completada! Tus pedidos pendientes han sido enviados.',
-            icon: '/vite.svg'
+            icon: '/icons/icon-192.svg'
           });
         }
       }, 3000);

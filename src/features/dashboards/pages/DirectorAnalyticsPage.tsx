@@ -12,6 +12,7 @@ export default function DirectorAnalyticsPage() {
   const [data, setData] = useState<BusinessAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -20,20 +21,25 @@ export default function DirectorAnalyticsPage() {
         setData(res);
         setLoading(false);
       }
-    });
+    }).catch(caught => { if (mounted) setError(caught instanceof Error ? caught.message : 'No fue posible cargar analytics.'); }).finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
 
   const handleExport = async (type: 'PDF' | 'XLSX') => {
     setIsExporting(true);
-    await reportsService.downloadReport({
-      id: 'analytics-export',
-      title: 'Reporte_Ejecutivo_BI',
-      type,
-      size: type === 'PDF' ? '1.2MB' : '85KB',
-      date: new Date().toLocaleDateString()
-    });
-    setIsExporting(false);
+    try {
+      await reportsService.downloadReport({
+        id: 'analytics-export',
+        title: 'Reporte_Ejecutivo_BI',
+        type,
+        size: type === 'PDF' ? '1.2MB' : '85KB',
+        date: new Date().toLocaleDateString(),
+      });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible exportar el reporte.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -72,6 +78,7 @@ export default function DirectorAnalyticsPage() {
       </header>
 
       <div className="flex flex-col gap-8 px-6 md:px-0 z-10 relative pb-24">
+        {error && <p role="alert" className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</p>}
         
         {/* Map Placeholder / Geo Analytics - Consistent Light Style */}
         <div className="bg-white border border-slate-100 rounded-[40px] p-8 min-h-[350px] relative overflow-hidden flex flex-col justify-between shadow-sm">

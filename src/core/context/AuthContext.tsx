@@ -1,41 +1,41 @@
-import { createContext, useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../../types';
+import { AuthContext } from './AuthContextDef';
 
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  login: (userData: User, token: string) => void;
-  logout: () => void;
+const SESSION_USER_KEY = 'sagrissa_user';
+const SESSION_TOKEN_KEY = 'sagrissa_auth_token';
+const SESSION_EXPIRY_KEY = 'sagrissa_auth_expires_at';
+
+function readStoredUser(): User | null {
+  const storedUser = sessionStorage.getItem(SESSION_USER_KEY);
+  if (!storedUser) return null;
+
+  try {
+    return JSON.parse(storedUser) as User;
+  } catch {
+    sessionStorage.removeItem(SESSION_USER_KEY);
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_EXPIRY_KEY);
+    return null;
+  }
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  
-  // Basic initialization to check localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem('sagrissa_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse stored user', e);
-      }
-    }
-  }, []);
+  const [user, setUser] = useState<User | null>(readStoredUser);
 
-  const login = (userData: User, token: string) => {
+  const login = (userData: User, token: string, expiresAt?: string) => {
     setUser(userData);
-    localStorage.setItem('sagrissa_user', JSON.stringify(userData));
-    localStorage.setItem('sagrissa_auth_token', token);
+    sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(userData));
+    sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+    if (expiresAt) sessionStorage.setItem(SESSION_EXPIRY_KEY, expiresAt);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('sagrissa_user');
-    localStorage.removeItem('sagrissa_auth_token');
+    sessionStorage.removeItem(SESSION_USER_KEY);
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_EXPIRY_KEY);
   };
 
   return (

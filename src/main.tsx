@@ -15,12 +15,4 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Registro de Service Worker para Modo Offline
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-      console.log('SW registration failed: ', err);
-    });
-  });
-}
 
