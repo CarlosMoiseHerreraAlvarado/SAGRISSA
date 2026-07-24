@@ -7,6 +7,8 @@ import { ROLE_OFFLINE_CAPABILITIES, ROLE_PERMISSIONS } from '../../../core/auth/
 import type { BackendLoginResponse, Role, User } from '../../../types';
 import { trackEvent } from '../../../core/utils/appInsights';
 
+const AUTH_LOGIN_PATH = import.meta.env.VITE_AUTH_LOGIN_PATH || '/api/auth/login';
+
 const DEFAULT_ROUTES: Record<Role, string> = {
   vendedor: '/app/vendedor/home',
   supervisor: '/app/supervisor/home',
@@ -89,7 +91,7 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetchApi<BackendLoginResponse>('/auth/login', {
+      const response = await fetchApi<BackendLoginResponse>(AUTH_LOGIN_PATH, {
         method: 'POST',
         body: JSON.stringify({ dui: cleanDui, pin: cleanPin }),
       });
