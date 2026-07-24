@@ -56,8 +56,6 @@ export default function RegistroCobrosPage() {
         amount: formData.amount,
         paymentMethod: formData.paymentMethod,
         reference: formData.reference,
-        signature: sigPad.current?.isEmpty() ? null : sigPad.current?.getTrimmedCanvas().toDataURL('image/png'),
-        receiptFile: receiptFile
       });
       alert('Cobro registrado exitosamente');
       navigate('/app/vendedor/cobros');

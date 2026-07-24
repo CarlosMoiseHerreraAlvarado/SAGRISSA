@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { StatCard } from '../../../core/ui/StatCard';
-import { Target, TrendingUp, Users, DollarSign, Download, Filter } from 'lucide-react';
+import { Target, TrendingUp, Users, DollarSign, Download } from 'lucide-react';
 
 export default function GerenteMetasPage() {
   const [filter, setFilter] = useState('mensual');
