@@ -7,7 +7,7 @@ import { ROLE_OFFLINE_CAPABILITIES, ROLE_PERMISSIONS } from '../../../core/auth/
 import type { BackendLoginResponse, Role, User } from '../../../types';
 import { trackEvent } from '../../../core/utils/appInsights';
 
-const AUTH_LOGIN_PATH = import.meta.env.VITE_AUTH_LOGIN_PATH || '/api/auth/login';
+const AUTH_LOGIN_PATH = import.meta.env.VITE_AUTH_LOGIN_PATH || '/auth/login';
 
 const DEFAULT_ROUTES: Record<Role, string> = {
   vendedor: '/app/vendedor/home',

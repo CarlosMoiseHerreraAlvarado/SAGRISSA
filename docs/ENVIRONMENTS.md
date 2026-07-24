@@ -12,7 +12,7 @@ Variables opcionales:
 
 - `VITE_APPINSIGHTS_CONNECTION_STRING`: telemetría de frontend.
 - `VITE_API_URL`: base del backend/APIM; si no se define, usa `https://sagrissa-bac.onrender.com`.
-- `VITE_AUTH_LOGIN_PATH`: ruta publicada por el backend para login; en Render usa `/api/auth/login`.
+- `VITE_AUTH_LOGIN_PATH`: ruta publicada por el backend para login; en Render usa `/auth/login`.
 
 El frontend no debe recibir secretos de backend, conexiones SQL, credenciales de Dynamics ni claves privadas. Los tokens de sesión se mantienen en memoria/session storage controlado hasta que APIM/backend entregue renovación segura.
 
