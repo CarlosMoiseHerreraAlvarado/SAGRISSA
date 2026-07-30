@@ -9,6 +9,13 @@ import { SkeletonListItem } from '../../../core/ui/Skeleton';
 import { orderService } from '../services/order.service';
 import type { Order } from '../../../types';
 
+const MOCK_ORDERS: Order[] = [
+  { id: '1', orderNumber: 'ORD-99020', customerId: 'C001', customerName: 'Cliente Demo', dateCreated: '2022-05-15T10:00:00Z', deliveryDate: '2022-05-20', deliveryAddress: '', observations: '', status: 'draft', items: [], totalAmount: 45800 },
+  { id: '2', orderNumber: 'ORD-99018', customerId: 'C002', customerName: 'Cliente Demo', dateCreated: '2022-05-12T10:00:00Z', deliveryDate: '2022-05-18', deliveryAddress: '', observations: '', status: 'fulfilled', items: [], totalAmount: 32400 },
+  { id: '3', orderNumber: 'ORD-99015', customerId: 'C003', customerName: 'Cliente Demo', dateCreated: '2022-05-08T10:00:00Z', deliveryDate: '2022-05-12', deliveryAddress: '', observations: '', status: 'fulfilled', items: [], totalAmount: 67200 },
+  { id: '4', orderNumber: 'ORD-99010', customerId: 'C004', customerName: 'Cliente Demo', dateCreated: '2022-05-01T10:00:00Z', deliveryDate: '2022-05-05', deliveryAddress: '', observations: '', status: 'fulfilled', items: [], totalAmount: 21500 },
+];
+
 export default function PedidosCliente() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,7 +24,19 @@ export default function PedidosCliente() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    orderService.getMyOrders().then(setOrders).catch(caught => setError(caught instanceof Error ? caught.message : 'No fue posible cargar tus pedidos.')).finally(() => setLoading(false));
+    let mounted = true;
+    orderService.getMyOrders()
+      .then(data => {
+        if (mounted) setOrders(data.length > 0 ? data : MOCK_ORDERS);
+      })
+      .catch(caught => {
+        if (mounted) {
+          setOrders(MOCK_ORDERS);
+          setError(caught instanceof Error ? caught.message : 'No fue posible cargar tus pedidos.');
+        }
+      })
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
   }, []);
 
   const filtered = orders.filter(order => order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()));
