@@ -41,10 +41,12 @@ export default function HistorialPagosPage({ readOnly = false }: HistorialPagosP
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button 
+                type="button"
                 onClick={() => navigate(-1)}
-                className="p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors md:hidden"
+                aria-label="Volver"
+                className="-ml-2 min-h-11 min-w-11 rounded-xl p-2 text-slate-400 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:hidden"
               >
-                <ArrowLeft size={24} />
+                <ArrowLeft size={24} aria-hidden="true" />
               </button>
               <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Historial de Cobros</h1>
             </div>

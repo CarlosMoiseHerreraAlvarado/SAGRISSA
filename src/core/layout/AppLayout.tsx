@@ -11,6 +11,8 @@ import {
   MoreHorizontal,
   Package,
   RefreshCcw,
+  RotateCcw,
+  Trash2,
   Settings,
   Users,
   WifiOff,
@@ -42,7 +44,7 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
   ],
   vendedor: [
     { label: 'Inicio', path: APP_ROUTES.vendedor.home, Icon: Home },
-    { label: 'Catálogo', path: APP_ROUTES.vendedor.catalogo, Icon: Package },
+    { label: 'Catálogo', path: APP_ROUTES.vendedor.catalogo, Icon: Package, permission: 'catalog.read' },
     { label: 'Pedidos', path: APP_ROUTES.vendedor.pedidos, Icon: ClipboardList },
     { label: 'Clientes', path: APP_ROUTES.vendedor.clientes, Icon: Users, permission: 'customers.read' },
     { label: 'Cobros', path: APP_ROUTES.vendedor.cobros, Icon: DollarSign, permission: 'collections.read' },
@@ -125,7 +127,9 @@ export default function AppLayout() {
       const result = await syncService.processQueue(fetchApi);
       setPendingCount(result.pending);
       setFailedCount(result.failed);
-      setSyncMessage(result.pending > 0
+      setSyncMessage(result.authExpired
+        ? 'La sesión expiró. Inicie sesión para continuar la sincronización.'
+        : result.pending > 0
         ? `${result.pending} operación(es) requieren atención.`
         : result.failed > 0
           ? `${result.failed} operación(es) fallaron y requieren revisión.`
@@ -136,6 +140,34 @@ export default function AppLayout() {
       setIsSyncing(false);
       window.setTimeout(() => setSyncMessage(''), 4000);
     }
+  };
+
+  const handleRetryFailed = async () => {
+    await syncService.retryFailed();
+    const queue = await syncService.getQueue();
+    const failed = await syncService.getFailedQueue();
+    setPendingCount(queue.length);
+    setFailedCount(failed.length);
+    setSyncMessage('Operaciones fallidas devueltas a la cola.');
+  };
+
+  const handleDiscardFailed = async () => {
+    if (!window.confirm('¿Descartar las operaciones fallidas de esta sesión?')) return;
+    await syncService.discardFailed();
+    setFailedCount(0);
+    setSyncMessage('Operaciones fallidas descartadas.');
+  };
+
+  const handleLogout = async () => {
+    const hasOperations = pendingCount > 0 || failedCount > 0;
+    if (hasOperations && isOnline) await handleManualSync();
+    const [queue, failed] = await Promise.all([syncService.getQueue(), syncService.getFailedQueue()]);
+    if ((queue.length > 0 || failed.length > 0) && !window.confirm('Hay operaciones pendientes. Aceptar descarta esta cola y cierra sesión; Cancelar conserva la sesión.')) return;
+    if (queue.length > 0 || failed.length > 0) {
+      await syncService.clearQueue();
+      await syncService.discardFailed();
+    }
+    logout();
   };
 
   const navItems = user
@@ -192,7 +224,7 @@ export default function AppLayout() {
             <CloudSync aria-hidden="true" size={14} className={isSyncing ? 'animate-spin text-brand-blue' : 'text-slate-300'} />
           </div>
           {pendingCount > 0 && <p className="mb-3 text-[10px] font-bold text-amber-700">{pendingCount} operación{pendingCount === 1 ? '' : 'es'} pendiente{pendingCount === 1 ? '' : 's'}</p>}
-          {failedCount > 0 && <p className="mb-3 text-[10px] font-bold text-red-700">{failedCount} operación{failedCount === 1 ? '' : 'es'} fallida{failedCount === 1 ? '' : 's'}</p>}
+          {failedCount > 0 && <div className="mb-3 space-y-2"><p className="text-[10px] font-bold text-red-700">{failedCount} operación{failedCount === 1 ? '' : 'es'} fallida{failedCount === 1 ? '' : 's'}</p><div className="flex gap-2"><button type="button" onClick={() => void handleRetryFailed()} className="flex min-h-10 flex-1 items-center justify-center gap-1 rounded-xl border border-red-100 bg-white px-2 text-[9px] font-black uppercase tracking-wide text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"><RotateCcw size={12} aria-hidden="true" /> Reintentar</button><button type="button" onClick={() => void handleDiscardFailed()} className="flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-red-100 bg-white text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue" aria-label="Descartar operaciones fallidas"><Trash2 size={14} aria-hidden="true" /></button></div></div>}
           {syncMessage && <p role="status" className="mb-3 text-[10px] font-bold text-brand-blue">{syncMessage}</p>}
           <button
             type="button"
@@ -211,7 +243,7 @@ export default function AppLayout() {
               <span className="truncate text-[13px] font-bold text-ink">{user?.name}</span>
               <span className="truncate text-[11px] font-semibold uppercase text-ink-muted">{user?.role}</span>
             </div>
-            <button type="button" className="min-h-11 min-w-11 rounded-xl p-2 text-ink-light transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue" onClick={logout} title="Cerrar sesión" aria-label="Cerrar sesión">
+            <button type="button" className="min-h-11 min-w-11 rounded-xl p-2 text-ink-light transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue" onClick={() => void handleLogout()} title="Cerrar sesión" aria-label="Cerrar sesión">
               <LogOut aria-hidden="true" size={16} className="mx-auto" />
             </button>
           </div>

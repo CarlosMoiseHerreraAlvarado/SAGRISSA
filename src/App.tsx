@@ -85,7 +85,9 @@ function App() {
                 <Route path="cobros/nuevo" element={<RegistroCobrosPage />} />
               </Route>
               <Route path="reportes" element={<VendedorReportesPage />} />
-              <Route path="catalogo" element={<CatalogoPage />} />
+              <Route element={<ProtectedRoute requiredPermissions="catalog.read" />}>
+                <Route path="catalogo" element={<CatalogoPage />} />
+              </Route>
 
               <Route path="pedidos" element={<PedidosVendedorPage />} />
               <Route path="pedidos/:id" element={<PedidoDetailVendedorPage />} />

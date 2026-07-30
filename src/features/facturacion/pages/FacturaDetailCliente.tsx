@@ -47,10 +47,12 @@ export default function FacturaDetailCliente() {
         <div className="p-6 md:px-0 md:pt-0 md:pb-8 border-b border-slate-100 md:border-none flex items-center justify-between sticky top-0 md:relative bg-white/90 md:bg-transparent backdrop-blur-md md:backdrop-blur-none z-30">
           <div className="flex items-center gap-3">
             <button
-              className="p-2 -ml-2 text-brand-blue hover:bg-slate-50 rounded-full transition-all md:hidden"
+              type="button"
+              aria-label="Volver"
+              className="-ml-2 min-h-11 min-w-11 rounded-full p-2 text-brand-blue transition-all hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:hidden"
               onClick={() => navigate('/app/cliente/facturas')}
             >
-              <ArrowLeft size={24} />
+              <ArrowLeft size={24} aria-hidden="true" />
             </button>
             <span className="text-[13px] md:text-[15px] font-black text-slate-800 uppercase tracking-widest">
               Detalle Documento

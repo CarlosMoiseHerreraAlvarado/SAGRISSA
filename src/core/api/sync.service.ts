@@ -1,102 +1,207 @@
 import localforage from 'localforage';
-import type { Product } from '../../types';
+import type { Product, Role } from '../../types';
 
 type JsonRecord = Record<string, unknown>;
+export type SyncResource = 'catalog' | 'orders' | 'collections';
+export type SyncStatus = 'pending' | 'failed';
 
 export interface SyncTask {
   id: string;
   endpoint: string;
   method: 'POST' | 'PUT' | 'PATCH';
-  payload: JsonRecord | null;
+  payload: JsonRecord;
   timestamp: number;
   attempts: number;
+  ownerId: string;
+  resource: SyncResource;
+  status: SyncStatus;
   lastError?: string;
   lastStatus?: number;
+}
+
+interface StoredUser { id?: string; role?: Role; }
+interface QueueResult {
+  processed: number;
+  pending: number;
+  failed: number;
+  authExpired: boolean;
 }
 
 const catalogStore = localforage.createInstance({ name: 'sagrissa_catalog' });
 const syncQueueStore = localforage.createInstance({ name: 'sagrissa_sync_queue' });
 const failedQueueStore = localforage.createInstance({ name: 'sagrissa_failed_queue' });
 
-async function readQueue(): Promise<SyncTask[]> {
-  return (await syncQueueStore.getItem<SyncTask[]>('queue')) ?? [];
+function getActiveOwnerId(): string {
+  if (typeof sessionStorage === 'undefined') return 'anonymous';
+  try {
+    const stored = sessionStorage.getItem('sagrissa_user');
+    const user = stored ? JSON.parse(stored) as StoredUser : undefined;
+    return user?.id?.trim() || 'anonymous';
+  } catch {
+    return 'anonymous';
+  }
+}
+
+function getResource(endpoint: string): SyncResource {
+  if (/^\/productos(?:\/|$)/i.test(endpoint)) return 'catalog';
+  if (/^(?:\/orders|\/pedidos)(?:\/|$)/i.test(endpoint)) return 'orders';
+  return 'collections';
+}
+
+async function readStoredQueue(store: LocalForage): Promise<SyncTask[]> {
+  const value = await store.getItem<SyncTask[]>('queue');
+  return Array.isArray(value) ? value : [];
+}
+
+function ownerTasks(tasks: SyncTask[], ownerId: string) {
+  return tasks.filter(task => (task.ownerId || 'anonymous') === ownerId);
+}
+
+async function readQueue(ownerId = getActiveOwnerId()): Promise<SyncTask[]> {
+  return ownerTasks(await readStoredQueue(syncQueueStore), ownerId);
+}
+
+async function writeOwnerQueue(store: LocalForage, ownerId: string, tasks: SyncTask[]) {
+  const existing = await readStoredQueue(store);
+  const otherOwners = existing.filter(task => (task.ownerId || 'anonymous') !== ownerId);
+  await store.setItem('queue', [...otherOwners, ...tasks]);
+}
+
+function normalizeTask(task: SyncTask): SyncTask {
+  return {
+    ...task,
+    ownerId: task.ownerId || 'anonymous',
+    resource: task.resource || getResource(task.endpoint),
+    status: task.status || 'pending',
+    payload: task.payload && typeof task.payload === 'object' ? task.payload : {},
+  };
 }
 
 export const syncService = {
-  saveCatalogLocally: async (products: Product[]) => {
-    await catalogStore.setItem('products', products);
+  getCurrentOwnerId: getActiveOwnerId,
+
+  saveCatalogLocally: async (products: Product[], ownerId = getActiveOwnerId()) => {
+    await catalogStore.setItem(`products:${ownerId}`, products);
   },
 
-  getCatalogLocally: async (): Promise<Product[]> => {
-    return (await catalogStore.getItem<Product[]>('products')) ?? [];
+  getCatalogLocally: async (ownerId = getActiveOwnerId()): Promise<Product[]> => {
+    return (await catalogStore.getItem<Product[]>(`products:${ownerId}`)) ?? [];
   },
 
-  enqueueRequest: async (endpoint: string, options: RequestInit) => {
-    let payload: JsonRecord | null = null;
-    if (typeof options.body === 'string' && options.body.trim().length > 0) {
-      try {
-        const parsed: unknown = JSON.parse(options.body);
-        payload = parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
-          ? parsed as JsonRecord
-          : null;
-      } catch {
-        // Las operaciones offline solo persisten cuerpos JSON. Un cuerpo no JSON
-        // se conserva como operación vacía para no romper el flujo del usuario.
-        payload = null;
-      }
+  clearCatalogLocally: async (ownerId = getActiveOwnerId()) => {
+    await catalogStore.removeItem(`products:${ownerId}`);
+  },
+
+  enqueueRequest: async (endpoint: string, options: RequestInit, ownerId = getActiveOwnerId()): Promise<SyncTask> => {
+    const method = options.method?.toUpperCase();
+    if (!method || !['POST', 'PUT', 'PATCH'].includes(method)) {
+      throw new Error('Las operaciones offline deben usar POST, PUT o PATCH.');
     }
-    const queue = await readQueue();
-    const duplicate = queue.some(task => task.endpoint === endpoint && JSON.stringify(task.payload) === JSON.stringify(payload));
-    if (duplicate) return;
+    if (typeof options.body !== 'string' || options.body.trim().length === 0) {
+      throw new Error('La operación offline requiere un cuerpo JSON.');
+    }
 
-    queue.push({
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(options.body);
+    } catch {
+      throw new Error('La operación offline requiere un cuerpo JSON válido.');
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('La operación offline requiere un objeto JSON.');
+    }
+
+    const resource = getResource(endpoint);
+    const queue = (await readStoredQueue(syncQueueStore)).map(normalizeTask);
+    const payload = parsed as JsonRecord;
+    const duplicate = queue.find(task => task.ownerId === ownerId && task.endpoint === endpoint && task.method === method && JSON.stringify(task.payload) === JSON.stringify(payload));
+    if (duplicate) return duplicate;
+
+    const isUpdate = method === 'PUT' || method === 'PATCH';
+    const compacted = isUpdate
+      ? queue.filter(task => !(task.ownerId === ownerId && task.endpoint === endpoint && (task.method === 'PUT' || task.method === 'PATCH')))
+      : queue;
+    const task: SyncTask = {
       id: crypto.randomUUID(),
       endpoint,
-      method: ['POST', 'PUT', 'PATCH'].includes(options.method?.toUpperCase() ?? '')
-        ? options.method!.toUpperCase() as SyncTask['method']
-        : 'POST',
+      method: method as SyncTask['method'],
       payload,
       timestamp: Date.now(),
       attempts: 0,
-    });
-    await syncQueueStore.setItem('queue', queue);
+      ownerId,
+      resource,
+      status: 'pending',
+    };
+    await syncQueueStore.setItem('queue', [...compacted, task]);
+    return task;
   },
 
   getQueue: readQueue,
 
-  getFailedQueue: async (): Promise<SyncTask[]> => (await failedQueueStore.getItem<SyncTask[]>('queue')) ?? [],
-
-  clearQueue: async () => {
-    await syncQueueStore.setItem('queue', []);
+  getFailedQueue: async (ownerId = getActiveOwnerId()): Promise<SyncTask[]> => {
+    return ownerTasks(await readStoredQueue(failedQueueStore), ownerId).map(normalizeTask);
   },
 
-  retryFailed: async (taskId?: string) => {
-    const failed = await syncService.getFailedQueue();
-    const retryable = taskId ? failed.filter(task => task.id === taskId) : failed;
-    const remainingFailed = taskId ? failed.filter(task => task.id !== taskId) : [];
-    const pending = await readQueue();
-    const restored = retryable.map(task => ({ ...task, attempts: 0, lastError: undefined, lastStatus: undefined }));
+  clearQueue: async (ownerId = getActiveOwnerId()) => {
+    await writeOwnerQueue(syncQueueStore, ownerId, []);
+  },
+
+  discardFailed: async (taskId?: string, ownerId = getActiveOwnerId()) => {
+    const failed = await readStoredQueue(failedQueueStore);
+    const remaining = failed.filter(task => (task.ownerId || 'anonymous') !== ownerId || (taskId && task.id !== taskId));
+    await failedQueueStore.setItem('queue', remaining);
+  },
+
+  retryFailed: async (taskId?: string, ownerId = getActiveOwnerId()) => {
+    const failed = (await readStoredQueue(failedQueueStore)).map(normalizeTask);
+    const retryable = failed.filter(task => task.ownerId === ownerId && (!taskId || task.id === taskId));
+    const remainingFailed = failed.filter(task => task.ownerId !== ownerId || (taskId ? task.id !== taskId : false));
+    const pending = await readStoredQueue(syncQueueStore);
+    const restored = retryable.map(task => ({ ...task, attempts: 0, status: 'pending' as const, lastError: undefined, lastStatus: undefined }));
     await syncQueueStore.setItem('queue', [...pending, ...restored]);
     await failedQueueStore.setItem('queue', remainingFailed);
   },
 
-  processQueue: async (apiCallback: (endpoint: string, options: RequestInit) => Promise<unknown>) => {
-    const queue = await readQueue();
+  processQueue: async (apiCallback: (endpoint: string, options: RequestInit) => Promise<unknown>, ownerId = getActiveOwnerId()): Promise<QueueResult> => {
+    const queue = (await readQueue(ownerId)).map(normalizeTask);
     const remaining: SyncTask[] = [];
-    const failed = await syncService.getFailedQueue();
-    const failedBefore = failed.length;
-    for (const task of queue) {
+    const failedAll = (await readStoredQueue(failedQueueStore)).map(normalizeTask);
+    const failedOwner = ownerTasks(failedAll, ownerId);
+    let authExpired = false;
+    let processed = 0;
+
+    for (let index = 0; index < queue.length; index += 1) {
+      const task = queue[index];
       try {
         await apiCallback(task.endpoint, { method: task.method, body: JSON.stringify(task.payload) });
+        processed += 1;
       } catch (caught) {
-        const status = typeof caught === 'object' && caught !== null && 'status' in caught && typeof caught.status === 'number' ? caught.status : undefined;
-        const nextTask = { ...task, attempts: task.attempts + 1, lastError: caught instanceof Error ? caught.message : 'Error desconocido', lastStatus: status };
-        if (status === 409 || nextTask.attempts >= 3) failed.push(nextTask);
-        else remaining.push(nextTask);
+        const status = typeof caught === 'object' && caught !== null && 'status' in caught && typeof caught.status === 'number'
+          ? caught.status
+          : undefined;
+        const nextTask: SyncTask = {
+          ...task,
+          attempts: task.attempts + 1,
+          status: 'pending',
+          lastError: caught instanceof Error ? caught.message : 'Error desconocido',
+          lastStatus: status,
+        };
+        if (status === 401) {
+          authExpired = true;
+          remaining.push(...queue.slice(index));
+          break;
+        }
+        if (status === 409 || nextTask.attempts >= 3) {
+          failedOwner.push({ ...nextTask, status: 'failed' });
+        } else {
+          remaining.push(nextTask);
+        }
       }
     }
-    await syncQueueStore.setItem('queue', remaining);
-    await failedQueueStore.setItem('queue', failed);
-    return { processed: queue.length - remaining.length - (failed.length - failedBefore), pending: remaining.length, failed: failed.length };
+
+    await writeOwnerQueue(syncQueueStore, ownerId, remaining);
+    const otherFailed = failedAll.filter(task => (task.ownerId || 'anonymous') !== ownerId);
+    await failedQueueStore.setItem('queue', [...otherFailed, ...failedOwner]);
+    return { processed, pending: remaining.length, failed: failedOwner.length, authExpired };
   },
 };

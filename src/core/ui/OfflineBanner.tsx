@@ -20,8 +20,8 @@ export const OfflineBanner = () => {
   if (isOnline) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] bg-red-500 text-white px-4 py-2 flex items-center justify-center gap-2 shadow-smooth-md animate-in slide-in-from-top-full duration-300">
-      <WifiOff size={16} />
+    <div role="status" className="safe-top fixed left-0 right-0 top-0 z-[100] flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-white shadow-smooth-md animate-in slide-in-from-top-full duration-300">
+      <WifiOff size={16} aria-hidden="true" />
       <span className="text-sm font-semibold tracking-wide">Sin conexión a Internet. Modo Offline.</span>
     </div>
   );

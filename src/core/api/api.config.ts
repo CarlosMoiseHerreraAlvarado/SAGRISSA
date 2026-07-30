@@ -28,12 +28,12 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     
     // Si es una petición de ESCRITURA (POST/PUT/PATCH), la encolamos
     const method = options?.method?.toUpperCase() || 'GET';
-    const isOfflineWrite = /^\/(orders|pedidos|collections|cobros)(?:\/|$)/i.test(endpoint);
+    const isOfflineWrite = /^\/(orders|pedidos|collections|cobros|productos)(?:\/|$)/i.test(endpoint);
     if (isOfflineWrite && ['POST', 'PUT', 'PATCH'].includes(method)) {
-      await syncService.enqueueRequest(endpoint, options || {});
-      trackEvent('offline.operation.queued', { endpoint, method });
+      const task = await syncService.enqueueRequest(endpoint, options || {});
+      trackEvent(endpoint.startsWith('/productos') ? 'catalog.write.queued' : 'offline.operation.queued', { endpoint, method });
       // La UI recibe un estado explícito de cola; no se reporta como sincronizado.
-      return { _offlineQueued: true, message: 'Guardado localmente, pendiente de sincronización' } as unknown as T;
+      return { _offlineQueued: true, syncTaskId: task.id, message: 'Guardado localmente, pendiente de sincronización' } as unknown as T;
     }
     
     throw new Error('Sin conexión de red para realizar esta consulta.');

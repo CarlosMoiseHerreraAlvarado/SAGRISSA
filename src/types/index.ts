@@ -6,6 +6,7 @@ export type Role = 'cliente' | 'vendedor' | 'supervisor' | 'gerente' | 'director
 export type Permission =
   | 'account.read'
   | 'catalog.read'
+  | 'catalog.write'
   | 'customers.read'
   | 'orders.read'
   | 'orders.create'
@@ -20,7 +21,7 @@ export type Permission =
   | 'reports.export'
   | 'invoices.read';
 
-export type OfflineCapability = 'orders.write' | 'collections.write';
+export type OfflineCapability = 'orders.write' | 'collections.write' | 'catalog.write';
 
 export interface AccessScope {
   country?: string;
@@ -56,6 +57,10 @@ export interface Product {
   stock: number;
   warehouse: string;
   presentation: string;
+  queuedOffline?: boolean;
+  syncStatus?: 'synced' | 'pending' | 'failed';
+  syncError?: string;
+  syncTaskId?: string;
 }
 
 // ------------------
@@ -208,4 +213,6 @@ export interface BackendProducto {
   precio: number;
   bodega: string;
   activo: boolean;
+  familia?: string | null;
+  categoria?: string | null;
 }

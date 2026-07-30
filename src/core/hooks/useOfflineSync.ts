@@ -12,7 +12,15 @@ export function useOfflineSync() {
       if (cancelled || !navigator.onLine) return;
       try {
         const result = await syncService.processQueue(fetchApi);
-        if (!cancelled) trackEvent('offline.sync.completed', result);
+        if (!cancelled) {
+          trackEvent('offline.sync.completed', {
+            processed: result.processed,
+            pending: result.pending,
+            failed: result.failed,
+            authExpired: result.authExpired,
+          });
+          if (result.authExpired) trackEvent('offline.sync.auth_expired', {});
+        }
       } catch (caught) {
         if (!cancelled) {
           trackEvent('offline.sync.failed', {

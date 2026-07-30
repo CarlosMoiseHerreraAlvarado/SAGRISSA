@@ -54,10 +54,12 @@ export default function FacturasCliente() {
         <div className="md:bg-transparent bg-white border-b border-slate-100 md:border-none p-6 flex flex-col gap-5 sticky top-0 z-30 md:relative md:p-0 md:mb-8">
           <div className="flex items-center gap-3">
             <button
-              className="p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors md:hidden"
+              type="button"
+              aria-label="Volver"
+              className="-ml-2 min-h-11 min-w-11 rounded-xl p-2 text-slate-400 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:hidden"
               onClick={() => navigate('/app/cliente/cartera')}
             >
-              <ArrowLeft size={24} />
+              <ArrowLeft size={24} aria-hidden="true" />
             </button>
             <div className="flex-1">
                <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Facturas</h1>

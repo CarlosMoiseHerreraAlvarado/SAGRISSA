@@ -391,12 +391,12 @@ export default function NuevoPedidoPage() {
         <div className="px-6 md:px-0 pt-16 md:pt-0 pb-6 md:pb-8 flex items-center justify-between z-10 sticky top-0 md:relative bg-white/90 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-b border-slate-50 md:border-none">
            <div className="flex items-center gap-3">
              {step !== 'success' && (
-               <button onClick={() => {
+               <button type="button" aria-label="Volver" onClick={() => {
                  if (step === 'cliente') navigate(-1);
                  else if (step === 'productos') setStep('cliente');
                  else if (step === 'entrega') setStep('productos');
-               }} className="p-2 -ml-2 text-slate-400 hover:text-brand-blue md:hidden">
-                 <ArrowLeft size={24} />
+               }} className="-ml-2 min-h-11 min-w-11 rounded-xl p-2 text-slate-400 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:hidden">
+                 <ArrowLeft size={24} aria-hidden="true" />
                </button>
              )}
              <h2 className="font-black text-xl md:text-2xl text-slate-800 tracking-tight uppercase tracking-widest leading-none">{isEditing ? 'Editar Pedido' : 'Registrar Pedido'}</h2>

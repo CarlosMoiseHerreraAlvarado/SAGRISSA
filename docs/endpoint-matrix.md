@@ -13,4 +13,4 @@ La aplicación utiliza una única tabla de rutas en `src/core/api/endpoints.ts`.
 | Cobros | GET/POST | `/cobros` | `cobrosService` |
 | Facturas pendientes | GET | `/cobros/pending-invoices?customerId=:id` | `cobrosService` |
 
-El dominio se configura con `VITE_API_URL`; el service worker solo cachea respuestas GET de estas rutas en ese origen. Las operaciones POST, PUT y PATCH siguen gestionadas por la cola offline de `localforage`.
+El dominio se configura con `VITE_API_URL`. Las respuestas autenticadas no se guardan en Cache Storage; el catálogo leído se conserva por usuario en `localforage`. Las operaciones POST, PUT y PATCH de pedidos, cobros y productos siguen gestionadas por la cola offline de `localforage`.

@@ -30,10 +30,12 @@ export default function CarteraPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8 px-6 md:px-0">
           <button 
+            type="button"
             onClick={() => navigate(-1)}
-            className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-brand-blue shadow-sm transition-all md:hidden"
+            aria-label="Volver"
+            className="min-h-11 min-w-11 rounded-2xl border border-slate-100 bg-white p-3 text-slate-400 shadow-sm transition-all hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:hidden"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} aria-hidden="true" />
           </button>
           <div>
             <h2 className="font-black text-xl text-slate-800 tracking-tight">Estado de Cartera</h2>
