@@ -113,7 +113,7 @@ export default function PedidoDetailVendedorPage() {
             </div>
 
             {/* Action Bottom */}
-            <div className="fixed inset-x-0 bottom-0 border-t border-slate-100 bg-white/80 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-lg md:relative md:border-none md:bg-transparent md:p-0">
+            <div className="fixed inset-x-0 bottom-[calc(72px+env(safe-area-inset-bottom))] z-40 border-t border-slate-100 bg-white/90 p-4 backdrop-blur-lg md:relative md:inset-auto md:z-auto md:border-none md:bg-transparent md:p-0">
                <div className="flex gap-3">
                  <button className="flex-1 py-5 bg-white border border-red-100 text-red-500 rounded-[32px] font-black text-[13px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all">
                     Eliminar

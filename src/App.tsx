@@ -1,43 +1,56 @@
 import { OfflineBanner } from './core/ui/OfflineBanner';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { useAuth } from './core/hooks/useAuth';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
 import OnboardingPage from './features/auth/pages/OnboardingPage';
 import LoginPage from './features/auth/pages/LoginPage';
 import AppLayout from './core/layout/AppLayout';
 
 // Páginas del Cliente
-import HomeCliente from './features/dashboards/pages/HomeCliente';
-import OperacionesCliente from './features/dashboards/pages/OperacionesCliente';
-import AccountCliente from './features/facturacion/pages/AccountCliente';
-import FacturasCliente from './features/facturacion/pages/FacturasCliente';
-import FacturaDetailCliente from './features/facturacion/pages/FacturaDetailCliente';
-import PedidosCliente from './features/pedidos/pages/PedidosCliente';
-import PedidoDetailPage from './features/pedidos/pages/PedidoDetailPage';
+const HomeCliente = lazy(() => import('./features/dashboards/pages/HomeCliente'));
+const OperacionesCliente = lazy(() => import('./features/dashboards/pages/OperacionesCliente'));
+const AccountCliente = lazy(() => import('./features/facturacion/pages/AccountCliente'));
+const FacturasCliente = lazy(() => import('./features/facturacion/pages/FacturasCliente'));
+const FacturaDetailCliente = lazy(() => import('./features/facturacion/pages/FacturaDetailCliente'));
+const PedidosCliente = lazy(() => import('./features/pedidos/pages/PedidosCliente'));
+const PedidoDetailPage = lazy(() => import('./features/pedidos/pages/PedidoDetailPage'));
+const DashboardVendedor = lazy(() => import('./features/dashboards/pages/DashboardVendedor'));
+const DashboardSupervisor = lazy(() => import('./features/dashboards/pages/DashboardSupervisor'));
+const DashboardGerente = lazy(() => import('./features/dashboards/pages/DashboardGerente'));
+const DashboardDirector = lazy(() => import('./features/dashboards/pages/DashboardDirector'));
+const PedidosVendedorPage = lazy(() => import('./features/dashboards/pages/PedidosVendedorPage'));
+const CatalogoPage = lazy(() => import('./features/catalogo/pages/CatalogoPage'));
+const NuevoPedidoPage = lazy(() => import('./features/pedidos/pages/NuevoPedidoPage'));
+const SupervisorApprovalsPage = lazy(() => import('./features/dashboards/pages/SupervisorApprovalsPage'));
+const GerenteApprovalsPage = lazy(() => import('./features/dashboards/pages/GerenteApprovalsPage'));
+const SupervisorEquipoPage = lazy(() => import('./features/dashboards/pages/SupervisorEquipoPage'));
+const SupervisorMetasPage = lazy(() => import('./features/dashboards/pages/SupervisorMetasPage'));
+const DirectorAnalyticsPage = lazy(() => import('./features/dashboards/pages/DirectorAnalyticsPage'));
+const DirectorReportesPage = lazy(() => import('./features/dashboards/pages/DirectorReportesPage'));
+const ProfilePage = lazy(() => import('./features/auth/pages/ProfilePage'));
+const HistorialPagosPage = lazy(() => import('./features/cobros/pages/HistorialPagosPage'));
+const RegistroCobrosPage = lazy(() => import('./features/cobros/pages/RegistroCobrosPage'));
+const CarteraPage = lazy(() => import('./features/cartera/pages/CarteraPage'));
+const VendedorReportesPage = lazy(() => import('./features/dashboards/pages/VendedorReportesPage'));
+const ClientesAsignadosPage = lazy(() => import('./features/dashboards/pages/ClientesAsignadosPage'));
+const PedidoDetailVendedorPage = lazy(() => import('./features/dashboards/pages/PedidoDetailVendedorPage'));
+const FacturasPage = lazy(() => import('./features/facturacion/pages/FacturasPage'));
+const GerenteMetasPage = lazy(() => import('./features/dashboards/pages/GerenteMetasPage'));
 
-import DashboardVendedor from './features/dashboards/pages/DashboardVendedor';
-import DashboardSupervisor from './features/dashboards/pages/DashboardSupervisor';
-import DashboardGerente from './features/dashboards/pages/DashboardGerente';
-import DashboardDirector from './features/dashboards/pages/DashboardDirector';
-import PedidosVendedorPage from './features/dashboards/pages/PedidosVendedorPage';
-import CatalogoPage from './features/catalogo/pages/CatalogoPage';
-import NuevoPedidoPage from './features/pedidos/pages/NuevoPedidoPage';
+const DEFAULT_ROUTES = {
+  cliente: '/app/cliente/home', vendedor: '/app/vendedor/home', supervisor: '/app/supervisor/home',
+  gerente: '/app/gerente/home', director: '/app/director/home',
+} as const;
 
-import SupervisorApprovalsPage from './features/dashboards/pages/SupervisorApprovalsPage';
-import GerenteApprovalsPage from './features/dashboards/pages/GerenteApprovalsPage';
-import SupervisorEquipoPage from './features/dashboards/pages/SupervisorEquipoPage';
-import SupervisorMetasPage from './features/dashboards/pages/SupervisorMetasPage';
-import DirectorAnalyticsPage from './features/dashboards/pages/DirectorAnalyticsPage';
-import DirectorReportesPage from './features/dashboards/pages/DirectorReportesPage';
-import ProfilePage from './features/auth/pages/ProfilePage';
-import HistorialPagosPage from './features/cobros/pages/HistorialPagosPage';
-import RegistroCobrosPage from './features/cobros/pages/RegistroCobrosPage';
-import CarteraPage from './features/cartera/pages/CarteraPage';
-import VendedorReportesPage from './features/dashboards/pages/VendedorReportesPage';
+function RootRedirect() {
+  const { user } = useAuth();
+  return <Navigate to={user ? DEFAULT_ROUTES[user.role] : '/onboarding'} replace />;
+}
 
-import ClientesAsignadosPage from './features/dashboards/pages/ClientesAsignadosPage';
-import PedidoDetailVendedorPage from './features/dashboards/pages/PedidoDetailVendedorPage';
-import FacturasPage from './features/facturacion/pages/FacturasPage';
-import GerenteMetasPage from './features/dashboards/pages/GerenteMetasPage';
+function RouteLoader() {
+  return <div className="flex min-h-full items-center justify-center p-8 text-sm font-bold text-ink-muted" role="status">Cargando módulo…</div>;
+}
 
 
 
@@ -46,9 +59,10 @@ function App() {
   return (
     <Router>
       <OfflineBanner />
-      <Routes>
+      <Suspense fallback={<RouteLoader />}>
+        <Routes>
         {/* ─── Rutas Públicas ─── */}
-        <Route path="/" element={<Navigate to="/onboarding" replace />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/login" element={<LoginPage />} />
         
@@ -144,7 +158,8 @@ function App() {
 
           </Route>
         </Route>
-      </Routes>
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

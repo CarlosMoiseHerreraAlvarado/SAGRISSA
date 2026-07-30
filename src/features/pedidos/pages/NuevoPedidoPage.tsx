@@ -17,6 +17,7 @@ export default function NuevoPedidoPage() {
   const [step, setStep] = useState<Step>(isEditing ? 'productos' : 'cliente');
   const [loading, setLoading] = useState(isEditing);
   const [queuedOffline, setQueuedOffline] = useState(false);
+  const [error, setError] = useState('');
   
   // State for Selection
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerAccount | null>(null);
@@ -70,7 +71,10 @@ export default function NuevoPedidoPage() {
         setLoading(false);
       }).catch(e => {
         console.error(e);
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setError(e instanceof Error ? e.message : 'No fue posible cargar el pedido.');
+          setLoading(false);
+        }
       });
     } else {
       if (step === 'cliente' && customers.length === 0) {
@@ -80,12 +84,22 @@ export default function NuevoPedidoPage() {
             setCustomers(data);
             setLoading(false);
           }
+        }).catch(e => {
+          if (mounted) {
+            setError(e instanceof Error ? e.message : 'No fue posible cargar los clientes.');
+            setLoading(false);
+          }
         });
       } else if (step === 'productos' && products.length === 0) {
         setLoading(true);
         catalogService.getProducts().then(data => {
           if (mounted) {
             setProducts(data);
+            setLoading(false);
+          }
+        }).catch(e => {
+          if (mounted) {
+            setError(e instanceof Error ? e.message : 'No fue posible cargar el catálogo.');
             setLoading(false);
           }
         });
@@ -99,6 +113,7 @@ export default function NuevoPedidoPage() {
   const handleCreateOrder = async () => {
     if (!selectedCustomer) return;
     setLoading(true);
+    setError('');
     
     const items: OrderItem[] = cart.map(item => ({
       productId: item.product.id,
@@ -140,6 +155,7 @@ export default function NuevoPedidoPage() {
       setStep('success');
     } catch (e) {
       console.error(e);
+      setError(e instanceof Error ? e.message : 'No fue posible guardar el pedido. Intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -404,6 +420,12 @@ export default function NuevoPedidoPage() {
         </div>
 
         <main className="flex-1 overflow-y-auto p-6 scrollbar-hide z-10">
+          {error && (
+            <div className="mb-6 flex items-start justify-between gap-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700" role="alert">
+              <span>{error}</span>
+              <button type="button" onClick={() => setError('')} className="shrink-0 rounded-lg px-2 py-1 text-xs font-black uppercase tracking-wide hover:bg-red-100">Cerrar</button>
+            </div>
+          )}
           {step === 'cliente' && renderClienteStep()}
           {step === 'productos' && renderProductosStep()}
           {step === 'entrega' && renderEntregaStep()}

@@ -57,6 +57,11 @@ function buildUser(response: BackendLoginResponse, dui: string): User {
   };
 }
 
+function formatDui(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 9);
+  return digits.length > 8 ? `${digits.slice(0, 8)}-${digits.slice(8)}` : digits;
+}
+
 export default function LoginPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
@@ -65,6 +70,7 @@ export default function LoginPage() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowLogin, setSlowLogin] = useState(false);
 
   useEffect(() => {
     if (user) navigate(DEFAULT_ROUTES[user.role], { replace: true });
@@ -72,13 +78,13 @@ export default function LoginPage() {
 
   const fieldValue = step === 'dui' ? dui : pin;
   const fieldLabel = step === 'dui' ? 'DUI' : 'PIN';
-  const isValid = useMemo(() => step === 'dui' ? dui.trim().length >= 5 : pin.trim().length >= 4, [dui, pin, step]);
+  const isValid = useMemo(() => step === 'dui' ? /^\d{8}-\d$/.test(dui) : pin.trim().length >= 4, [dui, pin, step]);
 
   const handleLogin = async () => {
     const cleanDui = dui.trim();
     const cleanPin = pin.trim();
-    if (cleanDui.length < 5) {
-      setError('Escriba un DUI válido para continuar.');
+    if (!/^\d{8}-\d$/.test(cleanDui)) {
+      setError('Escriba un DUI valido con el formato 00000000-0.');
       setStep('dui');
       return;
     }
@@ -89,11 +95,14 @@ export default function LoginPage() {
     }
 
     setLoading(true);
+    setSlowLogin(false);
     setError('');
+    const slowTimer = window.setTimeout(() => setSlowLogin(true), 1500);
     try {
       const response = await fetchApi<BackendLoginResponse>(AUTH_LOGIN_PATH, {
         method: 'POST',
         body: JSON.stringify({ dui: cleanDui, pin: cleanPin }),
+        signal: AbortSignal.timeout(30000),
       });
       const nextUser = buildUser(response, cleanDui);
       login(nextUser, response.accessToken ?? response.token, response.expiresAt);
@@ -101,9 +110,13 @@ export default function LoginPage() {
       navigate(DEFAULT_ROUTES[nextUser.role], { replace: true });
     } catch (caught: unknown) {
       trackEvent('auth.login.failure', { reason: caught instanceof Error ? caught.message : 'unknown' });
-      setError(caught instanceof Error ? caught.message : 'No fue posible iniciar sesión.');
+      setError(caught instanceof DOMException && caught.name === 'TimeoutError'
+        ? 'El servidor tardo demasiado en responder. Intente nuevamente en unos segundos.'
+        : caught instanceof Error ? caught.message : 'No fue posible iniciar sesión.');
     } finally {
+      window.clearTimeout(slowTimer);
       setLoading(false);
+      setSlowLogin(false);
     }
   };
 
@@ -158,7 +171,7 @@ export default function LoginPage() {
             placeholder={step === 'dui' ? '00123456-7' : 'Ingrese su PIN'}
             onChange={event => {
               setError('');
-              if (step === 'dui') setDui(event.target.value);
+              if (step === 'dui') setDui(formatDui(event.target.value));
               else setPin(event.target.value);
             }}
             onKeyDown={event => { if (event.key === 'Enter') handleAction(); }}
@@ -175,6 +188,8 @@ export default function LoginPage() {
           >
             {loading ? <span className="flex items-center justify-center gap-2"><Loader2 size={18} className="animate-spin" aria-hidden="true" /> Validando</span> : step === 'dui' ? 'Continuar' : 'Iniciar sesión'}
           </button>
+
+          {slowLogin && <p className="mt-3 text-center text-xs font-semibold text-amber-700" role="status">El servidor esta tardando en responder. Puede estar despertando; espere unos segundos.</p>}
 
           <div className="mt-auto pt-12 text-center">
             <p className="text-xs font-medium text-ink-muted">El rol y las capacidades se asignan desde el servidor.</p>
