@@ -26,7 +26,12 @@ function mapCliente(c: BackendCliente): CustomerAccount {
  */
 export const customerService = {
   getCustomersList: async () => {
-    const data = await fetchApi<BackendCliente[]>('/customers');
-    return data.map(mapCliente);
+    try {
+      const data = await fetchApi<BackendCliente[]>('/clientes');
+      return data.map(mapCliente);
+    } catch (caught) {
+      console.error('Error al obtener lista de clientes /clientes:', caught);
+      return [];
+    }
   }
 };

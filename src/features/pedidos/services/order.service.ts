@@ -29,18 +29,25 @@ function mapPedidoEncabezado(pedido: BackendPedidoEncabezado): Order {
   };
 }
 
+
+
 function isOfflineQueued(value: Order & { _offlineQueued?: boolean }): value is Order & { _offlineQueued: true } {
   return value._offlineQueued === true;
 }
 
 export const orderService = {
   getMyOrders: async (): Promise<Order[]> => {
-    const data = await fetchApi<BackendPedidoEncabezado[]>('/orders');
-    return data.map(mapPedidoEncabezado);
+    try {
+      const data = await fetchApi<BackendPedidoEncabezado[]>('/pedidos');
+      return data.map(mapPedidoEncabezado);
+    } catch (caught) {
+      console.error('Error al obtener pedidos backend /pedidos:', caught);
+      return [];
+    }
   },
 
   getOrderById: async (id: string): Promise<Order> => {
-    const data = await fetchApi<BackendPedidoResponse>(`/orders/${id}`);
+    const data = await fetchApi<BackendPedidoResponse>(`/pedidos/${encodeURIComponent(id)}`);
     const base = mapPedidoEncabezado(data.encabezado);
     base.items = data.detalle.map(detail => ({
       productId: detail.codProducto,
@@ -53,7 +60,7 @@ export const orderService = {
   },
 
   createOrder: async (orderPayload: Partial<Order>): Promise<Order> => {
-    const response = await fetchApi<Order & { _offlineQueued?: boolean }>('/orders', {
+    const response = await fetchApi<Order & { _offlineQueued?: boolean }>('/pedidos', {
       method: 'POST',
       body: JSON.stringify(orderPayload),
     });
@@ -66,7 +73,7 @@ export const orderService = {
   },
 
   updateOrder: async (id: string, orderPayload: Partial<Order>): Promise<Order> => {
-    const response = await fetchApi<Order & { _offlineQueued?: boolean }>(`/orders/${id}`, {
+    const response = await fetchApi<Order & { _offlineQueued?: boolean }>(`/pedidos/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: JSON.stringify(orderPayload),
     });

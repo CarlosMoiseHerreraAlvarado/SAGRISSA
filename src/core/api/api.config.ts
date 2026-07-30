@@ -28,7 +28,7 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     
     // Si es una petición de ESCRITURA (POST/PUT/PATCH), la encolamos
     const method = options?.method?.toUpperCase() || 'GET';
-    const isOfflineWrite = endpoint.includes('/orders') || endpoint.includes('/collections');
+    const isOfflineWrite = endpoint.includes('/orders') || endpoint.includes('/pedidos') || endpoint.includes('/collections') || endpoint.includes('/cobros');
     if (isOfflineWrite && ['POST', 'PUT', 'PATCH'].includes(method)) {
       await syncService.enqueueRequest(endpoint, options || {});
       trackEvent('offline.operation.queued', { endpoint, method });

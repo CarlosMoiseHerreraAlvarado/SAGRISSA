@@ -9,7 +9,7 @@ function mapProducto(product: BackendProducto): Product {
 export const catalogService = {
   async getProducts(): Promise<Product[]> {
     try {
-      const products = (await fetchApi<BackendProducto[]>('/catalog/products')).map(mapProducto);
+      const products = (await fetchApi<BackendProducto[]>('/productos')).map(mapProducto);
       await syncService.saveCatalogLocally(products);
       return products;
     } catch (caught) {
@@ -18,8 +18,8 @@ export const catalogService = {
     }
   },
   async getProductBySku(sku: string): Promise<Product | undefined> {
-    try { return mapProducto(await fetchApi<BackendProducto>(`/catalog/products/${encodeURIComponent(sku)}`)); } catch { return undefined; }
+    try { return mapProducto(await fetchApi<BackendProducto>(`/productos/${encodeURIComponent(sku)}`)); } catch { return undefined; }
   },
-  createProduct: (product: Omit<Product, 'id'>): Promise<Product> => fetchApi<Product>('/catalog/products', { method: 'POST', body: JSON.stringify(product) }),
-  updateProduct: (id: string, product: Partial<Product>): Promise<Product> => fetchApi<Product>(`/catalog/products/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(product) }),
+  createProduct: (product: Omit<Product, 'id'>): Promise<Product> => fetchApi<Product>('/productos', { method: 'POST', body: JSON.stringify(product) }),
+  updateProduct: (id: string, product: Partial<Product>): Promise<Product> => fetchApi<Product>(`/productos/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(product) }),
 };

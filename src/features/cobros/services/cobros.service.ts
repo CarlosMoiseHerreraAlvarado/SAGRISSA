@@ -38,7 +38,7 @@ export interface RegisterPaymentInput {
 
 export const cobrosService = {
   registerPayment: async (payment: RegisterPaymentInput): Promise<PaymentRecord> => {
-    const response = await fetchApi<PaymentRecord & { _offlineQueued?: boolean }>('/collections', {
+    const response = await fetchApi<PaymentRecord & { _offlineQueued?: boolean }>('/cobros', {
       method: 'POST',
       body: JSON.stringify(payment),
     });
@@ -51,10 +51,20 @@ export const cobrosService = {
   },
 
   getPaymentHistory: async (): Promise<PaymentRecord[]> => {
-    return fetchApi<PaymentRecord[]>('/collections');
+    try {
+      return await fetchApi<PaymentRecord[]>('/cobros');
+    } catch (caught) {
+      console.warn('Endpoint /cobros no disponible aún en el backend; retornando historial vacío.', caught);
+      return [];
+    }
   },
 
   getPendingInvoices: async (customerId: string): Promise<PendingInvoice[]> => {
-    return fetchApi<PendingInvoice[]>(`/collections/pending-invoices?customerId=${encodeURIComponent(customerId)}`);
+    try {
+      return await fetchApi<PendingInvoice[]>(`/cobros/pending-invoices?customerId=${encodeURIComponent(customerId)}`);
+    } catch (caught) {
+      console.warn('Endpoint /cobros/pending-invoices no disponible aún en el backend.', caught);
+      return [];
+    }
   },
 };
