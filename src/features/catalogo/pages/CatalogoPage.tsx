@@ -174,7 +174,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
 
   return (
     <div className="flex min-h-screen w-full justify-center bg-white pb-20 md:bg-transparent md:pb-0">
-      <div className="relative flex h-full w-full min-w-0 flex-col md:px-8 md:pt-4 xl:max-w-6xl">
+      <div className="relative flex h-full w-full min-w-0 flex-col px-4 md:px-8 md:pt-4 xl:max-w-6xl">
         <svg className="pointer-events-none absolute right-10 top-0 z-0 h-32 w-24 opacity-40" viewBox="0 0 100 100" fill="none" aria-hidden="true">
           <path d="M 0 0 Q 10 60 70 40 Q 90 30 100 40" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" fill="none" />
         </svg>
@@ -182,7 +182,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
         <header className="z-40 flex flex-col gap-5 pb-2 pt-6 md:pt-0">
           <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <button type="button" onClick={() => navigate(-1)} className="-ml-2 min-h-11 min-w-11 rounded-xl p-2 text-slate-400 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:hidden" aria-label="Volver">
+              <button type="button" onClick={() => navigate(-1)} className="-ml-2 min-h-11 min-w-11 rounded-xl p-2 text-slate-500 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:hidden" aria-label="Volver">
                 <ArrowLeft size={20} aria-hidden="true" />
               </button>
               <h1 className="truncate text-xl font-black tracking-tight text-slate-800 md:text-2xl">Catálogo</h1>
@@ -199,16 +199,16 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
             <div className="flex min-w-0 flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all focus-within:ring-2 focus-within:ring-brand-blue/15">
               <Search size={18} className="mr-2 shrink-0 text-slate-400" aria-hidden="true" />
               <label htmlFor="catalog-search" className="sr-only">Buscar por SKU o nombre</label>
-              <input id="catalog-search" type="search" placeholder="Buscar SKU o nombre..." className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-300" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} />
+              <input id="catalog-search" type="search" placeholder="Buscar SKU o nombre..." className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} />
             </div>
             <button type="button" onClick={() => setShowFilters(true)} aria-label="Abrir filtros" aria-haspopup="dialog" aria-expanded={showFilters} className={`flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-2xl border p-3 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue ${showFilters ? 'border-brand-blue bg-brand-blue text-white' : 'border-slate-200 bg-white text-slate-400 hover:border-brand-blue'}`}>
               <Filter size={18} aria-hidden="true" />
             </button>
           </div>
 
-          <div className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-2 scrollbar-hide" role="tablist" aria-label="Categorías de productos">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-hide" role="tablist" aria-label="Categorías de productos">
             {categories.map(category => (
-              <button key={category} type="button" role="tab" aria-selected={selectedCategory === category} onClick={() => setSelectedCategory(category)} className={`min-h-11 shrink-0 whitespace-nowrap rounded-xl border px-5 py-2 text-[11px] font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue ${selectedCategory === category ? 'border-brand-blue bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'border-slate-100 bg-white text-slate-400 hover:border-brand-blue/30'}`}>
+              <button key={category} type="button" role="tab" aria-selected={selectedCategory === category} onClick={() => setSelectedCategory(category)} className={`min-h-11 shrink-0 whitespace-nowrap rounded-xl border px-4 py-2 text-[11px] font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue ${selectedCategory === category ? 'border-brand-blue bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'border-slate-100 bg-white text-slate-400 hover:border-brand-blue/30'}`}>
                 {category}
               </button>
             ))}
@@ -233,7 +233,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                 <p className="mt-2 max-w-sm text-sm text-slate-400">Prueba con otra búsqueda o categoría.</p>
               </div>
             ) : filtered.map(product => (
-              <article key={product.id} className="group relative flex min-w-0 gap-4 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm transition-all hover:border-brand-blue/30">
+              <article key={product.id} className="group relative flex min-h-[120px] min-w-0 gap-3 rounded-3xl border border-slate-100 bg-white p-3 shadow-sm transition-all hover:border-brand-blue/30 sm:gap-4 sm:p-4">
                 <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 sm:h-24 sm:w-24">
                   <PackageOpen className="text-slate-200" size={32} aria-hidden="true" />
                   <div className="absolute bottom-0 w-full bg-slate-100/80 py-1 text-center"><span className="block truncate px-1 text-[9px] font-black uppercase text-slate-400">{product.presentation}</span></div>
@@ -241,11 +241,11 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                 <div className="flex min-w-0 flex-1 flex-col justify-center">
                   <div className="flex min-w-0 items-start justify-between gap-2">
                     <span className="min-w-0 truncate text-[10px] font-bold uppercase tracking-wider text-brand-blue">{product.sku}</span>
-                    {canWrite && <button type="button" onClick={() => openEditModal(product)} aria-label={`Editar ${product.name}`} className="min-h-11 min-w-11 shrink-0 rounded-xl p-1.5 text-slate-300 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:opacity-0 md:group-hover:opacity-100"><Edit2 size={14} className="mx-auto" aria-hidden="true" /></button>}
+                    {canWrite && <button type="button" onClick={() => openEditModal(product)} aria-label={`Editar ${product.name}`} className="min-h-11 min-w-11 shrink-0 rounded-xl p-1.5 text-slate-400 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue md:opacity-0 md:group-hover:opacity-100"><Edit2 size={15} className="mx-auto" aria-hidden="true" /></button>}
                   </div>
                   <h2 className="line-clamp-2 text-[13px] font-bold leading-tight text-slate-800">{product.name}</h2>
-                  <p className="mb-3 line-clamp-1 text-[11px] font-medium text-slate-400">{product.description || 'Sin descripción técnica'}</p>
-                  <div className="mt-auto flex min-w-0 items-center justify-between gap-2"><span className="truncate text-base font-black text-slate-800">${product.price.toFixed(2)}</span><ProductStatus product={product} /></div>
+                  {product.description?.trim() && <p className="mt-1 line-clamp-1 text-[11px] font-medium text-slate-400">{product.description}</p>}
+                  <div className="mt-2 flex min-w-0 items-center justify-between gap-2"><span className="truncate text-base font-black text-slate-800">${product.price.toFixed(2)}</span><ProductStatus product={product} /></div>
                 </div>
               </article>
             ))}
