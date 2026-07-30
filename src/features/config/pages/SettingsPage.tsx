@@ -16,8 +16,8 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="bg-gradient-primary text-white pt-6 pb-16 px-5 clip-bottom-curve shadow-smooth-md">
         <div className="flex items-center gap-4">
-          <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors" onClick={() => navigate('/app/home')}>
-            <ArrowLeft size={24} className="text-white" />
+          <button type="button" aria-label="Volver" className="min-h-11 min-w-11 rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20" onClick={() => navigate(-1)}>
+            <ArrowLeft aria-hidden="true" size={24} className="mx-auto text-white" />
           </button>
           <h3 className="font-bold text-lg">Configuraciones</h3>
         </div>

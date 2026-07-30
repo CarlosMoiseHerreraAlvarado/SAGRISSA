@@ -1,12 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, DollarSign, FileText, Package, ClipboardList, Settings, LogOut, Users, BarChart3, WifiOff, CloudSync, RefreshCcw } from 'lucide-react';
+import {
+  BarChart3,
+  ClipboardList,
+  CloudSync,
+  DollarSign,
+  FileText,
+  Home,
+  LogOut,
+  MoreHorizontal,
+  Package,
+  RefreshCcw,
+  Settings,
+  Users,
+  WifiOff,
+} from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { syncService } from '../api/sync.service';
 import { fetchApi } from '../api/api.config';
 import type { Permission, Role } from '../../types';
 import { hasPermission } from '../auth/permissions';
+import { BottomSheet } from '../ui/BottomSheet';
+import { APP_ROUTES } from '../routing/routes';
 
 interface NavItem {
   label: string;
@@ -17,55 +33,62 @@ interface NavItem {
 
 const NAV_CONFIG: Record<Role, NavItem[]> = {
   cliente: [
-    { label: 'Inicio', path: '/app/cliente/home', Icon: Home },
-    { label: 'Cartera', path: '/app/cliente/cartera', Icon: DollarSign },
-    { label: 'Operaciones', path: '/app/cliente/operaciones', Icon: ClipboardList, permission: 'orders.read' },
-    { label: 'Catálogo', path: '/app/cliente/catalogo', Icon: Package, permission: 'catalog.read' },
-    { label: 'Facturas', path: '/app/cliente/facturas', Icon: FileText },
-    { label: 'Ajustes', path: '/app/config', Icon: Settings },
+    { label: 'Inicio', path: APP_ROUTES.cliente.home, Icon: Home },
+    { label: 'Cartera', path: APP_ROUTES.cliente.cartera, Icon: DollarSign },
+    { label: 'Operaciones', path: APP_ROUTES.cliente.operaciones, Icon: ClipboardList, permission: 'orders.read' },
+    { label: 'Catálogo', path: APP_ROUTES.cliente.catalogo, Icon: Package, permission: 'catalog.read' },
+    { label: 'Facturas', path: APP_ROUTES.cliente.facturas, Icon: FileText },
+    { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
   vendedor: [
-    { label: 'Inicio', path: '/app/vendedor/home', Icon: Home },
-    { label: 'Catálogo', path: '/app/catalogo', Icon: Package },
-    { label: 'Pedidos', path: '/app/pedidos', Icon: ClipboardList },
-    { label: 'Clientes', path: '/app/clientes', Icon: Users, permission: 'customers.read' },
-    { label: 'Cobros', path: '/app/cobros', Icon: DollarSign, permission: 'collections.read' },
-    { label: 'Ajustes', path: '/app/config', Icon: Settings },
+    { label: 'Inicio', path: APP_ROUTES.vendedor.home, Icon: Home },
+    { label: 'Catálogo', path: APP_ROUTES.vendedor.catalogo, Icon: Package },
+    { label: 'Pedidos', path: APP_ROUTES.vendedor.pedidos, Icon: ClipboardList },
+    { label: 'Clientes', path: APP_ROUTES.vendedor.clientes, Icon: Users, permission: 'customers.read' },
+    { label: 'Cobros', path: APP_ROUTES.vendedor.cobros, Icon: DollarSign, permission: 'collections.read' },
+    { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
   supervisor: [
     { label: 'Inicio', path: '/app/supervisor/home', Icon: Home },
     { label: 'Equipo', path: '/app/supervisor/equipo', Icon: Users },
     { label: 'Metas', path: '/app/supervisor/metas', Icon: BarChart3 },
     { label: 'Aprobaciones', path: '/app/supervisor/aprobaciones', Icon: DollarSign },
-    { label: 'Ajustes', path: '/app/config', Icon: Settings },
+    { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
   gerente: [
     { label: 'Inicio', path: '/app/gerente/home', Icon: Home },
     { label: 'Aprobaciones', path: '/app/gerente/aprobaciones', Icon: DollarSign },
     { label: 'Reportes', path: '/app/gerente/reportes', Icon: BarChart3 },
-    { label: 'Ajustes', path: '/app/config', Icon: Settings },
+    { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
   director: [
     { label: 'Inicio', path: '/app/director/home', Icon: Home },
     { label: 'Analytics', path: '/app/director/analytics', Icon: BarChart3 },
     { label: 'Reportes', path: '/app/director/reportes', Icon: FileText },
-    { label: 'Ajustes', path: '/app/config', Icon: Settings },
+    { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
+};
+
+const MOBILE_PRIMARY_PATHS: Record<Role, string[]> = {
+  cliente: [APP_ROUTES.cliente.home, APP_ROUTES.cliente.cartera, APP_ROUTES.cliente.operaciones, APP_ROUTES.cliente.facturas],
+  vendedor: [APP_ROUTES.vendedor.home, APP_ROUTES.vendedor.catalogo, APP_ROUTES.vendedor.pedidos, APP_ROUTES.vendedor.cobros],
+  supervisor: ['/app/supervisor/home', '/app/supervisor/equipo', '/app/supervisor/metas', '/app/supervisor/aprobaciones'],
+  gerente: ['/app/gerente/home', '/app/gerente/aprobaciones', '/app/gerente/reportes'],
+  director: ['/app/director/home', '/app/director/analytics', '/app/director/reportes'],
 };
 
 export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  
-  // Activar sincronización en segundo plano (Modo Offline Real)
-  useOfflineSync();
-
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
   const [syncMessage, setSyncMessage] = useState('');
+
+  useOfflineSync();
 
   useEffect(() => {
     const refreshQueue = () => {
@@ -74,6 +97,7 @@ export default function AppLayout() {
         setFailedCount(failed.length);
       });
     };
+
     refreshQueue();
     const interval = window.setInterval(refreshQueue, 5000);
     return () => window.clearInterval(interval);
@@ -89,8 +113,12 @@ export default function AppLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    setIsMoreOpen(false);
+  }, [location.pathname]);
+
   const handleManualSync = async () => {
-    if (!isOnline) return;
+    if (!isOnline || isSyncing) return;
     setIsSyncing(true);
     setSyncMessage('Sincronizando operaciones pendientes...');
     try {
@@ -99,8 +127,9 @@ export default function AppLayout() {
       setFailedCount(result.failed);
       setSyncMessage(result.pending > 0
         ? `${result.pending} operación(es) requieren atención.`
-        : result.failed > 0 ? `${result.failed} operación(es) fallaron y requieren revisión.`
-        : 'Sincronización completada.');
+        : result.failed > 0
+          ? `${result.failed} operación(es) fallaron y requieren revisión.`
+          : 'Sincronización completada.');
     } catch (caught) {
       setSyncMessage(caught instanceof Error ? caught.message : 'No fue posible sincronizar.');
     } finally {
@@ -112,132 +141,147 @@ export default function AppLayout() {
   const navItems = user
     ? NAV_CONFIG[user.role].filter(item => !item.permission || hasPermission(user.permissions, item.permission))
     : [];
+  const primaryPaths = user ? MOBILE_PRIMARY_PATHS[user.role] : [];
+  const mobilePrimaryItems = primaryPaths
+    .map(path => navItems.find(item => item.path === path))
+    .filter((item): item is NavItem => Boolean(item))
+    .slice(0, 4);
+  const mobileMoreItems = navItems.filter(item => !mobilePrimaryItems.some(primary => primary.path === item.path));
   const currentPath = location.pathname;
-
-  const isActive = (path: string) => currentPath.includes(path);
+  const isActive = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
+  const goTo = (path: string) => {
+    setIsMoreOpen(false);
+    navigate(path);
+  };
 
   return (
-    <div className="h-full min-h-screen md:h-screen flex bg-surface-soft overflow-hidden w-full max-w-[100vw]">
-
-
-
-      {/* ─── Sidebar (Desktop) ─── */}
-      <aside className="hidden md:flex flex-col w-[260px] bg-white border-r border-surface-border shrink-0 z-10">
-        
-        {/* Brand */}
-        <div className="h-20 px-8 flex items-center gap-3 border-b border-surface-border">
-          <div className="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center shadow-sm">
-            <span className="text-white font-logo font-black text-sm">S</span>
+    <div className="flex h-full min-h-screen w-full max-w-[100vw] overflow-hidden bg-surface-soft lg:h-screen">
+      <aside className="hidden w-[260px] shrink-0 flex-col border-r border-surface-border bg-white lg:flex lg:z-10">
+        <div className="flex h-20 items-center gap-3 border-b border-surface-border px-8">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue shadow-sm">
+            <span className="font-logo text-sm font-black text-white">S</span>
           </div>
-          <span className="font-logo font-black text-ink text-xl tracking-tight">SAGRISA</span>
+          <span className="font-logo text-xl font-black tracking-tight text-ink">SAGRISA</span>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 py-8 flex flex-col gap-2">
-          <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest px-4 mb-2">
-            Navegación
-          </p>
-          {navItems.map(({ label, path: itemPath, Icon }) => (
-            <button
-              key={itemPath}
-              onClick={() => navigate(itemPath)}
-              className={`
-                w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left text-[14px] font-bold transition-all
-                ${isActive(itemPath) 
-                  ? 'bg-brand-blue text-white shadow-card' 
-                  : 'text-ink-muted hover:bg-surface-soft hover:text-ink'
-                }
-              `}
-            >
-              <Icon size={18} strokeWidth={isActive(itemPath) ? 2.5 : 2} />
-              {label}
-            </button>
-          ))}
+        <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-8" aria-label="Navegación principal">
+          <p className="mb-2 px-4 text-[10px] font-bold uppercase tracking-widest text-ink-muted">Navegación</p>
+          {navItems.map(({ label, path: itemPath, Icon }) => {
+            const active = isActive(itemPath);
+            return (
+              <button
+                key={itemPath}
+                type="button"
+                onClick={() => goTo(itemPath)}
+                aria-current={active ? 'page' : undefined}
+                className={`flex min-h-12 w-full items-center gap-4 rounded-2xl px-4 py-3.5 text-left text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 ${active ? 'bg-brand-blue text-white shadow-card' : 'text-ink-muted hover:bg-surface-soft hover:text-ink'}`}
+              >
+                <Icon aria-hidden="true" size={18} strokeWidth={active ? 2.5 : 2} />
+                <span className="truncate">{label}</span>
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Connectivity Status (PWA Integration) */}
-        <div className="px-6 py-4 mx-4 mb-4 bg-slate-50 rounded-2xl border border-slate-100">
-           <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    {isOnline ? 'En Línea' : 'Modo Local'}
-                 </span>
-              </div>
-              <CloudSync size={14} className={isSyncing ? 'text-brand-blue animate-spin' : 'text-slate-300'} />
-           </div>
-           {pendingCount > 0 && <p className="mb-3 text-[10px] font-bold text-amber-700">{pendingCount} operación{pendingCount === 1 ? '' : 'es'} pendiente{pendingCount === 1 ? '' : 's'}</p>}
-           {failedCount > 0 && <p className="mb-3 text-[10px] font-bold text-red-700">{failedCount} operación{failedCount === 1 ? '' : 'es'} fallida{failedCount === 1 ? '' : 's'}</p>}
-           {syncMessage && <p role="status" className="mb-3 text-[10px] font-bold text-brand-blue">{syncMessage}</p>}
-           <button 
-             onClick={handleManualSync}
-             disabled={!isOnline || isSyncing}
-             className="w-full flex items-center justify-center gap-2 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue hover:border-brand-blue/30 disabled:opacity-30 transition-all"
-           >
-              <RefreshCcw size={10} />
-              Sincronizar ahora
-           </button>
+        <div className="mx-4 mb-4 rounded-2xl border border-slate-100 bg-slate-50 px-6 py-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`h-2 w-2 rounded-full ${isOnline ? 'animate-pulse bg-emerald-500' : 'bg-amber-500'}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{isOnline ? 'En línea' : 'Modo local'}</span>
+            </div>
+            <CloudSync aria-hidden="true" size={14} className={isSyncing ? 'animate-spin text-brand-blue' : 'text-slate-300'} />
+          </div>
+          {pendingCount > 0 && <p className="mb-3 text-[10px] font-bold text-amber-700">{pendingCount} operación{pendingCount === 1 ? '' : 'es'} pendiente{pendingCount === 1 ? '' : 's'}</p>}
+          {failedCount > 0 && <p className="mb-3 text-[10px] font-bold text-red-700">{failedCount} operación{failedCount === 1 ? '' : 'es'} fallida{failedCount === 1 ? '' : 's'}</p>}
+          {syncMessage && <p role="status" className="mb-3 text-[10px] font-bold text-brand-blue">{syncMessage}</p>}
+          <button
+            type="button"
+            onClick={() => void handleManualSync()}
+            disabled={!isOnline || isSyncing}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2 text-[9px] font-black uppercase tracking-widest text-slate-400 transition-all hover:border-brand-blue/30 hover:text-brand-blue disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+          >
+            <RefreshCcw aria-hidden="true" size={12} className={isSyncing ? 'animate-spin' : undefined} />
+            Sincronizar ahora
+          </button>
         </div>
 
-        {/* Profile Footer */}
-        <div className="px-6 py-6 border-t border-surface-border bg-surface-soft/50">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col min-w-0">
-              <span className="text-[13px] font-bold text-ink truncate">{user?.name}</span>
-              <span className="text-[11px] font-semibold uppercase text-ink-muted truncate capitalize">
-                {user?.role}
-              </span>
+        <div className="border-t border-surface-border bg-surface-soft/50 px-6 py-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-[13px] font-bold text-ink">{user?.name}</span>
+              <span className="truncate text-[11px] font-semibold uppercase text-ink-muted">{user?.role}</span>
             </div>
-            <button 
-              className="text-ink-light hover:text-red-500 transition-colors p-2" 
-              onClick={logout}
-              title="Cerrar sesión"
-            >
-              <LogOut size={16} />
+            <button type="button" className="min-h-11 min-w-11 rounded-xl p-2 text-ink-light transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue" onClick={logout} title="Cerrar sesión" aria-label="Cerrar sesión">
+              <LogOut aria-hidden="true" size={16} className="mx-auto" />
             </button>
           </div>
         </div>
-
       </aside>
 
-      {/* ─── Main Content Area ─── */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative">
-        
-        {/* Banner de Modo Offline */}
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         {!isOnline && (
-          <div className="bg-amber-500 text-white px-6 py-2 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300 z-50">
-            <WifiOff size={16} />
-            <span className="text-[11px] font-black uppercase tracking-widest">Modo Offline Activo · Trabajando con datos locales</span>
+          <div role="status" className="z-50 flex min-h-10 items-center justify-center gap-3 bg-amber-500 px-4 py-2 text-white">
+            <WifiOff aria-hidden="true" size={16} />
+            <span className="text-center text-[11px] font-black uppercase tracking-widest">Modo offline activo · Trabajando con datos locales</span>
           </div>
         )}
 
-        <main className="flex-1 overflow-y-auto pb-[90px] md:pb-0 w-full relative z-0">
+        <main className="relative z-0 min-w-0 flex-1 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] lg:pb-0">
           <Outlet />
         </main>
 
-        {/* ─── Bottom Nav (Mobile Only) ─── */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-surface-border shadow-[0_-2px_10px_rgba(0,0,0,0.02)] z-50 flex h-[70px] safe-bottom">
-          {navItems.map(({ label, path: itemPath, Icon }) => (
+        <nav className="fixed inset-x-0 bottom-0 z-50 flex h-[72px] border-t border-surface-border bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.02)] safe-bottom lg:hidden" aria-label="Navegación móvil">
+          {mobilePrimaryItems.map(({ label, path: itemPath, Icon }) => {
+            const active = isActive(itemPath);
+            return (
+              <button
+                key={itemPath}
+                type="button"
+                onClick={() => goTo(itemPath)}
+                aria-current={active ? 'page' : undefined}
+                className={`relative flex min-w-0 min-h-12 flex-1 flex-col items-center justify-center gap-1 px-1 transition-all focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-blue ${active ? 'text-brand-blue' : 'text-ink-muted hover:text-ink'}`}
+              >
+                {active && <div aria-hidden="true" className="absolute left-1/2 top-0 h-1 w-8 -translate-x-1/2 rounded-b-full bg-brand-blue" />}
+                <Icon aria-hidden="true" size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <span className={`mobile-nav-label max-w-full truncate text-[10px] ${active ? 'font-bold' : 'font-medium'}`}>{label}</span>
+              </button>
+            );
+          })}
+          {mobileMoreItems.length > 0 && (
             <button
-              key={itemPath}
-              onClick={() => navigate(itemPath)}
-              className={`
-                flex-1 flex flex-col items-center justify-center gap-1 transition-all relative
-                ${isActive(itemPath) ? 'text-brand-blue' : 'text-ink-muted hover:text-ink'}
-              `}
+              type="button"
+              onClick={() => setIsMoreOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={isMoreOpen}
+              className={`relative flex min-w-0 min-h-12 flex-1 flex-col items-center justify-center gap-1 px-1 text-ink-muted transition-all hover:text-ink focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-blue ${mobileMoreItems.some(item => isActive(item.path)) ? 'text-brand-blue' : ''}`}
             >
-              {isActive(itemPath) && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-brand-blue rounded-b-full" />
-              )}
-              <Icon size={22} strokeWidth={isActive(itemPath) ? 2.5 : 1.8} />
-              <span className={`text-[10px] ${isActive(itemPath) ? 'font-bold' : 'font-medium'}`}>
-                {label}
-              </span>
+              {mobileMoreItems.some(item => isActive(item.path)) && <div aria-hidden="true" className="absolute left-1/2 top-0 h-1 w-8 -translate-x-1/2 rounded-b-full bg-brand-blue" />}
+              <MoreHorizontal aria-hidden="true" size={22} />
+              <span className="mobile-nav-label max-w-full truncate text-[10px] font-medium">Más</span>
             </button>
-          ))}
+          )}
         </nav>
-      </div>
 
+        <BottomSheet open={isMoreOpen} title="Más opciones" onClose={() => setIsMoreOpen(false)}>
+          <nav className="grid gap-2" aria-label="Más opciones de navegación">
+            {mobileMoreItems.map(({ label, path: itemPath, Icon }) => {
+              const active = isActive(itemPath);
+              return (
+                <button
+                  key={itemPath}
+                  type="button"
+                  onClick={() => goTo(itemPath)}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex min-h-12 w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue ${active ? 'bg-brand-blue text-white' : 'bg-surface-soft text-ink hover:bg-slate-100'}`}
+                >
+                  <Icon aria-hidden="true" size={19} />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </BottomSheet>
+      </div>
     </div>
   );
 }

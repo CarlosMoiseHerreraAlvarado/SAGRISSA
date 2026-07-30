@@ -4,6 +4,7 @@ import { ArrowLeft, AlertCircle, ChevronRight, PieChart, DollarSign, TrendingUp 
 import { carteraService, type CarteraSummary, type OverdueInvoice } from '../services/cartera.service';
 import { Card } from '../../../core/ui/Card';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { APP_ROUTES } from '../../../core/routing/routes';
 
 export default function CarteraPage() {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ export default function CarteraPage() {
                       <div>
                         <p className="text-[15px] font-black text-slate-700">${fac.amount.toLocaleString()}</p>
                         <button 
-                          onClick={() => navigate('/app/vendedor/cobros/nuevo')}
+                          onClick={() => navigate(APP_ROUTES.vendedor.nuevoCobro)}
                           className="text-[9px] font-black text-brand-blue uppercase hover:underline"
                         >
                           Cobrar Ahora
@@ -122,7 +123,7 @@ export default function CarteraPage() {
               <h4 className="text-[11px] font-black uppercase tracking-widest mb-4 opacity-70">Acción Rápida</h4>
               <p className="text-sm font-medium mb-6 leading-relaxed">¿Recibiste un abono o pago total? Regístralo de inmediato para actualizar la cartera.</p>
               <button 
-                onClick={() => navigate('/app/vendedor/cobros/nuevo')}
+                onClick={() => navigate(APP_ROUTES.vendedor.nuevoCobro)}
                 className="w-full py-4 bg-white text-brand-blue rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all"
               >
                 <DollarSign size={16} />

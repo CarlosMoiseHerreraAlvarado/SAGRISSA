@@ -5,21 +5,27 @@ import { trackEvent } from '../utils/appInsights';
 
 export function useOfflineSync() {
   useEffect(() => {
-    const handleOnline = async () => {
-      console.log('[Network] Conexión recuperada. Procesando cola de sincronización...');
-      
-      // Esperamos un momento para asegurar que el socket esté listo
-      setTimeout(async () => {
+    let syncTimer: number | undefined;
+    let cancelled = false;
+
+    const processPendingQueue = async () => {
+      if (cancelled || !navigator.onLine) return;
+      try {
         const result = await syncService.processQueue(fetchApi);
-        trackEvent('offline.sync.completed', result);
-        
-        // Opcional: Mostrar una notificación nativa si tenemos permiso
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('SAGRISA', {
-            body: '¡Sincronización completada! Tus pedidos pendientes han sido enviados.',
-            icon: '/icons/icon-192.svg'
+        if (!cancelled) trackEvent('offline.sync.completed', result);
+      } catch (caught) {
+        if (!cancelled) {
+          trackEvent('offline.sync.failed', {
+            message: caught instanceof Error ? caught.message : 'Error desconocido',
           });
         }
+      }
+    };
+
+    const handleOnline = () => {
+      window.clearTimeout(syncTimer);
+      syncTimer = window.setTimeout(() => {
+        void processPendingQueue();
       }, 3000);
     };
 
@@ -30,12 +36,12 @@ export function useOfflineSync() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Verificación inicial por si la app carga directamente offline
-    if (navigator.onLine) {
-       void syncService.processQueue(fetchApi).then(result => trackEvent('offline.sync.completed', result));
-    }
+    // Verificación inicial por si la app carga directamente con conexión.
+    void processPendingQueue();
 
     return () => {
+      cancelled = true;
+      window.clearTimeout(syncTimer);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };

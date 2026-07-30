@@ -15,12 +15,20 @@ export function ListCard({ children, onClick, status, className = '' }: ListCard
   return (
     <div
       className={`
-        bg-white border border-slate-100 rounded-[32px] p-5 shadow-sm 
+        min-w-0 rounded-[32px] border border-slate-100 bg-white p-5 shadow-sm
         transition-all duration-300
         ${isClickable ? 'cursor-pointer hover:border-brand-blue/30 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]' : ''}
         ${className}
       `}
       onClick={onClick}
+      onKeyDown={event => {
+        if (onClick && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
     >
       {children}
       {status && (
@@ -42,19 +50,19 @@ interface ListCardHeaderProps {
 
 export function ListCardHeader({ title, subtitle, badge, icon: Icon, className = '' }: ListCardHeaderProps) {
   return (
-    <div className={`flex justify-between items-start mb-4 ${className}`}>
-      <div className="flex flex-col">
+    <div className={`mb-4 flex min-w-0 items-start justify-between gap-3 ${className}`}>
+      <div className="flex min-w-0 flex-col">
         {Icon && (
           <span className="text-[10px] font-black text-brand-blue uppercase tracking-widest mb-1">
             {title}
           </span>
         )}
-        <span className="text-[15px] font-black text-slate-800">{title}</span>
+        <span className="break-words text-[15px] font-black text-slate-800">{title}</span>
         {subtitle && (
           <span className="text-[11px] font-medium text-slate-400 mt-0.5">{subtitle}</span>
         )}
       </div>
-      {badge}
+      <span className="shrink-0">{badge}</span>
     </div>
   );
 }
@@ -68,9 +76,9 @@ interface ListCardRowProps {
 
 export function ListCardRow({ label, value, valueClassName = '', className = '' }: ListCardRowProps) {
   return (
-    <div className={`flex justify-between items-center ${className}`}>
+    <div className={`flex min-w-0 items-center justify-between gap-3 ${className}`}>
       <span className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
-      <span className={`text-[13px] font-black text-slate-800 ${valueClassName}`}>{value}</span>
+      <span className={`break-words text-right text-[13px] font-black text-slate-800 ${valueClassName}`}>{value}</span>
     </div>
   );
 }
@@ -86,7 +94,7 @@ export function ListCardFooter({ label, value, variant = 'default', className = 
   return (
     <div
       className={`
-        rounded-2xl p-3 flex justify-between items-center border
+        flex min-w-0 items-center justify-between gap-3 rounded-2xl border p-3
         ${variant === 'highlight'
           ? 'bg-brand-blue/5 border-brand-blue/20'
           : 'bg-slate-50 border-slate-100'
@@ -95,7 +103,7 @@ export function ListCardFooter({ label, value, variant = 'default', className = 
       `}
     >
       <span className="text-[12px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
-      <span className={`text-[14px] font-black ${variant === 'highlight' ? 'text-brand-blue' : 'text-slate-800'}`}>
+      <span className={`break-words text-right text-[14px] font-black ${variant === 'highlight' ? 'text-brand-blue' : 'text-slate-800'}`}>
         {value}
       </span>
     </div>

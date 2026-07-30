@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { APP_ROUTES } from '../routing/routes';
 
 interface PageHeaderProps {
   title: string;
@@ -34,7 +35,7 @@ export function PageHeader({
   };
 
   const handleSettings = () => {
-    navigate('/app/config');
+    navigate(APP_ROUTES.config);
   };
 
   return (
@@ -50,10 +51,12 @@ export function PageHeader({
       <div className="flex items-center gap-3">
         {showBack && (
           <button
+            type="button"
             onClick={handleBack}
-            className="p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors"
+            aria-label="Volver"
+            className="min-h-11 min-w-11 p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors"
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft aria-hidden="true" size={24} className="mx-auto" />
           </button>
         )}
         <div>
@@ -69,10 +72,12 @@ export function PageHeader({
       <div className="flex items-center gap-2">
         {actions}
         <button
+          type="button"
           onClick={handleSettings}
-          className="p-2 text-slate-400 hover:text-brand-blue transition-colors"
+          aria-label="Abrir ajustes"
+          className="min-h-11 min-w-11 p-2 text-slate-400 hover:text-brand-blue transition-colors"
         >
-          <Settings size={20} />
+          <Settings aria-hidden="true" size={20} className="mx-auto" />
         </button>
       </div>
     </header>

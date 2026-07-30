@@ -4,6 +4,7 @@ import { ArrowLeft, History, Landmark, Wallet, CreditCard, Search, Plus } from '
 import { cobrosService, type PaymentRecord } from '../services/cobros.service';
 import { ListCard, ListCardHeader, ListCardFooter } from '../../../core/ui/ListCard';
 import { SkeletonListItem } from '../../../core/ui/Skeleton';
+import { APP_ROUTES } from '../../../core/routing/routes';
 
 interface HistorialPagosPageProps { readOnly?: boolean; }
 
@@ -48,7 +49,7 @@ export default function HistorialPagosPage({ readOnly = false }: HistorialPagosP
               <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Historial de Cobros</h1>
             </div>
             
-            {!readOnly && <button onClick={() => navigate('/app/vendedor/cobros/nuevo')} className="min-h-11 bg-brand-blue text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-brand-blue/20 hover:scale-105 transition-all"><Plus size={16} /><span>Nuevo Cobro</span></button>}
+            {!readOnly && <button onClick={() => navigate(APP_ROUTES.vendedor.nuevoCobro)} className="min-h-11 bg-brand-blue text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-brand-blue/20 hover:scale-105 transition-all"><Plus size={16} /><span>Nuevo Cobro</span></button>}
           </div>
 
           <div className="flex items-center bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-blue/15 transition-all">

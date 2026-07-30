@@ -28,7 +28,7 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     
     // Si es una petición de ESCRITURA (POST/PUT/PATCH), la encolamos
     const method = options?.method?.toUpperCase() || 'GET';
-    const isOfflineWrite = endpoint.includes('/orders') || endpoint.includes('/pedidos') || endpoint.includes('/collections') || endpoint.includes('/cobros');
+    const isOfflineWrite = /^\/(orders|pedidos|collections|cobros)(?:\/|$)/i.test(endpoint);
     if (isOfflineWrite && ['POST', 'PUT', 'PATCH'].includes(method)) {
       await syncService.enqueueRequest(endpoint, options || {});
       trackEvent('offline.operation.queued', { endpoint, method });
@@ -49,8 +49,15 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
       window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     }
 
+    const contentType = response.headers.get('content-type') ?? '';
+    const responseData: unknown = response.status === 204
+      ? undefined
+      : contentType.includes('application/json')
+        ? await response.json().catch(() => ({}))
+        : await response.text().catch(() => '');
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = responseData && typeof responseData === 'object' ? responseData as { message?: string; mensaje?: string } : {};
       trackEvent('api.request.error', { endpoint, status: response.status, durationMs: Math.round(performance.now() - startedAt) });
       const apiError = new Error(errorData.message || errorData.mensaje || 'Error en la petición API') as Error & { status?: number };
       apiError.status = response.status;
@@ -58,7 +65,7 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     }
 
     trackEvent('api.request.completed', { endpoint, status: response.status, durationMs: Math.round(performance.now() - startedAt) });
-    return response.json();
+    return responseData as T;
   } catch (error) {
     console.error(`[API Call Failed] ${endpoint}:`, error);
     trackException(error instanceof Error ? error : new Error('Error desconocido en API'));

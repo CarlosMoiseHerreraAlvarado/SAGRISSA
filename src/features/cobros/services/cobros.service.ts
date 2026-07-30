@@ -1,5 +1,6 @@
 import { fetchApi } from '../../../core/api/api.config';
 import { trackEvent } from '../../../core/utils/appInsights';
+import { API_ENDPOINTS } from '../../../core/api/endpoints';
 
 export interface PendingInvoice {
   id: string;
@@ -38,7 +39,7 @@ export interface RegisterPaymentInput {
 
 export const cobrosService = {
   registerPayment: async (payment: RegisterPaymentInput): Promise<PaymentRecord> => {
-    const response = await fetchApi<PaymentRecord & { _offlineQueued?: boolean }>('/cobros', {
+    const response = await fetchApi<PaymentRecord & { _offlineQueued?: boolean }>(API_ENDPOINTS.cobros, {
       method: 'POST',
       body: JSON.stringify(payment),
     });
@@ -52,7 +53,7 @@ export const cobrosService = {
 
   getPaymentHistory: async (): Promise<PaymentRecord[]> => {
     try {
-      return await fetchApi<PaymentRecord[]>('/cobros');
+      return await fetchApi<PaymentRecord[]>(API_ENDPOINTS.cobros);
     } catch (caught) {
       console.warn('Endpoint /cobros no disponible aún en el backend; retornando historial vacío.', caught);
       return [];
@@ -61,7 +62,7 @@ export const cobrosService = {
 
   getPendingInvoices: async (customerId: string): Promise<PendingInvoice[]> => {
     try {
-      return await fetchApi<PendingInvoice[]>(`/cobros/pending-invoices?customerId=${encodeURIComponent(customerId)}`);
+      return await fetchApi<PendingInvoice[]>(API_ENDPOINTS.cobrosPendientes(customerId));
     } catch (caught) {
       console.warn('Endpoint /cobros/pending-invoices no disponible aún en el backend.', caught);
       return [];

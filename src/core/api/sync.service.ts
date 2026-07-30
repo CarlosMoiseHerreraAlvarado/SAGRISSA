@@ -32,7 +32,19 @@ export const syncService = {
   },
 
   enqueueRequest: async (endpoint: string, options: RequestInit) => {
-    const payload = typeof options.body === 'string' ? JSON.parse(options.body) as JsonRecord : null;
+    let payload: JsonRecord | null = null;
+    if (typeof options.body === 'string' && options.body.trim().length > 0) {
+      try {
+        const parsed: unknown = JSON.parse(options.body);
+        payload = parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
+          ? parsed as JsonRecord
+          : null;
+      } catch {
+        // Las operaciones offline solo persisten cuerpos JSON. Un cuerpo no JSON
+        // se conserva como operación vacía para no romper el flujo del usuario.
+        payload = null;
+      }
+    }
     const queue = await readQueue();
     const duplicate = queue.some(task => task.endpoint === endpoint && JSON.stringify(task.payload) === JSON.stringify(payload));
     if (duplicate) return;
@@ -40,7 +52,9 @@ export const syncService = {
     queue.push({
       id: crypto.randomUUID(),
       endpoint,
-      method: (options.method?.toUpperCase() as SyncTask['method']) || 'POST',
+      method: ['POST', 'PUT', 'PATCH'].includes(options.method?.toUpperCase() ?? '')
+        ? options.method!.toUpperCase() as SyncTask['method']
+        : 'POST',
       payload,
       timestamp: Date.now(),
       attempts: 0,

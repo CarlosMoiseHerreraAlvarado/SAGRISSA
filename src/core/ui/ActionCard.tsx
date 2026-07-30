@@ -56,7 +56,7 @@ export function ActionCard({
     <button
       onClick={onClick}
       className={`
-        bg-white border border-slate-100 p-4 rounded-3xl shadow-sm 
+        min-h-28 bg-white border border-slate-100 p-4 rounded-3xl shadow-sm
         flex flex-col gap-3 hover:border-brand-blue/30 hover:scale-[1.03] hover:shadow-xl hover:shadow-brand-blue/5 transition-all duration-300
         text-left w-full active:scale-[0.98] group relative overflow-hidden
         ${className}

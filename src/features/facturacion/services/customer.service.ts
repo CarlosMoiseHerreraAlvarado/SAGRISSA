@@ -1,5 +1,6 @@
 import { fetchApi } from '../../../core/api/api.config';
 import type { BackendCliente, CustomerAccount } from '../../../types';
+import { API_ENDPOINTS } from '../../../core/api/endpoints';
 
 /**
  * Mapea un ClienteDto del backend al CustomerAccount del frontend.
@@ -27,7 +28,7 @@ function mapCliente(c: BackendCliente): CustomerAccount {
 export const customerService = {
   getCustomersList: async () => {
     try {
-      const data = await fetchApi<BackendCliente[]>('/clientes');
+      const data = await fetchApi<BackendCliente[]>(API_ENDPOINTS.clientes);
       return data.map(mapCliente);
     } catch (caught) {
       console.error('Error al obtener lista de clientes /clientes:', caught);

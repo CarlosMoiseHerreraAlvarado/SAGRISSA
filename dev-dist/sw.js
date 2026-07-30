@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-7e5eb42b'], (function (workbox) { 'use strict';
+define(['./workbox-a24bf94b'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -80,12 +80,32 @@ define(['./workbox-7e5eb42b'], (function (workbox) { 'use strict';
     "url": "registerSW.js",
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
-    "url": "index.html",
-    "revision": "0.k1llvbi0tu"
+    "url": "/index.html",
+    "revision": "0.n738a2aj6f4"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
     allowlist: [/^\/$/]
   }));
+  workbox.registerRoute(/\/productos/i, new workbox.NetworkFirst({
+    "cacheName": "sagrissa-productos",
+    "networkTimeoutSeconds": 5,
+    plugins: []
+  }), 'GET');
+  workbox.registerRoute(/\/pedidos/i, new workbox.NetworkFirst({
+    "cacheName": "sagrissa-pedidos",
+    "networkTimeoutSeconds": 5,
+    plugins: []
+  }), 'GET');
+  workbox.registerRoute(/\/clientes/i, new workbox.NetworkFirst({
+    "cacheName": "sagrissa-clientes",
+    "networkTimeoutSeconds": 5,
+    plugins: []
+  }), 'GET');
+  workbox.registerRoute(/\/cobros/i, new workbox.NetworkFirst({
+    "cacheName": "sagrissa-cobros",
+    "networkTimeoutSeconds": 5,
+    plugins: []
+  }), 'GET');
 
 }));

@@ -259,7 +259,7 @@ export default function NuevoPedidoPage() {
 
        {/* Floating Cart Panel */}
        {cart.length > 0 && (
-         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] md:max-w-[380px] bg-slate-900 text-white rounded-3xl p-4 shadow-2xl z-50 animate-in slide-in-from-bottom-8">
+         <div className="fixed bottom-[calc(96px+env(safe-area-inset-bottom))] left-1/2 z-50 w-[90%] -translate-x-1/2 rounded-3xl bg-slate-900 p-4 text-white shadow-2xl animate-in slide-in-from-bottom-8 md:max-w-[380px]">
             <div className="flex items-center justify-between mb-4 px-2">
                <div className="flex items-center gap-2">
                  <ShoppingCart size={18} className="text-brand-blue" />

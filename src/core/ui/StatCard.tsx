@@ -60,8 +60,16 @@ export function StatCard({
   return (
     <div
       onClick={onClick}
+      onKeyDown={event => {
+        if (onClick && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={`
-        rounded-3xl p-6 border shadow-card relative overflow-hidden transition-all duration-300
+        relative overflow-hidden rounded-3xl border p-5 shadow-card transition-all duration-300 sm:p-6
         ${onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:border-brand-blue/20' : ''}
         ${styles.container}
         ${className}
@@ -78,7 +86,7 @@ export function StatCard({
             <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isColored ? 'text-white/60' : 'text-slate-400'}`}>
               {title}
             </p>
-            <p className={`text-[28px] font-black tracking-tight leading-none ${styles.value}`}>
+            <p className={`break-words text-[clamp(1.5rem,5vw,1.75rem)] font-black leading-none tracking-tight ${styles.value}`}>
               {value}
             </p>
           </div>

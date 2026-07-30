@@ -1,6 +1,7 @@
 import { fetchApi } from '../../../core/api/api.config';
 import type { BackendPedidoEncabezado, BackendPedidoResponse, Order, OrderStatus } from '../../../types';
 import { trackEvent } from '../../../core/utils/appInsights';
+import { API_ENDPOINTS } from '../../../core/api/endpoints';
 
 function mapEstatus(estatus: string): OrderStatus {
   const map: Record<string, OrderStatus> = {
@@ -38,7 +39,7 @@ function isOfflineQueued(value: Order & { _offlineQueued?: boolean }): value is 
 export const orderService = {
   getMyOrders: async (): Promise<Order[]> => {
     try {
-      const data = await fetchApi<BackendPedidoEncabezado[]>('/pedidos');
+      const data = await fetchApi<BackendPedidoEncabezado[]>(API_ENDPOINTS.pedidos);
       return data.map(mapPedidoEncabezado);
     } catch (caught) {
       console.error('Error al obtener pedidos backend /pedidos:', caught);
@@ -47,7 +48,7 @@ export const orderService = {
   },
 
   getOrderById: async (id: string): Promise<Order> => {
-    const data = await fetchApi<BackendPedidoResponse>(`/pedidos/${encodeURIComponent(id)}`);
+    const data = await fetchApi<BackendPedidoResponse>(`${API_ENDPOINTS.pedidos}/${encodeURIComponent(id)}`);
     const base = mapPedidoEncabezado(data.encabezado);
     base.items = data.detalle.map(detail => ({
       productId: detail.codProducto,
@@ -60,7 +61,7 @@ export const orderService = {
   },
 
   createOrder: async (orderPayload: Partial<Order>): Promise<Order> => {
-    const response = await fetchApi<Order & { _offlineQueued?: boolean }>('/pedidos', {
+    const response = await fetchApi<Order & { _offlineQueued?: boolean }>(API_ENDPOINTS.pedidos, {
       method: 'POST',
       body: JSON.stringify(orderPayload),
     });
@@ -73,7 +74,7 @@ export const orderService = {
   },
 
   updateOrder: async (id: string, orderPayload: Partial<Order>): Promise<Order> => {
-    const response = await fetchApi<Order & { _offlineQueued?: boolean }>(`/pedidos/${encodeURIComponent(id)}`, {
+    const response = await fetchApi<Order & { _offlineQueued?: boolean }>(`${API_ENDPOINTS.pedidos}/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: JSON.stringify(orderPayload),
     });

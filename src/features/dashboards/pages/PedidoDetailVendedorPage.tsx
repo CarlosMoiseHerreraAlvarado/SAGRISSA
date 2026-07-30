@@ -36,8 +36,8 @@ export default function PedidoDetailVendedorPage() {
     <MobilePage>
       <header className="px-6 md:px-0 pt-16 md:pt-0 pb-6 flex items-center justify-between z-10 relative">
         <div className="flex items-center gap-4">
-           <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors">
-             <ArrowLeft size={24} />
+           <button type="button" onClick={() => navigate(-1)} className="min-h-11 min-w-11 p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors" aria-label="Volver">
+             <ArrowLeft aria-hidden="true" size={24} className="mx-auto" />
            </button>
            <div>
              <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">{order.number}</h1>
@@ -45,11 +45,11 @@ export default function PedidoDetailVendedorPage() {
            </div>
         </div>
         <div className="flex gap-2">
-           <button className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-brand-blue transition-colors">
-              <Printer size={20} />
+           <button type="button" className="min-h-11 min-w-11 rounded-xl bg-slate-50 p-2.5 text-slate-400 transition-colors hover:text-brand-blue" aria-label="Imprimir pedido">
+              <Printer aria-hidden="true" size={20} className="mx-auto" />
            </button>
-           <button className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-brand-blue transition-colors">
-              <Share2 size={20} />
+           <button type="button" className="min-h-11 min-w-11 rounded-xl bg-slate-50 p-2.5 text-slate-400 transition-colors hover:text-brand-blue" aria-label="Compartir pedido">
+              <Share2 aria-hidden="true" size={20} className="mx-auto" />
            </button>
         </div>
       </header>
@@ -113,7 +113,7 @@ export default function PedidoDetailVendedorPage() {
             </div>
 
             {/* Action Bottom */}
-            <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-lg border-t border-slate-100 md:relative md:bg-transparent md:border-none md:p-0">
+            <div className="fixed inset-x-0 bottom-0 border-t border-slate-100 bg-white/80 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-lg md:relative md:border-none md:bg-transparent md:p-0">
                <div className="flex gap-3">
                  <button className="flex-1 py-5 bg-white border border-red-100 text-red-500 rounded-[32px] font-black text-[13px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all">
                     Eliminar
