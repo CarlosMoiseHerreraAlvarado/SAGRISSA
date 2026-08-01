@@ -30,8 +30,6 @@ function mapPedidoEncabezado(pedido: BackendPedidoEncabezado): Order {
   };
 }
 
-
-
 function isOfflineQueued(value: Order & { _offlineQueued?: boolean }): value is Order & { _offlineQueued: true } {
   return value._offlineQueued === true;
 }

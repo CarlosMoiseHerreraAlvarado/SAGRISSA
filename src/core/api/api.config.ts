@@ -28,10 +28,10 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     
     // Si es una petición de ESCRITURA (POST/PUT/PATCH), la encolamos
     const method = options?.method?.toUpperCase() || 'GET';
-    const isOfflineWrite = /^\/(orders|pedidos|collections|cobros|productos)(?:\/|$)/i.test(endpoint);
+    const isOfflineWrite = /(?:\/(orders|pedidos|collections|cobros|productos|products))(?:\/|$)/i.test(endpoint);
     if (isOfflineWrite && ['POST', 'PUT', 'PATCH'].includes(method)) {
       const task = await syncService.enqueueRequest(endpoint, options || {});
-      trackEvent(endpoint.startsWith('/productos') ? 'catalog.write.queued' : 'offline.operation.queued', { endpoint, method });
+      trackEvent(/\/(productos|products)/i.test(endpoint) ? 'catalog.write.queued' : 'offline.operation.queued', { endpoint, method });
       // La UI recibe un estado explícito de cola; no se reporta como sincronizado.
       return { _offlineQueued: true, syncTaskId: task.id, message: 'Guardado localmente, pendiente de sincronización' } as unknown as T;
     }
@@ -57,9 +57,9 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
         : await response.text().catch(() => '');
 
     if (!response.ok) {
-      const errorData = responseData && typeof responseData === 'object' ? responseData as { message?: string; mensaje?: string } : {};
+      const errorData = responseData && typeof responseData === 'object' ? responseData as { error?: { message?: string }; message?: string; mensaje?: string } : {};
       trackEvent('api.request.error', { endpoint, status: response.status, durationMs: Math.round(performance.now() - startedAt) });
-      const apiError = new Error(errorData.message || errorData.mensaje || 'Error en la petición API') as Error & { status?: number };
+      const apiError = new Error(errorData.error?.message || errorData.message || errorData.mensaje || 'Error en la petición API') as Error & { status?: number };
       apiError.status = response.status;
       throw apiError;
     }
