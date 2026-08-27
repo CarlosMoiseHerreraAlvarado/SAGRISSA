@@ -1,5 +1,5 @@
 import localforage from 'localforage';
-import type { Product, Role } from '../../types';
+import type { CustomerAccount, Product, Role } from '../../types';
 
 type JsonRecord = Record<string, unknown>;
 export type SyncResource = 'catalog' | 'orders' | 'collections';
@@ -28,13 +28,14 @@ interface QueueResult {
 }
 
 const catalogStore = localforage.createInstance({ name: 'sagrissa_catalog' });
+const customerStore = localforage.createInstance({ name: 'sagrissa_customers' });
 const syncQueueStore = localforage.createInstance({ name: 'sagrissa_sync_queue' });
 const failedQueueStore = localforage.createInstance({ name: 'sagrissa_failed_queue' });
 
 function getActiveOwnerId(): string {
-  if (typeof sessionStorage === 'undefined') return 'anonymous';
+  if (typeof window === 'undefined') return 'anonymous';
   try {
-    const stored = sessionStorage.getItem('sagrissa_user');
+    const stored = localStorage.getItem('sagrissa_user') || sessionStorage.getItem('sagrissa_user');
     const user = stored ? JSON.parse(stored) as StoredUser : undefined;
     return user?.id?.trim() || 'anonymous';
   } catch {
@@ -90,6 +91,18 @@ export const syncService = {
 
   clearCatalogLocally: async (ownerId = getActiveOwnerId()) => {
     await catalogStore.removeItem(`products:${ownerId}`);
+  },
+
+  saveCustomersLocally: async (customers: CustomerAccount[], ownerId = getActiveOwnerId()) => {
+    await customerStore.setItem(`customers:${ownerId}`, customers);
+  },
+
+  getCustomersLocally: async (ownerId = getActiveOwnerId()): Promise<CustomerAccount[]> => {
+    return (await customerStore.getItem<CustomerAccount[]>(`customers:${ownerId}`)) ?? [];
+  },
+
+  clearCustomersLocally: async (ownerId = getActiveOwnerId()) => {
+    await customerStore.removeItem(`customers:${ownerId}`);
   },
 
   enqueueRequest: async (endpoint: string, options: RequestInit, ownerId = getActiveOwnerId()): Promise<SyncTask> => {

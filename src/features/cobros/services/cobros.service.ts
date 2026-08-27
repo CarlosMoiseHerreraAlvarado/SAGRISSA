@@ -45,7 +45,20 @@ export const cobrosService = {
     });
     if (response._offlineQueued) {
       trackEvent('collections.created.offline', { invoiceId: payment.invoiceId, amount: payment.amount });
-      return { ...response, status: 'pending', queuedOffline: true };
+      return {
+        id: `offline-${Date.now()}`,
+        invoiceId: payment.invoiceId,
+        invoiceNumber: payment.invoiceNumber || 'PENDIENTE',
+        customerName: payment.customerName || 'Cliente',
+        amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        reference: payment.reference,
+        receiptFileName: payment.receiptFileName,
+        signatureDataUrl: payment.signatureDataUrl,
+        date: new Date().toISOString(),
+        status: 'pending',
+        queuedOffline: true,
+      };
     }
     trackEvent('collections.created', { invoiceId: payment.invoiceId, amount: payment.amount });
     return response;

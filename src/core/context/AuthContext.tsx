@@ -3,20 +3,54 @@ import type { ReactNode } from 'react';
 import type { User } from '../../types';
 import { AuthContext } from './AuthContextDef';
 
-const SESSION_USER_KEY = 'sagrissa_user';
-const SESSION_TOKEN_KEY = 'sagrissa_auth_token';
-const SESSION_EXPIRY_KEY = 'sagrissa_auth_expires_at';
+const AUTH_USER_KEY = 'sagrissa_user';
+const AUTH_TOKEN_KEY = 'sagrissa_auth_token';
+const AUTH_EXPIRY_KEY = 'sagrissa_auth_expires_at';
+
+function getStorageItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key) || sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function setStorageItem(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Fallback if localStorage is restricted
+  }
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // ignore
+  }
+}
+
+function removeStorageItem(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
 
 function readStoredUser(): User | null {
-  const storedUser = sessionStorage.getItem(SESSION_USER_KEY);
+  const storedUser = getStorageItem(AUTH_USER_KEY);
   if (!storedUser) return null;
 
   try {
     return JSON.parse(storedUser) as User;
   } catch {
-    sessionStorage.removeItem(SESSION_USER_KEY);
-    sessionStorage.removeItem(SESSION_TOKEN_KEY);
-    sessionStorage.removeItem(SESSION_EXPIRY_KEY);
+    removeStorageItem(AUTH_USER_KEY);
+    removeStorageItem(AUTH_TOKEN_KEY);
+    removeStorageItem(AUTH_EXPIRY_KEY);
     return null;
   }
 }
@@ -26,16 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (userData: User, token: string, expiresAt?: string) => {
     setUser(userData);
-    sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(userData));
-    sessionStorage.setItem(SESSION_TOKEN_KEY, token);
-    if (expiresAt) sessionStorage.setItem(SESSION_EXPIRY_KEY, expiresAt);
+    setStorageItem(AUTH_USER_KEY, JSON.stringify(userData));
+    setStorageItem(AUTH_TOKEN_KEY, token);
+    if (expiresAt) setStorageItem(AUTH_EXPIRY_KEY, expiresAt);
   };
 
   const logout = () => {
     setUser(null);
-    sessionStorage.removeItem(SESSION_USER_KEY);
-    sessionStorage.removeItem(SESSION_TOKEN_KEY);
-    sessionStorage.removeItem(SESSION_EXPIRY_KEY);
+    removeStorageItem(AUTH_USER_KEY);
+    removeStorageItem(AUTH_TOKEN_KEY);
+    removeStorageItem(AUTH_EXPIRY_KEY);
   };
 
   return (

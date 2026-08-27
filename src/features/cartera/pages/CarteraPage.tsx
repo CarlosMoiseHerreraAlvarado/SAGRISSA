@@ -13,14 +13,28 @@ export default function CarteraPage() {
   const [invoices, setInvoices] = useState<OverdueInvoice[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
     Promise.all([
       carteraService.getSummary(),
       carteraService.getOverdueInvoices()
-    ]).then(([s, i]) => {
-      setSummary(s);
-      setInvoices(i);
-      setLoading(false);
-    });
+    ])
+      .then(([s, i]) => {
+        if (isMounted) {
+          setSummary(s);
+          setInvoices(i);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn('Error al cargar datos de cartera:', err);
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (

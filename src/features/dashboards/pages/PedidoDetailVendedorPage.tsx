@@ -54,14 +54,14 @@ export default function PedidoDetailVendedorPage() {
         </div>
       </header>
 
-      <div className="flex flex-col gap-6 px-6 md:px-0 z-10 relative pb-32">
+      <div className="flex flex-col gap-6 px-6 md:px-0 z-10 relative pb-32 md:pb-8">
         
         {loading ? (
           <Skeleton className="h-48 w-full rounded-[40px]" />
         ) : (
           <>
             {/* Order Status Hero */}
-            <div className="bg-white border border-slate-100 rounded-[40px] p-8 shadow-sm">
+            <div className="bg-white border border-slate-100 rounded-[40px] p-5 sm:p-8 shadow-sm">
                <div className="flex justify-between items-start mb-8">
                   <div>
                      <StatusBadge status={order.status as OrderStatus} />
@@ -96,7 +96,7 @@ export default function PedidoDetailVendedorPage() {
                <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Productos ({order.items.length})</h3>
                <div className="bg-white border border-slate-100 rounded-[40px] overflow-hidden shadow-sm">
                   {order.items.map((item, idx) => (
-                    <div key={item.id} className={`p-6 flex items-center justify-between ${idx !== order.items.length - 1 ? 'border-b border-slate-50' : ''}`}>
+                    <div key={item.id} className={`p-4 sm:p-6 flex items-center justify-between ${idx !== order.items.length - 1 ? 'border-b border-slate-50' : ''}`}>
                        <div className="flex items-center gap-4">
                           <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-300">
                              <Package size={20} />
@@ -124,12 +124,12 @@ export default function PedidoDetailVendedorPage() {
                </div>
             </div>
             {/* Geolocation Audit Integration */}
-            <div className="bg-slate-50 border border-slate-100 rounded-[40px] p-8 flex flex-col gap-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-[40px] p-5 sm:p-8 flex flex-col gap-4">
                <div className="flex items-center gap-2">
                   <MapPin size={16} className="text-brand-blue" />
                   <span className="text-[11px] font-black text-brand-blue uppercase tracking-widest">Auditoría de Ubicación</span>
                </div>
-               <div className="flex items-center justify-between">
+               <div className="flex items-center justify-between flex-wrap gap-3">
                   <div>
                      <p className="text-[10px] font-bold text-slate-400 uppercase">Coordenadas Capturadas</p>
                      <p className="text-[13px] font-black text-slate-700">{order.latitude}, {order.longitude}</p>

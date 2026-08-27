@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, PackageSearch, BarChart3 } from 'lucide-react';
+import { useAuth } from '../../../core/hooks/useAuth';
+import { DEFAULT_ROUTES } from '../../../core/routing/routes';
 
 const slides = [
   {
@@ -31,8 +33,15 @@ const slides = [
 ];
 
 export default function OnboardingPage() {
+  const { user } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate(DEFAULT_ROUTES[user.role], { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleNext = useCallback(() => {
     if (currentSlide < slides.length - 1) {

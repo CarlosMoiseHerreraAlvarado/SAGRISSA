@@ -1,4 +1,5 @@
 import { fetchApi } from '../../../core/api/api.config';
+import { syncService } from '../../../core/api/sync.service';
 import type { BackendCliente, CustomerAccount } from '../../../types';
 import { API_ENDPOINTS } from '../../../core/api/endpoints';
 
@@ -11,8 +12,8 @@ function mapCliente(c: BackendCliente): CustomerAccount {
     customerId: c.codCliente,
     name: c.nomCliente,
     dui: '',
-    totalDebt: c.totalDeuda,
-    availableCredit: c.saldoCredito,
+    totalDebt: Number(c.totalDeuda) || 0,
+    availableCredit: Number(c.saldoCredito) || 0,
     aging0to30: 0,
     aging31to60: 0,
     aging61to90: 0,
@@ -23,16 +24,21 @@ function mapCliente(c: BackendCliente): CustomerAccount {
 
 /**
  * Servicio de Clientes.
- * Conecta a GET /v1/customers mediante APIM.
+ * Conecta a GET /clientes mediante APIM / Backend con respaldo offline local.
  */
 export const customerService = {
-  getCustomersList: async () => {
+  getCustomersList: async (): Promise<CustomerAccount[]> => {
+    const ownerId = syncService.getCurrentOwnerId();
     try {
       const data = await fetchApi<BackendCliente[]>(API_ENDPOINTS.clientes);
-      return data.map(mapCliente);
+      const mapped = data.map(mapCliente);
+      if (mapped.length > 0) {
+        await syncService.saveCustomersLocally(mapped, ownerId);
+      }
+      return mapped;
     } catch (caught) {
-      console.error('Error al obtener lista de clientes /clientes:', caught);
-      return [];
+      console.warn('No fue posible consultar clientes en red; usando respaldo local.', caught);
+      return syncService.getCustomersLocally(ownerId);
     }
   }
 };

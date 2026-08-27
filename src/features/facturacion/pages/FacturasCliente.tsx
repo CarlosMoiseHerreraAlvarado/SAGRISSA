@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { Tabs } from '../../../core/ui/Tabs';
 import { SearchInput } from '../../../core/ui/SearchInput';
 import { ListCard, ListCardHeader, ListCardFooter } from '../../../core/ui/ListCard';
@@ -8,7 +8,6 @@ import { StatusBadge } from '../../../core/ui/StatusBadge';
 import { EmptyState } from '../../../core/ui/EmptyState';
 import { SkeletonListItem } from '../../../core/ui/Skeleton';
 import { facturaService, type InvoiceSummary } from '../services/factura.service';
-import { FileSpreadsheet } from 'lucide-react';
 import { reportsService } from '../../dashboards/services/reports.service';
 
 export default function FacturasCliente() {
@@ -19,15 +18,28 @@ export default function FacturasCliente() {
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
 
   useEffect(() => {
-    facturaService.getInvoices().then(data => {
-      setInvoices(data);
-      setLoading(false);
-    });
+    let isMounted = true;
+    facturaService.getInvoices()
+      .then(data => {
+        if (isMounted) {
+          setInvoices(data);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.warn('Error al cargar facturas:', err);
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = inv.number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === 'pending' ? inv.status === 'pending' : inv.status === 'paid';
+    const matchesTab = activeTab === 'pending' 
+      ? (inv.status === 'pending' || inv.status === 'overdue') 
+      : inv.status === 'paid';
     return matchesSearch && matchesTab;
   });
 
@@ -42,7 +54,7 @@ export default function FacturasCliente() {
   };
 
   const tabs = [
-    { id: 'pending', label: 'Saldos Pendientes', count: invoices.filter(i => i.status === 'pending').length },
+    { id: 'pending', label: 'Saldos Pendientes', count: invoices.filter(i => i.status !== 'paid').length },
     { id: 'history', label: 'Facturado Histórico', count: invoices.filter(i => i.status === 'paid').length },
   ];
 

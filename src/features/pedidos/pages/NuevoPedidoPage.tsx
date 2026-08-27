@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Search, User, Package, ChevronRight, CheckCircle2, ShoppingCart, Calendar, MapPin } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { customerService } from '../../facturacion/services/customer.service';
 import { catalogService } from '../../catalogo/services/catalog.service';
 import { orderService } from '../services/order.service';
@@ -13,9 +13,11 @@ type Step = 'cliente' | 'productos' | 'entrega' | 'success';
 export default function NuevoPedidoPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const queryClienteId = searchParams.get('clienteId');
   const isEditing = !!id;
   const [step, setStep] = useState<Step>(isEditing ? 'productos' : 'cliente');
-  const [loading, setLoading] = useState(isEditing);
+  const [loading, setLoading] = useState(true);
   const [queuedOffline, setQueuedOffline] = useState(false);
   const [error, setError] = useState('');
   
@@ -77,11 +79,18 @@ export default function NuevoPedidoPage() {
         }
       });
     } else {
-      if (step === 'cliente' && customers.length === 0) {
+      if (customers.length === 0) {
         setLoading(true);
         customerService.getCustomersList().then(data => {
           if (mounted) {
             setCustomers(data);
+            if (queryClienteId) {
+              const matched = data.find(c => c.customerId === queryClienteId);
+              if (matched) {
+                setSelectedCustomer(matched);
+                setStep('productos');
+              }
+            }
             setLoading(false);
           }
         }).catch(e => {
@@ -106,7 +115,7 @@ export default function NuevoPedidoPage() {
       }
     }
     return () => { mounted = false; };
-  }, [id, step, isEditing, customers.length, products.length]);
+  }, [id, step, isEditing, customers.length, products.length, queryClienteId]);
 
   // ─── Step Actions ────────────────────────────────────────────────────────
 
@@ -253,7 +262,7 @@ export default function NuevoPedidoPage() {
            products
              .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.sku.includes(searchTerm))
              .map(p => (
-               <div key={p.id} className="bg-white border border-slate-100 p-4 rounded-3xl shadow-sm flex gap-4 items-center">
+               <div key={p.id} className="bg-white border border-slate-100 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm flex gap-3 sm:gap-4 items-center">
                   <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200 shrink-0">
                      <Package size={28} />
                   </div>
@@ -275,7 +284,7 @@ export default function NuevoPedidoPage() {
 
        {/* Floating Cart Panel */}
        {cart.length > 0 && (
-         <div className="fixed bottom-[calc(96px+env(safe-area-inset-bottom))] left-1/2 z-50 w-[90%] -translate-x-1/2 rounded-3xl bg-slate-900 p-4 text-white shadow-2xl animate-in slide-in-from-bottom-8 md:max-w-[380px]">
+         <div className="fixed bottom-[calc(88px+env(safe-area-inset-bottom))] left-1/2 z-50 w-[92%] max-w-[420px] -translate-x-1/2 rounded-3xl bg-slate-900 p-4 text-white shadow-2xl animate-in slide-in-from-bottom-8 lg:bottom-6 lg:left-auto lg:right-8 lg:translate-x-0 lg:max-w-[380px]">
             <div className="flex items-center justify-between mb-4 px-2">
                <div className="flex items-center gap-2">
                  <ShoppingCart size={18} className="text-brand-blue" />
@@ -395,7 +404,7 @@ export default function NuevoPedidoPage() {
   // ─── Main Render ───
 
   return (
-    <div className="w-full min-h-screen flex justify-center pb-20 md:pb-0 bg-white md:bg-transparent">
+    <div className="w-full min-h-full flex justify-center bg-white md:bg-transparent">
       <div className="w-full h-full xl:max-w-4xl flex flex-col relative md:pt-4 md:px-8">
         
         {/* Mockup Dash Line Patterns */}
@@ -419,7 +428,7 @@ export default function NuevoPedidoPage() {
            </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto p-6 scrollbar-hide z-10">
+        <main className="flex-1 p-4 sm:p-6 scrollbar-hide z-10">
           {error && (
             <div className="mb-6 flex items-start justify-between gap-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700" role="alert">
               <span>{error}</span>

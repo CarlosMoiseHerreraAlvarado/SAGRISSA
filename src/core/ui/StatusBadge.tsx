@@ -1,19 +1,25 @@
 
 
-type InvoiceStatus = 'pending' | 'paid' | 'partial' | 'cancelled' | 'draft' | 'approved' | 'rejected' | 'overdue';
-type OrderStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'fulfilled';
+export type InvoiceStatus = 'pending' | 'paid' | 'partial' | 'cancelled' | 'draft' | 'approved' | 'rejected' | 'overdue' | 'unpaid';
+export type OrderStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'fulfilled';
 
-type Status = InvoiceStatus | OrderStatus;
+export type Status = InvoiceStatus | OrderStatus;
 
 interface StatusBadgeProps {
-  status: Status;
+  status: Status | string;
   label?: string;
   size?: 'sm' | 'md';
   showDot?: boolean;
   className?: string;
 }
 
-const statusConfig: Record<Status, { bg: string; text: string; dot: string; defaultLabel: string }> = {
+const statusConfig: Record<string, { bg: string; text: string; dot: string; defaultLabel: string }> = {
+  unpaid: {
+    bg: 'bg-red-50',
+    text: 'text-red-600',
+    dot: 'bg-red-500',
+    defaultLabel: 'No Pagado',
+  },
   pending: {
     bg: 'bg-orange-50',
     text: 'text-orange-600',
@@ -76,6 +82,13 @@ const statusConfig: Record<Status, { bg: string; text: string; dot: string; defa
   },
 };
 
+const defaultFallbackConfig = {
+  bg: 'bg-slate-100',
+  text: 'text-slate-600',
+  dot: 'bg-slate-400',
+  defaultLabel: 'Estado',
+};
+
 export function StatusBadge({
   status,
   label,
@@ -83,7 +96,7 @@ export function StatusBadge({
   showDot = true,
   className = '',
 }: StatusBadgeProps) {
-  const config = statusConfig[status];
+  const config = statusConfig[status] || defaultFallbackConfig;
   const displayLabel = label || config.defaultLabel;
 
   const sizeClasses = size === 'sm'

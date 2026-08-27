@@ -16,18 +16,15 @@ export default function OperacionesCliente() {
 
   return (
     <MobilePage>
-      <div className="bg-white pt-12 md:pt-6 sticky top-0 z-40 shadow-sm relative">
+      <div className="bg-white pt-4 md:pt-6 sticky top-0 z-40 shadow-sm relative">
         <h1 className="text-2xl font-black text-slate-800 px-6 pb-4">Operaciones</h1>
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
       
-      {/* Contenedor de las vistas con clases para evitar doble scroll en lo posible */}
-      <div className="flex-1 overflow-hidden relative bg-surface-soft">
-        <div className="absolute inset-0 overflow-y-auto">
-           {activeTab === 'facturas' && <FacturasCliente />}
-           {activeTab === 'pedidos' && <PedidosCliente />}
-           {activeTab === 'pagos' && <HistorialPagosPage readOnly />}
-        </div>
+      <div className="flex-1 min-h-0 bg-surface-soft">
+        {activeTab === 'facturas' && <FacturasCliente />}
+        {activeTab === 'pedidos' && <PedidosCliente embedded />}
+        {activeTab === 'pagos' && <HistorialPagosPage readOnly />}
       </div>
     </MobilePage>
   );

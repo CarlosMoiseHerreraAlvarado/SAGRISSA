@@ -13,7 +13,7 @@ export default defineConfig({
           short_name: 'SAGRISA',
           description: 'Plataforma comercial SAGRISA',
           lang: 'es-SV',
-          start_url: '/onboarding',
+          start_url: '/',
           scope: '/',
           theme_color: '#00A9F4',
           background_color: '#ffffff',

@@ -1,3 +1,5 @@
+import type { Role } from '../../types';
+
 export const APP_ROUTES = {
   config: '/app/config',
   cliente: {
@@ -16,3 +18,11 @@ export const APP_ROUTES = {
     nuevoCobro: '/app/cobros/nuevo',
   },
 } as const;
+
+export const DEFAULT_ROUTES: Record<Role, string> = {
+  cliente: '/app/cliente/home',
+  vendedor: '/app/vendedor/home',
+  supervisor: '/app/supervisor/home',
+  gerente: '/app/gerente/home',
+  director: '/app/director/home',
+};
