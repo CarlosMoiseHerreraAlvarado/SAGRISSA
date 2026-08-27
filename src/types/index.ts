@@ -175,6 +175,9 @@ export interface BackendPedidoEncabezado {
   totalPedido: number;
   pais: string;
   idDireccion: number;
+  direccionEntrega?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
   estCorr: string;
   fechHoraInsert: string;
   origen: string;
