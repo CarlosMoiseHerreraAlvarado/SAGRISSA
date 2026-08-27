@@ -7,6 +7,7 @@ function mapProducto(product: BackendProducto): Product {
   return { id: product.codigo, sku: product.codigo, name: product.nombre, description: '', family: product.familia ?? product.categoria ?? '', price: product.precio, stock: 0, warehouse: product.bodega, presentation: product.presentacion };
 }
 
+type PagedApiResponse<T> = { items?: T[] };
 type CatalogApiResponse = Partial<Product> & {
   codigo?: string;
   nombre?: string;
@@ -35,7 +36,8 @@ function mapSavedProduct(value: CatalogApiResponse, fallback: Product): Product 
 export const catalogService = {
   async getProducts(): Promise<Product[]> {
     try {
-      const products = (await fetchApi<BackendProducto[]>(API_ENDPOINTS.productos)).map(mapProducto);
+      const response = await fetchApi<BackendProducto[] | PagedApiResponse<BackendProducto>>(API_ENDPOINTS.productos);
+      const products = (Array.isArray(response) ? response : response.items ?? []).map(mapProducto);
       await syncService.saveCatalogLocally(products, syncService.getCurrentOwnerId());
       return products;
     } catch (caught) {

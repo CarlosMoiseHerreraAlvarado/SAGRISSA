@@ -77,6 +77,11 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     }
 
     trackEvent('api.request.completed', { endpoint, status: response.status, durationMs: Math.round(performance.now() - startedAt) });
+
+    // ASP.NET devuelve ApiResponse<T>; los servicios del frontend consumen T directamente.
+    if (responseData && typeof responseData === 'object' && 'success' in responseData && 'data' in responseData) {
+      return (responseData as { data: T }).data as T;
+    }
     return responseData as T;
   } catch (error) {
     // Si falla por desconexión de red durante el envío de una operación de escritura, encolar offline

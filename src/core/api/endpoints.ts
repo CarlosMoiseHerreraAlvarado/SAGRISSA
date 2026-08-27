@@ -1,6 +1,7 @@
 export const API_ENDPOINTS = {
-  productos: '/api/v1/catalog/products',
-  pedidos: '/api/v1/orders',
+  // VITE_API_URL ya termina en /api en producción.
+  productos: '/productos',
+  pedidos: '/pedidos',
   clientes: '/clientes',
   cobros: '/cobros',
   cobrosPendientes: (customerId: string) => `/cobros/pending-invoices?customerId=${encodeURIComponent(customerId)}`,

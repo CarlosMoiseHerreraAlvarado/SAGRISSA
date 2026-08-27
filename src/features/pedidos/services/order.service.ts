@@ -3,6 +3,8 @@ import type { BackendPedidoEncabezado, BackendPedidoResponse, Order, OrderStatus
 import { trackEvent } from '../../../core/utils/appInsights';
 import { API_ENDPOINTS } from '../../../core/api/endpoints';
 
+type PagedApiResponse<T> = { items?: T[] };
+
 function mapEstatus(estatus: string): OrderStatus {
   const map: Record<string, OrderStatus> = {
     Activo: 'draft',
@@ -37,7 +39,8 @@ function isOfflineQueued(value: Order & { _offlineQueued?: boolean }): value is 
 export const orderService = {
   getMyOrders: async (): Promise<Order[]> => {
     try {
-      const data = await fetchApi<BackendPedidoEncabezado[]>(API_ENDPOINTS.pedidos);
+      const response = await fetchApi<BackendPedidoEncabezado[] | PagedApiResponse<BackendPedidoEncabezado>>(API_ENDPOINTS.pedidos);
+      const data = Array.isArray(response) ? response : response.items ?? [];
       return data.map(mapPedidoEncabezado);
     } catch (caught) {
       console.error('Error al obtener pedidos backend /pedidos:', caught);
