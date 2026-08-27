@@ -3,7 +3,6 @@ import { ArrowLeft, Edit2, Filter, Loader2, PackageOpen, Plus, Save, Search } fr
 import { useNavigate } from 'react-router-dom';
 import { catalogService } from '../services/catalog.service';
 import type { Product } from '../../../types';
-import { hasPermission } from '../../../core/auth/permissions';
 import { useAuth } from '../../../core/hooks/useAuth';
 import { syncService } from '../../../core/api/sync.service';
 import { BottomSheet } from '../../../core/ui/BottomSheet';
@@ -44,7 +43,8 @@ function ProductStatus({ product }: { product: Product }) {
 export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const canWrite = !readOnly && hasPermission(user?.permissions, 'catalog.write');
+  // Azure todavía publica el catálogo en modo consulta (no hay POST/PUT en ProductosController).
+  const canWrite = !readOnly && false;
   const ownerId = user?.id ?? 'anonymous';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

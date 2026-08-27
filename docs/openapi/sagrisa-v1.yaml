@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: Contrato frontend/APIM para la PWA SAGRISA.
 servers:
-  - url: https://sagrissa-bac.onrender.com
+  - url: https://sagrisa-api-stg-b4emdghza0esehhf.canadacentral-01.azurewebsites.net
 security:
   - bearerAuth: []
 paths:

@@ -11,7 +11,9 @@
 import { syncService } from './sync.service';
 import { trackEvent, trackException } from '../utils/appInsights';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://sagrissa-bac.onrender.com').replace(/\/$/, '');
+const AZURE_API_URL = 'https://sagrisa-api-stg-b4emdghza0esehhf.canadacentral-01.azurewebsites.net';
+const configuredApiUrl = (import.meta.env.VITE_API_URL || `${AZURE_API_URL}/api`).replace(/\/+$/, '');
+const API_BASE_URL = /\/api$/i.test(configuredApiUrl) ? configuredApiUrl : `${configuredApiUrl}/api`;
 export const AUTH_EXPIRED_EVENT = 'sagrissa:auth-expired';
 
 function getAuthToken(): string | null {

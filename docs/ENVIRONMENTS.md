@@ -4,15 +4,15 @@ La aplicación se configura por variables de entorno Vite. El backend debe publi
 
 | Ambiente | `VITE_API_URL` | Uso |
 | --- | --- | --- |
-| Desarrollo | `https://sagrissa-bac.onrender.com` | Desarrollo local y pruebas de integración |
+| Desarrollo | `https://sagrisa-api-stg-b4emdghza0esehhf.canadacentral-01.azurewebsites.net/api` | Desarrollo local y pruebas de integración |
 | QA | `https://api-qa.sagrissa.com/v1` | Validación funcional, responsive y E2E |
 | Producción | `https://api.sagrissa.com/v1` | Operación real |
 
 Variables opcionales:
 
 - `VITE_APPINSIGHTS_CONNECTION_STRING`: telemetría de frontend.
-- `VITE_API_URL`: base del backend/APIM; si no se define, usa `https://sagrissa-bac.onrender.com`.
-- `VITE_AUTH_LOGIN_PATH`: ruta publicada por el backend para login; en Render usa `/auth/login`.
+- `VITE_API_URL`: base del backend/APIM; si no se define, usa `https://sagrisa-api-stg-b4emdghza0esehhf.canadacentral-01.azurewebsites.net/api`.
+- `VITE_AUTH_LOGIN_PATH`: ruta publicada por el backend para login; en Azure usa `/auth/login`.
 
 El frontend no debe recibir secretos de backend, conexiones SQL, credenciales de Dynamics ni claves privadas. Los tokens de sesión se mantienen en memoria/session storage controlado hasta que APIM/backend entregue renovación segura.
 
