@@ -23,6 +23,10 @@ export default function EstadoCarteraPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const overdueTotal = summary
+    ? summary.overdue30 + summary.overdue60 + summary.overdue90
+    : null;
+
   return (
     <MobilePage>
       <header className="flex items-center gap-4 px-6 pb-6 pt-16 md:px-0 md:pt-0">
@@ -46,7 +50,7 @@ export default function EstadoCarteraPage() {
             <Landmark aria-hidden="true" size={48} className="shrink-0 text-white/50" />
           </div>
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl bg-white/10 p-4"><p className="text-xs text-white/70">Vencido</p><strong>${summary?.overdue90.toLocaleString() ?? '—'}</strong></div>
+            <div className="rounded-2xl bg-white/10 p-4"><p className="text-xs text-white/70">Vencido</p><strong>${overdueTotal?.toLocaleString() ?? '—'}</strong></div>
             <div className="rounded-2xl bg-white/10 p-4"><p className="text-xs text-white/70">Corriente</p><strong>${summary?.current.toLocaleString() ?? '—'}</strong></div>
           </div>
         </section>

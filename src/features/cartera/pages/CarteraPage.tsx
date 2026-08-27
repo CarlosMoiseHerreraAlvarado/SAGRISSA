@@ -75,10 +75,10 @@ export default function CarteraPage() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {[
-                    { label: '0-30 Días', val: summary?.current, color: 'bg-emerald-400' },
-                    { label: '31-60 Días', val: summary?.overdue30, color: 'bg-amber-400' },
-                    { label: '61-90 Días', val: summary?.overdue60, color: 'bg-orange-500' },
-                    { label: '+91 Días', val: summary?.overdue90, color: 'bg-red-500' },
+                    { label: 'Actual', val: summary?.current, color: 'bg-emerald-400' },
+                    { label: '1-30 Días', val: summary?.overdue30, color: 'bg-amber-400' },
+                    { label: '31-60 Días', val: summary?.overdue60, color: 'bg-orange-500' },
+                    { label: '+60 Días', val: summary?.overdue90, color: 'bg-red-500' },
                   ].map(step => (
                     <div key={step.label} className="bg-white/5 p-4 rounded-[24px] border border-white/5 hover:bg-white/10 transition-all">
                       <div className={`w-1.5 h-1.5 rounded-full ${step.color} mb-3`} />

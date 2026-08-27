@@ -24,13 +24,15 @@ type BackendCreateOrderPayload = {
 
 function mapEstatus(estatus: string): OrderStatus {
   const map: Record<string, OrderStatus> = {
-    Activo: 'draft',
-    Procesado: 'approved',
-    Pendiente: 'pending_approval',
-    Anulado: 'rejected',
-    Facturado: 'fulfilled',
+    activo: 'draft',
+    procesado: 'approved',
+    pendiente: 'pending_approval',
+    aprobado: 'approved',
+    anulado: 'rejected',
+    rechazado: 'rejected',
+    facturado: 'fulfilled',
   };
-  return map[estatus] ?? 'draft';
+  return map[estatus.trim().toLowerCase()] ?? 'draft';
 }
 
 function mapPedidoEncabezado(pedido: BackendPedidoEncabezado): Order {

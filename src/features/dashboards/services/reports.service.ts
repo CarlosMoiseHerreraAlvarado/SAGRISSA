@@ -3,16 +3,16 @@ import { downloadApiFile, fetchApi } from '../../../core/api/api.config';
 export interface ReportItem {
   id: string;
   title: string;
-  type: 'PDF' | 'XLSX';
+  type: 'PDF' | 'XLSX' | 'CSV';
   size: string;
   date: string;
 }
 
 export const reportsService = {
-  getReports: (): Promise<ReportItem[]> => fetchApi<ReportItem[]>('/reports'),
+  getReports: async (): Promise<ReportItem[]> => (await fetchApi<ReportItem[]>('/reports')).map(item => ({ ...item, type: 'CSV' as const })),
 
   downloadReport: (report: ReportItem): Promise<void> => downloadApiFile(
     `/reports/${encodeURIComponent(report.id)}/download`,
-    `SAGRISA_${report.title.replace(/\s+/g, '_')}.${report.type.toLowerCase()}`,
+    `SAGRISA_${report.title.replace(/\s+/g, '_')}.csv`,
   ),
 };
