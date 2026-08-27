@@ -8,6 +8,16 @@ import type { BackendLoginResponse, Role, User } from '../../../types';
 import { trackEvent } from '../../../core/utils/appInsights';
 
 const AUTH_LOGIN_PATH = import.meta.env.VITE_AUTH_LOGIN_PATH || '/auth/login';
+type BackendLoginPayload = BackendLoginResponse & {
+  user?: Partial<BackendLoginResponse>;
+  expiresIn?: number;
+};
+
+type BackendLoginEnvelope = {
+  success?: boolean;
+  message?: string;
+  data?: BackendLoginPayload;
+};
 
 const DEFAULT_ROUTES: Record<Role, string> = {
   vendedor: '/app/vendedor/home',
@@ -37,6 +47,30 @@ function normalizeRole(value: string): Role {
   return normalized;
 }
 
+function normalizeLoginResponse(raw: BackendLoginEnvelope | BackendLoginResponse): BackendLoginResponse {
+  const payload = ((raw as BackendLoginEnvelope).data ?? raw) as BackendLoginPayload;
+  const nestedUser = payload.user;
+  const token = payload.accessToken ?? payload.token ?? '';
+  const expiresAt = payload.expiresAt ?? (payload.expiresIn
+    ? new Date(Date.now() + payload.expiresIn * 1000).toISOString()
+    : undefined);
+
+  return {
+    nombre: payload.nombre ?? nestedUser?.nombre ?? '',
+    codVendedor: payload.codVendedor ?? nestedUser?.codVendedor ?? '',
+    cargo: payload.cargo ?? nestedUser?.cargo ?? '',
+    rol: payload.rol ?? nestedUser?.rol ?? '',
+    token,
+    accessToken: token,
+    expiresAt,
+    email: payload.email ?? nestedUser?.email,
+    permissions: payload.permissions ?? nestedUser?.permissions,
+    claims: payload.claims ?? nestedUser?.claims,
+    scope: payload.scope ?? nestedUser?.scope,
+    offlineCapabilities: payload.offlineCapabilities ?? nestedUser?.offlineCapabilities,
+  };
+}
+
 function buildUser(response: BackendLoginResponse, dui: string): User {
   const role = normalizeRole(response.rol);
   const permissions = response.permissions?.length ? response.permissions : ROLE_PERMISSIONS[role];
@@ -56,7 +90,6 @@ function buildUser(response: BackendLoginResponse, dui: string): User {
     isOfflineCapable: offlineCapabilities.length > 0,
   };
 }
-
 function formatDui(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 9);
   return digits.length > 8 ? `${digits.slice(0, 8)}-${digits.slice(8)}` : digits;
@@ -99,11 +132,12 @@ export default function LoginPage() {
     setError('');
     const slowTimer = window.setTimeout(() => setSlowLogin(true), 1500);
     try {
-      const response = await fetchApi<BackendLoginResponse>(AUTH_LOGIN_PATH, {
+      const rawResponse = await fetchApi<BackendLoginEnvelope | BackendLoginResponse>(AUTH_LOGIN_PATH, {
         method: 'POST',
         body: JSON.stringify({ dui: cleanDui, pin: cleanPin }),
         signal: AbortSignal.timeout(30000),
       });
+      const response = normalizeLoginResponse(rawResponse);
       const nextUser = buildUser(response, cleanDui);
       login(nextUser, response.accessToken ?? response.token, response.expiresAt);
       trackEvent('auth.login.success', { role: nextUser.role });
