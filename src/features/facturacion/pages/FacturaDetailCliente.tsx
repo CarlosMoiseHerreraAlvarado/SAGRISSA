@@ -7,6 +7,7 @@ import { Skeleton } from '../../../core/ui/Skeleton';
 import { useAuth } from '../../../core/hooks/useAuth';
 
 import { getFacturaById, downloadInvoicePdf, type InvoiceDetail } from '../services/factura.service';
+import { ErrorState } from '../../../core/ui/ErrorState';
 
 export default function FacturaDetailCliente() {
   const { id } = useParams();
@@ -14,10 +15,11 @@ export default function FacturaDetailCliente() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [error, setError] = useState('');
   const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) { setError('Factura no especificada.'); setLoading(false); return; }
     let mounted = true;
     
     getFacturaById(id).then(data => {
@@ -25,8 +27,8 @@ export default function FacturaDetailCliente() {
         setInvoice(data);
         setLoading(false);
       }
-    }).catch(() => {
-      if (mounted) setLoading(false);
+    }).catch(caught => {
+      if (mounted) { setError(caught instanceof Error ? caught.message : 'No fue posible cargar la factura.'); setLoading(false); }
     });
 
     return () => { mounted = false; };
@@ -35,8 +37,13 @@ export default function FacturaDetailCliente() {
   const handleDownload = async () => {
     if (!id) return;
     setIsDownloading(true);
-    await downloadInvoicePdf(id);
-    setIsDownloading(false);
+    try {
+      await downloadInvoicePdf(id);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible descargar el PDF.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -79,7 +86,7 @@ export default function FacturaDetailCliente() {
                 <path d="M 0 50 Q 50 20 80 80" stroke="#00A9F4" strokeWidth="2.5" strokeDasharray="6 6" fill="none"/>
               </svg>
 
-              {loading || !invoice ? (
+              {error ? <ErrorState message={error} onRetry={() => window.location.reload()} /> : loading || !invoice ? (
                 <div className="space-y-4">
                   <Skeleton width="60%" height={16} />
                   <Skeleton width="40%" height={16} />

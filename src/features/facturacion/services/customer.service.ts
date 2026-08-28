@@ -40,8 +40,8 @@ export const customerService = {
       }
       return mapped;
     } catch (caught) {
-      console.warn('No fue posible consultar clientes en red; usando respaldo local.', caught);
-      return syncService.getCustomersLocally(ownerId);
+      if (!navigator.onLine) return syncService.getCustomersLocally(ownerId);
+      throw caught;
     }
   }
 };

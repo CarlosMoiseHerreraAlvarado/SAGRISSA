@@ -168,8 +168,8 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-surface-soft flex items-center justify-center p-0 md:p-6">
-      <section className="w-full min-h-screen md:min-h-[680px] md:h-auto md:max-w-md bg-white md:rounded-[32px] md:shadow-card-hover relative overflow-hidden flex flex-col">
+    <main className="min-h-[100dvh] bg-surface-soft flex items-center justify-center p-0 md:p-6">
+      <section className="w-full min-h-[100dvh] md:min-h-[680px] md:h-auto md:max-w-md bg-white md:rounded-[32px] md:shadow-card-hover relative overflow-hidden flex flex-col">
         <div className="absolute inset-x-0 top-0 h-1 bg-brand-blue" />
         <div className="flex-1 px-6 py-12 sm:px-8 md:py-16 flex flex-col relative z-10">
           <div className="mb-12">

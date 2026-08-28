@@ -106,9 +106,6 @@ function App() {
 
               <Route path="pedidos" element={<PedidosVendedorPage />} />
               <Route path="pedidos/:id" element={<PedidoDetailVendedorPage />} />
-              <Route element={<ProtectedRoute requiredPermissions={['orders.read', 'orders.update']} />}>
-                <Route path="pedidos/:id/editar" element={<NuevoPedidoPage />} />
-              </Route>
               <Route element={<ProtectedRoute requiredPermissions="orders.create" />}>
                 <Route path="pedidos/nuevo" element={<NuevoPedidoPage />} />
               </Route>

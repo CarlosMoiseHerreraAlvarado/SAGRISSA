@@ -10,11 +10,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
   vendedor: [
     'catalog.read',
-    'catalog.write',
     'customers.read',
     'orders.read',
     'orders.create',
-    'orders.update',
     'collections.read',
     'collections.create',
     'invoices.read',
@@ -59,7 +57,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
 export const ROLE_OFFLINE_CAPABILITIES: Record<Role, OfflineCapability[]> = {
   cliente: [],
-  vendedor: ['orders.write', 'collections.write', 'catalog.write'],
+  vendedor: ['orders.write', 'collections.write'],
   supervisor: [],
   gerente: [],
   director: [],

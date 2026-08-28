@@ -39,8 +39,10 @@ export function SearchInput({
       />
       {value && (
         <button
+          type="button"
+          aria-label="Limpiar búsqueda"
           onClick={handleClear}
-          className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
+          className="min-h-11 min-w-11 rounded-xl p-2 text-slate-400 transition-colors hover:bg-white hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
         >
           <X size={16} />
         </button>

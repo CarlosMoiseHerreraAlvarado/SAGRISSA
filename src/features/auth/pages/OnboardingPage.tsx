@@ -62,7 +62,7 @@ export default function OnboardingPage() {
 
   if (slide.type === 'splash') {
     return (
-      <div className="h-screen bg-white flex justify-center items-center cursor-pointer animate-in fade-in duration-700" onClick={handleNext}>
+      <div className="min-h-[100dvh] bg-white flex justify-center items-center cursor-pointer animate-in fade-in duration-700" onClick={handleNext}>
         <div className="flex flex-col items-center gap-4">
            <div className="w-20 h-20 bg-[#00A9F4] rounded-3xl flex items-center justify-center shadow-lg animate-bounce duration-[2000ms]">
               <span className="text-white font-logo font-black text-4xl">S</span>
@@ -74,7 +74,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="h-screen bg-[#f3f6f9] flex items-center justify-center p-6 overflow-hidden">
+    <div className="min-h-[100dvh] bg-[#f3f6f9] flex items-center justify-center p-6 overflow-y-auto">
       
       {/* Dashed Lines Pattern */}
       <svg className="absolute top-10 right-10 w-32 h-32 pointer-events-none opacity-20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -5,12 +5,14 @@ import { carteraService, type CarteraSummary, type OverdueInvoice } from '../ser
 import { Card } from '../../../core/ui/Card';
 import { Skeleton } from '../../../core/ui/Skeleton';
 import { APP_ROUTES } from '../../../core/routing/routes';
+import { ErrorState } from '../../../core/ui/ErrorState';
 
 export default function CarteraPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<CarteraSummary | null>(null);
   const [invoices, setInvoices] = useState<OverdueInvoice[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -29,6 +31,7 @@ export default function CarteraPage() {
         console.warn('Error al cargar datos de cartera:', err);
         if (isMounted) {
           setLoading(false);
+          setError(err instanceof Error ? err.message : 'No fue posible cargar la cartera.');
         }
       });
 
@@ -57,6 +60,8 @@ export default function CarteraPage() {
           </div>
         </div>
 
+        {error && <div className="mb-6 px-4 md:px-0"><ErrorState message={error} onRetry={() => window.location.reload()} /></div>}
+        {error && <div className="mb-6 px-4 md:px-0"><ErrorState message={error} onRetry={() => window.location.reload()} /></div>}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 md:px-0">
           
           {/* Aging Dashboard */}

@@ -9,12 +9,14 @@ import { EmptyState } from '../../../core/ui/EmptyState';
 import { SkeletonListItem } from '../../../core/ui/Skeleton';
 import { facturaService, type InvoiceSummary } from '../services/factura.service';
 import { reportsService } from '../../dashboards/services/reports.service';
+import { ErrorState } from '../../../core/ui/ErrorState';
 
 export default function FacturasCliente() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function FacturasCliente() {
         }
       })
       .catch(err => {
-        console.warn('Error al cargar facturas:', err);
+        setError(err instanceof Error ? err.message : 'No fue posible cargar las facturas.');
         if (isMounted) setLoading(false);
       });
     return () => {
@@ -44,13 +46,17 @@ export default function FacturasCliente() {
   });
 
   const handleExport = async () => {
-    await reportsService.downloadReport({
-      id: 'inv-export',
-      title: 'Listado_Facturas_Cliente',
-      type: 'XLSX',
-      size: '15KB',
-      date: new Date().toLocaleDateString()
-    });
+    try {
+      await reportsService.downloadReport({
+        id: 'invoices',
+        title: 'Listado_Facturas_Cliente',
+        type: 'XLSX',
+        size: '15KB',
+        date: new Date().toLocaleDateString()
+      });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No fue posible exportar las facturas.');
+    }
   };
 
   const tabs = [
@@ -104,6 +110,8 @@ export default function FacturasCliente() {
                 <SkeletonListItem />
                 <SkeletonListItem />
               </>
+            ) : error ? (
+              <div className="col-span-full"><ErrorState message={error} onRetry={() => window.location.reload()} /></div>
             ) : filteredInvoices.length === 0 ? (
               <EmptyState
                 icon={EmptyState.Icon.products}

@@ -19,16 +19,18 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
   const tabsRef = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
-    const activeButton = tabsRef.current[activeTab];
-    if (activeButton && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const buttonRect = activeButton.getBoundingClientRect();
-      setIndicatorStyle({
-        left: buttonRect.left - containerRect.left,
-        width: buttonRect.width,
-      });
-    }
-  }, [activeTab]);
+    const updateIndicator = () => {
+      const activeButton = tabsRef.current[activeTab];
+      if (activeButton && containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const buttonRect = activeButton.getBoundingClientRect();
+        setIndicatorStyle({ left: buttonRect.left - containerRect.left, width: buttonRect.width });
+      }
+    };
+    updateIndicator();
+    window.addEventListener('resize', updateIndicator);
+    return () => window.removeEventListener('resize', updateIndicator);
+  }, [activeTab, tabs.length]);
 
   return (
     <div
@@ -37,6 +39,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
     >
       {tabs.map((tab) => (
         <button
+          type="button"
           key={tab.id}
           ref={(el) => { tabsRef.current[tab.id] = el; }}
           onClick={() => onChange(tab.id)}

@@ -17,7 +17,7 @@ export function ListCard({ children, onClick, status, className = '' }: ListCard
       className={`
         min-w-0 rounded-[32px] border border-slate-100 bg-white p-5 shadow-sm
         transition-all duration-300
-        ${isClickable ? 'cursor-pointer hover:border-brand-blue/30 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]' : ''}
+        ${isClickable ? 'cursor-pointer hover:border-brand-blue/30 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2' : ''}
         ${className}
       `}
       onClick={onClick}

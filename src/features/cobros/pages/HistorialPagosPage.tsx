@@ -4,6 +4,7 @@ import { ArrowLeft, History, Landmark, Wallet, CreditCard, Search, Plus } from '
 import { cobrosService, type PaymentRecord } from '../services/cobros.service';
 import { ListCard, ListCardHeader, ListCardFooter } from '../../../core/ui/ListCard';
 import { SkeletonListItem } from '../../../core/ui/Skeleton';
+import { ErrorState } from '../../../core/ui/ErrorState';
 import { APP_ROUTES } from '../../../core/routing/routes';
 
 interface HistorialPagosPageProps { readOnly?: boolean; }
@@ -13,12 +14,15 @@ export default function HistorialPagosPage({ readOnly = false }: HistorialPagosP
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    cobrosService.getPaymentHistory().then(data => {
-      setPayments(data);
-      setLoading(false);
-    });
+    let mounted = true;
+    cobrosService.getPaymentHistory()
+      .then(data => { if (mounted) setPayments(data); })
+      .catch(caught => { if (mounted) setError(caught instanceof Error ? caught.message : 'No fue posible cargar el historial de cobros.'); })
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
   }, []);
 
   const getIcon = (method: string) => {
@@ -74,6 +78,8 @@ export default function HistorialPagosPage({ readOnly = false }: HistorialPagosP
                 <SkeletonListItem />
                 <SkeletonListItem />
               </>
+            ) : error ? (
+              <div className="col-span-full"><ErrorState message={error} onRetry={() => window.location.reload()} /></div>
             ) : filtered.length === 0 ? (
               <div className="col-span-full text-center py-20 flex flex-col items-center opacity-30">
                 <History size={48} className="mb-4" />
