@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -16,11 +17,16 @@ export default {
           DEFAULT: '#ffffff',
           soft: '#f4f6f9',
           border: '#e8edf2',
+          dark: '#0b1120',
+          'dark-soft': '#1e293b',
+          'dark-border': '#334155',
         },
         ink: {
           DEFAULT: '#0f172a',
           muted: '#64748b',
           light: '#94a3b8',
+          dark: '#f8fafc',
+          'dark-muted': '#94a3b8',
         }
       },
       fontFamily: {
@@ -30,6 +36,7 @@ export default {
       boxShadow: {
         'card': '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 16px rgba(0,0,0,0.10)',
+        'card-dark': '0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.25)',
       },
       borderRadius: {
         '2xl': '16px',

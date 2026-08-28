@@ -125,6 +125,7 @@ function App() {
               <Route element={<ProtectedRoute requiredPermissions="approvals.read" />}>
                 <Route path="supervisor/aprobaciones" element={<SupervisorApprovalsPage />} />
               </Route>
+              <Route path="supervisor/catalogo" element={<CatalogoPage />} />
               <Route path="supervisor/facturas" element={<FacturasPage />} />
             </Route>
 
@@ -136,6 +137,7 @@ function App() {
                 <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
               </Route>
               <Route path="gerente/metas" element={<GerenteMetasPage />} />
+              <Route path="gerente/catalogo" element={<CatalogoPage />} />
               <Route element={<ProtectedRoute requiredPermissions="analytics.read" />}>
                 <Route path="gerente/analytics" element={<RoleAnalyticsPage title="Analytics gerencial" subtitle="Ventas, facturación y cobros consolidados" />} />
               </Route>
@@ -148,6 +150,9 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['director']} requiredPermissions="analytics.read" />}>
               <Route path="director/home" element={<DashboardDirector />} />
               <Route path="director/analytics" element={<DirectorAnalyticsPage />} />
+              <Route path="director/metas" element={<GerenteMetasPage />} />
+              <Route path="director/catalogo" element={<CatalogoPage />} />
+              <Route path="director/aprobaciones" element={<GerenteApprovalsPage />} />
               <Route path="director/reportes" element={<DirectorReportesPage />} />
               <Route path="director/facturas" element={<FacturasPage />} />
             </Route>
