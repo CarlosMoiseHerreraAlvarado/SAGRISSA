@@ -54,11 +54,13 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
     { label: 'Inicio', path: '/app/supervisor/home', Icon: Home },
     { label: 'Equipo', path: '/app/supervisor/equipo', Icon: Users },
     { label: 'Metas', path: '/app/supervisor/metas', Icon: BarChart3 },
+    { label: 'Analytics', path: '/app/supervisor/analytics', Icon: BarChart3, permission: 'analytics.read' },
     { label: 'Aprobaciones', path: '/app/supervisor/aprobaciones', Icon: DollarSign },
     { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
   gerente: [
     { label: 'Inicio', path: '/app/gerente/home', Icon: Home },
+    { label: 'Analytics', path: '/app/gerente/analytics', Icon: BarChart3, permission: 'analytics.read' },
     { label: 'Aprobaciones', path: '/app/gerente/aprobaciones', Icon: DollarSign },
     { label: 'Reportes', path: '/app/gerente/reportes', Icon: BarChart3 },
     { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
@@ -74,8 +76,8 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
 const MOBILE_PRIMARY_PATHS: Record<Role, string[]> = {
   cliente: [APP_ROUTES.cliente.home, APP_ROUTES.cliente.cartera, APP_ROUTES.cliente.operaciones, APP_ROUTES.cliente.facturas],
   vendedor: [APP_ROUTES.vendedor.home, APP_ROUTES.vendedor.catalogo, APP_ROUTES.vendedor.pedidos, APP_ROUTES.vendedor.cobros],
-  supervisor: ['/app/supervisor/home', '/app/supervisor/equipo', '/app/supervisor/metas', '/app/supervisor/aprobaciones'],
-  gerente: ['/app/gerente/home', '/app/gerente/aprobaciones', '/app/gerente/reportes'],
+  supervisor: ['/app/supervisor/home', '/app/supervisor/analytics', '/app/supervisor/equipo', '/app/supervisor/metas'],
+  gerente: ['/app/gerente/home', '/app/gerente/analytics', '/app/gerente/aprobaciones', '/app/gerente/reportes'],
   director: ['/app/director/home', '/app/director/analytics', '/app/director/reportes'],
 };
 

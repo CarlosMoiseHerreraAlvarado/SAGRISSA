@@ -12,15 +12,10 @@ export default function PedidoDetailVendedorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(Boolean(id));
+  const [error, setError] = useState(id ? '' : 'Pedido no especificado.');
   const [order, setOrder] = useState<Order | null>(null);
-  const [error, setError] = useState('');
-
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      setError('Pedido no especificado.');
-      return;
-    }
+    if (!id) return;
 
     let mounted = true;
     orderService.getOrderById(id)

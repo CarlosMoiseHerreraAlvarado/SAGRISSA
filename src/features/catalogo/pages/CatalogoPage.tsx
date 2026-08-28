@@ -7,6 +7,7 @@ import { useAuth } from '../../../core/hooks/useAuth';
 import { syncService } from '../../../core/api/sync.service';
 import { BottomSheet } from '../../../core/ui/BottomSheet';
 import { Skeleton } from '../../../core/ui/Skeleton';
+import { hasPermission } from '../../../core/auth/permissions';
 
 interface CatalogoPageProps {
   readOnly?: boolean;
@@ -43,8 +44,7 @@ function ProductStatus({ product }: { product: Product }) {
 export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  // Azure todavía publica el catálogo en modo consulta (no hay POST/PUT en ProductosController).
-  const canWrite = !readOnly && false;
+  const canWrite = !readOnly && hasPermission(user?.permissions, 'catalog.write');
   const ownerId = user?.id ?? 'anonymous';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

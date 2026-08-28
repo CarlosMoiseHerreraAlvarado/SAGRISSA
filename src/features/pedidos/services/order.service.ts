@@ -94,16 +94,10 @@ function isOfflineQueued(value: unknown): value is OfflineOrderResponse {
 
 export const orderService = {
   getMyOrders: async (): Promise<Order[]> => {
-    try {
-      const response = await fetchApi<BackendPedidoEncabezado[] | PagedApiResponse<BackendPedidoEncabezado>>(API_ENDPOINTS.pedidos);
-      const data = Array.isArray(response) ? response : response.items ?? [];
-      return data.map(mapPedidoEncabezado);
-    } catch (caught) {
-      console.error('Error al obtener pedidos backend /pedidos:', caught);
-      return [];
-    }
+    const response = await fetchApi<BackendPedidoEncabezado[] | PagedApiResponse<BackendPedidoEncabezado>>(API_ENDPOINTS.pedidos);
+    const data = Array.isArray(response) ? response : response.items ?? [];
+    return data.map(mapPedidoEncabezado);
   },
-
   getOrderById: async (id: string): Promise<Order> => {
     const data = await fetchApi<BackendPedidoResponse>(`${API_ENDPOINTS.pedidos}/${encodeURIComponent(id)}`);
     return mapPedidoResponse(data);
@@ -134,7 +128,8 @@ export const orderService = {
     return created;
   },
 
-  updateOrder: async (id: string, _orderPayload: OrderInput): Promise<Order> => {
+  updateOrder: async (id: string, orderPayload: OrderInput): Promise<Order> => {
+    void orderPayload;
     throw new Error(`La edición del pedido ${id} todavía no está disponible en la API de Azure.`);
   },
 };

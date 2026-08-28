@@ -64,21 +64,7 @@ export const cobrosService = {
     return response;
   },
 
-  getPaymentHistory: async (): Promise<PaymentRecord[]> => {
-    try {
-      return await fetchApi<PaymentRecord[]>(API_ENDPOINTS.cobros);
-    } catch (caught) {
-      console.warn('Endpoint /cobros no disponible aún en el backend; retornando historial vacío.', caught);
-      return [];
-    }
-  },
+  getPaymentHistory: async (): Promise<PaymentRecord[]> => fetchApi<PaymentRecord[]>(API_ENDPOINTS.cobros),
 
-  getPendingInvoices: async (customerId: string): Promise<PendingInvoice[]> => {
-    try {
-      return await fetchApi<PendingInvoice[]>(API_ENDPOINTS.cobrosPendientes(customerId));
-    } catch (caught) {
-      console.warn('Endpoint /cobros/pending-invoices no disponible aún en el backend.', caught);
-      return [];
-    }
-  },
+  getPendingInvoices: async (customerId: string): Promise<PendingInvoice[]> => fetchApi<PendingInvoice[]>(API_ENDPOINTS.cobrosPendientes(customerId)),
 };

@@ -29,7 +29,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'collections.read',
     'invoices.read',
     'approvals.read',
-    'approvals.decide',
+
+    'analytics.read',
     'goals.read',
   ],
   gerente: [
@@ -41,6 +42,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'approvals.read',
     'approvals.decide',
     'goals.read',
+    'analytics.read',
     'reports.read',
     'reports.export',
   ],

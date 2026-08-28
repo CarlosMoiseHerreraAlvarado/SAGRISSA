@@ -27,6 +27,7 @@ const GerenteApprovalsPage = lazy(() => import('./features/dashboards/pages/Gere
 const SupervisorEquipoPage = lazy(() => import('./features/dashboards/pages/SupervisorEquipoPage'));
 const SupervisorMetasPage = lazy(() => import('./features/dashboards/pages/SupervisorMetasPage'));
 const DirectorAnalyticsPage = lazy(() => import('./features/dashboards/pages/DirectorAnalyticsPage'));
+const RoleAnalyticsPage = lazy(() => import('./features/dashboards/pages/RoleAnalyticsPage'));
 const DirectorReportesPage = lazy(() => import('./features/dashboards/pages/DirectorReportesPage'));
 const ProfilePage = lazy(() => import('./features/auth/pages/ProfilePage'));
 const HistorialPagosPage = lazy(() => import('./features/cobros/pages/HistorialPagosPage'));
@@ -121,7 +122,10 @@ function App() {
               <Route path="supervisor/home" element={<DashboardSupervisor />} />
               <Route path="supervisor/equipo" element={<SupervisorEquipoPage />} />
               <Route path="supervisor/metas" element={<SupervisorMetasPage />} />
-              <Route element={<ProtectedRoute requiredPermissions={['approvals.read', 'approvals.decide']} />}>
+              <Route element={<ProtectedRoute requiredPermissions="analytics.read" />}>
+                <Route path="supervisor/analytics" element={<RoleAnalyticsPage title="Analytics de supervisión" subtitle="Seguimiento del equipo y cartera" />} />
+              </Route>
+              <Route element={<ProtectedRoute requiredPermissions="approvals.read" />}>
                 <Route path="supervisor/aprobaciones" element={<SupervisorApprovalsPage />} />
               </Route>
               <Route path="supervisor/facturas" element={<FacturasPage />} />
@@ -131,10 +135,13 @@ function App() {
             {/* ─── Gerente ─── */}
             <Route element={<ProtectedRoute allowedRoles={['gerente']} requiredPermissions="approvals.read" />}>
               <Route path="gerente/home" element={<DashboardGerente />} />
-              <Route element={<ProtectedRoute requiredPermissions={['approvals.read', 'approvals.decide']} />}>
+              <Route element={<ProtectedRoute requiredPermissions="approvals.read" />}>
                 <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
               </Route>
               <Route path="gerente/metas" element={<GerenteMetasPage />} />
+              <Route element={<ProtectedRoute requiredPermissions="analytics.read" />}>
+                <Route path="gerente/analytics" element={<RoleAnalyticsPage title="Analytics gerencial" subtitle="Ventas, facturación y cobros consolidados" />} />
+              </Route>
               <Route path="gerente/reportes" element={<DirectorReportesPage />} />
               <Route path="gerente/facturas" element={<FacturasPage />} />
             </Route>

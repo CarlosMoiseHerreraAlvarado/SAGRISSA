@@ -212,8 +212,10 @@ export interface BackendPedidoResponse {
 export interface BackendProducto {
   codigo: string;
   nombre: string;
+  descripcion?: string | null;
   presentacion: string;
   precio: number;
+  stock: number;
   bodega: string;
   activo: boolean;
   familia?: string | null;
