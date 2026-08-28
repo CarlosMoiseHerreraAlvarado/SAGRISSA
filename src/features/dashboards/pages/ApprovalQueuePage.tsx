@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   ArrowLeft, 
   CheckCircle2, 
@@ -656,15 +657,15 @@ export default function ApprovalQueuePage({ title, subtitle }: Props) {
       </div>
 
       {/* MODAL DE CONFIRMACIÓN OBLIGATORIO SEGÚN DISEÑO ("¿Está seguro de ejecutar la acción?") */}
-      {confirmDialog.open && (
+      {confirmDialog.open && typeof document !== 'undefined' && createPortal(
         <div 
           role="dialog" 
           aria-modal="true" 
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200"
         >
           <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-[32px] p-6 shadow-2xl space-y-5 text-center animate-in zoom-in-95 duration-200">
             <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center ${
-              confirmDialog.decision === 'approve' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600' : 'bg-red-50 dark:bg-red-950/60 text-red-600'
+              confirmDialog.decision === 'approve' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400'
             }`}>
               {confirmDialog.decision === 'approve' ? <FileCheck size={32} /> : <XCircle size={32} />}
             </div>
@@ -704,7 +705,8 @@ export default function ApprovalQueuePage({ title, subtitle }: Props) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </MobilePage>

@@ -45,14 +45,14 @@ export default function DashboardVendedor() {
   };
 
   const menuItems = [
-    { id: 'cat', icon: PackageSearch, label: 'Catálogo Rápido', color: 'bg-emerald-50 text-emerald-600 border-emerald-100', path: '/app/catalogo' },
-    { id: 'new', icon: FileText, label: 'Registrar Pedido', color: 'bg-blue-50 text-blue-600 border-blue-100', path: '/app/pedidos/nuevo' },
-    { id: 'cli', icon: Users, label: 'Mis Clientes', color: 'bg-orange-50 text-orange-600 border-orange-100', path: '/app/clientes' },
-    { id: 'cob', icon: Landmark, label: 'Hacer Cobro', color: 'bg-purple-50 text-purple-600 border-purple-100', path: '/app/cobros' },
+    { id: 'cat', icon: PackageSearch, label: 'Catálogo Rápido', color: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900', path: '/app/catalogo' },
+    { id: 'new', icon: FileText, label: 'Registrar Pedido', color: 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900', path: '/app/pedidos/nuevo' },
+    { id: 'cli', icon: Users, label: 'Mis Clientes', color: 'bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-900', path: '/app/clientes' },
+    { id: 'cob', icon: Landmark, label: 'Hacer Cobro', color: 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-900', path: '/app/cobros' },
   ];
 
   return (
-    <div className="w-full min-h-screen flex justify-center pb-20 md:pb-0 bg-white md:bg-transparent">
+    <div className="w-full min-h-screen flex justify-center pb-20 md:pb-0 bg-white dark:bg-slate-950 md:bg-transparent transition-colors">
       
       <div className="w-full xl:max-w-6xl flex flex-col relative md:pt-4 md:px-8">
         
@@ -64,7 +64,7 @@ export default function DashboardVendedor() {
         {/* ─── Header (Oculto en Desktop) ─── */}
         <div className="px-8 pt-16 pb-8 z-10 md:hidden">
           <h2 className="text-[#00A9F4] font-bold text-[11px] uppercase tracking-[0.2em] mb-1">Vendedor Principal</h2>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Hola, {user?.name.split(' ')[0]}</h1>
+          <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Hola, {user?.name.split(' ')[0]}</h1>
         </div>
 
         {/* ─── Scrollable Content ─── */}
@@ -72,45 +72,45 @@ export default function DashboardVendedor() {
           
           <div className="flex flex-col gap-8 md:gap-10">
 
-            {/* Metas Card - Solid Style, no gradients */}
-          <div className="bg-[#00A9F4] rounded-[32px] p-6 text-white shadow-lg relative overflow-hidden">
-               {dataError && <p role="alert" className="mb-4 rounded-xl bg-white/15 p-3 text-xs font-semibold">{dataError}</p>}
-               <div className="flex items-center gap-3 mb-6">
-                 <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                    <Activity size={20} />
-                 </div>
-                 <span className="font-black text-[15px] tracking-tight">Rendimiento Mensual</span>
-               </div>
+            {/* Metas Card - Solid Style */}
+            <div className="bg-[#00A9F4] rounded-[32px] p-6 text-white shadow-lg relative overflow-hidden">
+              {dataError && <p role="alert" className="mb-4 rounded-xl bg-white/15 p-3 text-xs font-semibold">{dataError}</p>}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                  <Activity size={20} />
+                </div>
+                <span className="font-black text-[15px] tracking-tight">Rendimiento Mensual</span>
+              </div>
 
-               <div className="grid grid-cols-2 gap-6">
-                 <div>
-                   <p className="text-[10px] font-bold text-white/60 mb-2 uppercase tracking-wider">Ventas</p>
-                   {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">{salesTotal === null ? '—' : `$${salesTotal.toLocaleString()}`}</p>}
-                   <div className="w-full h-1.5 bg-black/10 rounded-full mt-3 overflow-hidden">
-                     <div className="h-full bg-white rounded-full" style={{ width: salesTotal === null ? '0%' : '100%' }} />
-                   </div>
-                 </div>
-                 <div>
-                   <p className="text-[10px] font-bold text-white/60 mb-2 uppercase tracking-wider">Cobros</p>
-                   {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">{collectionsTotal === null ? '—' : `$${collectionsTotal.toLocaleString()}`}</p>}
-                   <div className="w-full h-1.5 bg-black/10 rounded-full mt-3 overflow-hidden">
-                     <div className="h-full bg-white rounded-full" style={{ width: collectionsTotal === null ? '0%' : '100%' }} />
-                   </div>
-                 </div>
-               </div>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <p className="text-[10px] font-bold text-white/60 mb-2 uppercase tracking-wider">Ventas</p>
+                  {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">{salesTotal === null ? '—' : `$${salesTotal.toLocaleString()}`}</p>}
+                  <div className="w-full h-1.5 bg-black/10 rounded-full mt-3 overflow-hidden">
+                    <div className="h-full bg-white rounded-full" style={{ width: salesTotal === null ? '0%' : '100%' }} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-white/60 mb-2 uppercase tracking-wider">Cobros</p>
+                  {loading ? <Skeleton className="h-6 w-20 bg-white/20" /> : <p className="text-xl font-black">{collectionsTotal === null ? '—' : `$${collectionsTotal.toLocaleString()}`}</p>}
+                  <div className="w-full h-1.5 bg-black/10 rounded-full mt-3 overflow-hidden">
+                    <div className="h-full bg-white rounded-full" style={{ width: collectionsTotal === null ? '0%' : '100%' }} />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Geolocalización */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Ubicación</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] p-5 shadow-sm">
+              <h3 className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-wider px-2">Ubicación</h3>
+              <div className="bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-[32px] p-5 shadow-sm dark:shadow-card-dark">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${location ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${location ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' : 'bg-slate-50 dark:bg-slate-800 text-slate-400'}`}>
                       {geoLoading ? <Loader2 size={24} className="animate-spin" /> : <MapPin size={24} />}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[13px] font-bold text-slate-800">
+                      <span className="text-[13px] font-bold text-slate-800 dark:text-white">
                         {location ? 'Ubicación Actual' : 'Sin ubicación'}
                       </span>
                       <span className="text-[10px] font-medium text-slate-400">
@@ -131,35 +131,40 @@ export default function DashboardVendedor() {
 
             {/* Acciones Rápidas */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Operaciones</h3>
+              <h3 className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-wider px-2">Operaciones</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {menuItems.map((item) => (
-                   <button 
-                     key={item.id} 
-                     onClick={() => navigate(item.path)}
-                     className="bg-white border border-slate-100 p-5 rounded-[28px] shadow-sm flex flex-col gap-4 hover:border-brand-blue/30 transition-all text-left"
-                   >
-                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${item.color} border`}>
-                       <item.icon size={24} />
-                     </div>
-                     <span className="text-[13px] font-bold text-slate-700 leading-tight">
-                       {item.label}
-                     </span>
-                   </button>
+                  <button 
+                    key={item.id} 
+                    onClick={() => navigate(item.path)}
+                    className="bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 p-5 rounded-[28px] shadow-sm dark:shadow-card-dark flex flex-col gap-4 hover:border-brand-blue/30 transition-all text-left"
+                  >
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${item.color}`}>
+                      <item.icon size={24} />
+                    </div>
+                    <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200 leading-tight">
+                      {item.label}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* Últimos Pedidos */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-wider px-2">Actividad Reciente</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] p-5 shadow-sm space-y-4">
+              <h3 className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-wider px-2">Actividad Reciente</h3>
+              <div className="bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-[32px] p-5 shadow-sm dark:shadow-card-dark space-y-4">
                 {loading ? (
-                   Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)
-                ) : recentOrders.length === 0 ? <p className="py-4 text-center text-sm font-semibold text-ink-muted">No hay pedidos recientes.</p> : recentOrders.map(order => (
-                  <button type="button" key={order.id} className="flex w-full items-center justify-between gap-4 text-left" onClick={() => navigate(`/app/pedidos/${order.id}`)}>
-                    <span className="flex flex-col"><span className="text-[13px] font-bold text-slate-800">{order.customerName}</span><span className="text-[10px] font-medium text-slate-400">{order.orderNumber} · {new Date(order.dateCreated).toLocaleDateString('es-SV')}</span></span>
-                    <span className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5 text-[10px] font-bold uppercase text-slate-600">{order.status}</span>
+                  Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)
+                ) : recentOrders.length === 0 ? (
+                  <p className="py-4 text-center text-sm font-semibold text-ink-muted dark:text-slate-400">No hay pedidos recientes.</p>
+                ) : recentOrders.map(order => (
+                  <button type="button" key={order.id} className="flex w-full items-center justify-between gap-4 text-left border-b border-surface-border dark:border-slate-800 pb-3 last:border-0 last:pb-0" onClick={() => navigate(`/app/pedidos/${order.id}`)}>
+                    <span className="flex flex-col">
+                      <span className="text-[13px] font-bold text-slate-800 dark:text-white">{order.customerName}</span>
+                      <span className="text-[10px] font-medium text-slate-400">{order.orderNumber} · {new Date(order.dateCreated).toLocaleDateString('es-SV')}</span>
+                    </span>
+                    <span className="rounded-xl border border-surface-border dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-[10px] font-bold uppercase text-slate-600 dark:text-slate-300">{order.status}</span>
                   </button>
                 ))}
               </div>

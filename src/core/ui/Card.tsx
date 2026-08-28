@@ -20,8 +20,8 @@ const paddingClasses: Record<CardPadding, string> = {
 
 const shadowClasses: Record<CardShadow, string> = {
   none: '',
-  sm: 'shadow-card',
-  md: 'shadow-[0_4px_12px_rgba(0,0,0,0.08)]',
+  sm: 'shadow-card dark:shadow-card-dark',
+  md: 'shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.3)]',
   hover: 'shadow-card hover:shadow-card-hover',
 };
 
@@ -43,11 +43,11 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     ...props 
   }, ref) => {
     const classes = [
-      'bg-white border border-slate-100',
+      'bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 text-slate-800 dark:text-white',
       paddingClasses[padding],
       shadowClasses[shadow],
       radiusClasses[radius],
-      interactive ? 'cursor-pointer transition-all duration-300 hover:border-brand-blue/30 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]' : '',
+      interactive ? 'cursor-pointer transition-all duration-300 hover:border-brand-blue/30 dark:hover:border-brand-blue/50 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]' : '',
       className,
     ].filter(Boolean).join(' ');
 

@@ -15,9 +15,9 @@ export function ListCard({ children, onClick, status, className = '' }: ListCard
   return (
     <div
       className={`
-        min-w-0 rounded-[32px] border border-slate-100 bg-white p-5 shadow-sm
+        min-w-0 rounded-[32px] border border-surface-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm dark:shadow-card-dark
         transition-all duration-300
-        ${isClickable ? 'cursor-pointer hover:border-brand-blue/30 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2' : ''}
+        ${isClickable ? 'cursor-pointer hover:border-brand-blue/30 dark:hover:border-brand-blue/50 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2' : ''}
         ${className}
       `}
       onClick={onClick}
@@ -32,7 +32,7 @@ export function ListCard({ children, onClick, status, className = '' }: ListCard
     >
       {children}
       {status && (
-        <div className="mt-4 pt-4 border-t border-slate-50 flex justify-end">
+        <div className="mt-4 pt-4 border-t border-surface-border dark:border-slate-800 flex justify-end">
           {status}
         </div>
       )}
@@ -57,9 +57,9 @@ export function ListCardHeader({ title, subtitle, badge, icon: Icon, className =
             {title}
           </span>
         )}
-        <span className="break-words text-[15px] font-black text-slate-800">{title}</span>
+        <span className="break-words text-[15px] font-black text-slate-800 dark:text-white">{title}</span>
         {subtitle && (
-          <span className="text-[11px] font-medium text-slate-400 mt-0.5">{subtitle}</span>
+          <span className="text-[11px] font-medium text-slate-400 dark:text-slate-400 mt-0.5">{subtitle}</span>
         )}
       </div>
       <span className="shrink-0">{badge}</span>
@@ -77,8 +77,8 @@ interface ListCardRowProps {
 export function ListCardRow({ label, value, valueClassName = '', className = '' }: ListCardRowProps) {
   return (
     <div className={`flex min-w-0 items-center justify-between gap-3 ${className}`}>
-      <span className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
-      <span className={`break-words text-right text-[13px] font-black text-slate-800 ${valueClassName}`}>{value}</span>
+      <span className="text-[12px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">{label}</span>
+      <span className={`break-words text-right text-[13px] font-black text-slate-800 dark:text-white ${valueClassName}`}>{value}</span>
     </div>
   );
 }
@@ -96,14 +96,14 @@ export function ListCardFooter({ label, value, variant = 'default', className = 
       className={`
         flex min-w-0 items-center justify-between gap-3 rounded-2xl border p-3
         ${variant === 'highlight'
-          ? 'bg-brand-blue/5 border-brand-blue/20'
-          : 'bg-slate-50 border-slate-100'
+          ? 'bg-brand-blue/5 dark:bg-brand-blue/15 border-brand-blue/20 dark:border-brand-blue/30'
+          : 'bg-slate-50 dark:bg-slate-800/60 border-surface-border dark:border-slate-800'
         }
         ${className}
       `}
     >
-      <span className="text-[12px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
-      <span className={`break-words text-right text-[14px] font-black ${variant === 'highlight' ? 'text-brand-blue' : 'text-slate-800'}`}>
+      <span className="text-[12px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{label}</span>
+      <span className={`break-words text-right text-[14px] font-black ${variant === 'highlight' ? 'text-brand-blue' : 'text-slate-800 dark:text-white'}`}>
         {value}
       </span>
     </div>
@@ -121,8 +121,8 @@ export function ListCardItem({ children, onClick, showArrow = true, className = 
   return (
     <div
       className={`
-        p-4 bg-slate-50 rounded-2xl border border-slate-100 
-        hover:bg-slate-100/50 transition-all cursor-pointer
+        p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-surface-border dark:border-slate-800 
+        hover:bg-slate-100/50 dark:hover:bg-slate-800 transition-all cursor-pointer
         ${className}
       `}
       onClick={onClick}
@@ -130,7 +130,7 @@ export function ListCardItem({ children, onClick, showArrow = true, className = 
       <div className="flex justify-between items-center">
         {children}
         {showArrow && onClick && (
-          <ChevronRight size={16} className="text-slate-300" />
+          <ChevronRight size={16} className="text-slate-300 dark:text-slate-500" />
         )}
       </div>
     </div>

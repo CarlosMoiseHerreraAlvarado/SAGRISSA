@@ -51,7 +51,7 @@ export function AgingCard({
       <Card padding="lg" className={className}>
         <div className="flex items-center gap-2 mb-5">
           <Clock size={16} className="text-brand-blue" />
-          <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-widest">
+          <h4 className="text-[12px] font-black text-slate-800 dark:text-white uppercase tracking-widest">
             {title}
           </h4>
         </div>
@@ -74,7 +74,7 @@ export function AgingCard({
     <Card padding="lg" className={className}>
       <div className="flex items-center gap-2 mb-5">
         <Clock size={16} className="text-brand-blue" />
-        <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-widest">
+        <h4 className="text-[12px] font-black text-slate-800 dark:text-white uppercase tracking-widest">
           {title}
         </h4>
       </div>
@@ -87,14 +87,14 @@ export function AgingCard({
           return (
             <div key={index} className="group">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[12px] text-slate-500 font-bold">
+                <span className="text-[12px] text-slate-500 dark:text-slate-400 font-bold">
                   {item.range}
                 </span>
-                <span className="text-[12px] font-black text-slate-800">
+                <span className="text-[12px] font-black text-slate-800 dark:text-white">
                   ${item.amount.toLocaleString()}
                 </span>
               </div>
-              <div className="h-2 bg-slate-50 rounded-full border border-slate-100 overflow-hidden">
+              <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
                 <div
                   className={`h-full ${getBarColor(index)} rounded-full transition-all duration-1000 ease-out`}
                   style={{
@@ -103,7 +103,7 @@ export function AgingCard({
                 />
               </div>
               <div className="flex justify-between mt-1">
-                <span className="text-[10px] text-slate-300">
+                <span className="text-[10px] text-slate-400 dark:text-slate-400">
                   {(ratio * 100).toFixed(0)}% del total
                 </span>
               </div>
@@ -113,9 +113,9 @@ export function AgingCard({
       </div>
 
       {showTotal && (
-        <div className="mt-6 pt-4 border-t border-slate-100">
+        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
               Total
             </span>
             <span className="text-[15px] font-black text-brand-blue">
