@@ -26,7 +26,7 @@ export interface SellerPerformance {
 
 export interface PeriodGoalData {
   periodType: 'mensual' | 'trimestral' | 'anual';
-  periodLabel: string; // ej. "Noviembre 2022", "Trimestre 1", "Anual 2022"
+  periodLabel: string;
   totalProjection: number;
   totalSales: number;
   totalPendingToSell: number;
@@ -47,126 +47,40 @@ export interface GoalItem {
   status?: string;
 }
 
-// Datos oficiales de las 5 divisiones según los artes de diseño de SAGRISA
-const DEMO_DIVISIONS: DivisionGoal[] = [
-  {
-    id: 'div-agr',
-    code: 'AGR',
-    name: 'Agrícola',
-    projection: 1000000.00,
-    sales: 580000.00,
-    pendingToSell: 420000.00,
-    collections: 575000.00,
-    pendingToCollect: 425000.00,
-    percentage: 58,
-  },
-  {
-    id: 'div-vet',
-    code: 'VET',
-    name: 'Veterinaria',
-    projection: 1000000.00,
-    sales: 575000.00,
-    pendingToSell: 425000.00,
-    collections: 580000.00,
-    pendingToCollect: 420000.00,
-    percentage: 57.5,
-  },
-  {
-    id: 'div-ind',
-    code: 'IND',
-    name: 'Industrial y Servicios',
-    projection: 1000000.00,
-    sales: 650000.00,
-    pendingToSell: 350000.00,
-    collections: 610000.00,
-    pendingToCollect: 390000.00,
-    percentage: 65,
-  },
-  {
-    id: 'div-pro',
-    code: 'PRO',
-    name: 'Proyectos',
-    projection: 1000000.00,
-    sales: 420000.00,
-    pendingToSell: 580000.00,
-    collections: 400000.00,
-    pendingToCollect: 600000.00,
-    percentage: 42,
-  },
-  {
-    id: 'div-tal',
-    code: 'TAL',
-    name: 'Talleres',
-    projection: 1000000.00,
-    sales: 800000.00,
-    pendingToSell: 200000.00,
-    collections: 790000.00,
-    pendingToCollect: 210000.00,
-    percentage: 80,
-  },
-];
+interface BackendDivisionResponse {
+  id: string;
+  title: string;
+  code: 'AGR' | 'VET' | 'IND' | 'PRO' | 'TAL';
+  name: string;
+  projection: number;
+  sales: number;
+  pendingToSell: number;
+  collections: number;
+  percentage: number;
+  current: number;
+  target: number;
+}
 
-const DEMO_SELLERS: SellerPerformance[] = [
-  {
-    id: 'SEL-01',
-    name: 'Luis Fernando Vázquez Rodríguez',
-    code: 'GTCLUIS',
-    sales: 580000.00,
-    projection: 1000000.00,
-    collections: 580000.00,
-    percentage: 80,
-    division: 'Agrícola',
-  },
-  {
-    id: 'SEL-02',
-    name: 'Marcos Antonio Gutiérrez',
-    code: 'GTCMARCOS',
-    sales: 520000.00,
-    projection: 750000.00,
-    collections: 490000.00,
-    percentage: 69.3,
-    division: 'Veterinaria',
-  },
-  {
-    id: 'SEL-03',
-    name: 'Juan Carlos Pérez',
-    code: 'GTJUAN',
-    sales: 450000.00,
-    projection: 600000.00,
-    collections: 430000.00,
-    percentage: 75,
-    division: 'Industrial y Servicios',
-  },
-  {
-    id: 'SEL-04',
-    name: 'Michelle Alvarado',
-    code: 'GTCMICH',
-    sales: 610000.00,
-    projection: 700000.00,
-    collections: 590000.00,
-    percentage: 87.1,
-    division: 'Proyectos',
-  },
-];
+interface BackendTeamResponse {
+  id: string;
+  name: string;
+  role: string;
+  monthlySales: number;
+  performance: number;
+  region: string;
+}
 
 export const goalsService = {
   async getGoals(scope?: string): Promise<GoalItem[]> {
-    try {
-      const query = scope ? `?scope=${encodeURIComponent(scope)}` : '';
-      const response = await fetchApi<unknown>(`/goals${query}`);
-      if (Array.isArray(response) && response.length > 0) {
-        return response as GoalItem[];
-      }
-    } catch {
-      // Fallback
-    }
-
-    // Retornar metas por división
-    return DEMO_DIVISIONS.map(d => ({
+    const query = scope ? `?scope=${encodeURIComponent(scope)}` : '';
+    const response = await fetchApi<BackendDivisionResponse[] | { data: BackendDivisionResponse[] }>(`/goals${query}`);
+    const items = Array.isArray(response) ? response : Array.isArray(response?.data) ? response.data : [];
+    
+    return items.map(d => ({
       id: d.id,
-      title: `${d.name} (${d.code})`,
-      current: d.sales,
-      target: d.projection,
+      title: d.title || `${d.name} (${d.code})`,
+      current: Number(d.current ?? d.sales ?? 0),
+      target: Number(d.target ?? d.projection ?? 0),
       unit: 'USD',
       owner: 'División Comercial',
       status: d.percentage >= 70 ? 'on_track' : 'needs_attention',
@@ -177,12 +91,48 @@ export const goalsService = {
     periodType: 'mensual' | 'trimestral' | 'anual',
     periodValue: string = 'Noviembre'
   ): Promise<PeriodGoalData> {
-    const totalProj = DEMO_DIVISIONS.reduce((sum, d) => sum + d.projection, 0);
-    const totalSales = DEMO_DIVISIONS.reduce((sum, d) => sum + d.sales, 0);
+    const [goalsRes, teamRes] = await Promise.all([
+      fetchApi<BackendDivisionResponse[] | { data: BackendDivisionResponse[] }>('/goals').catch(() => []),
+      fetchApi<BackendTeamResponse[] | { data: BackendTeamResponse[] }>('/team').catch(() => [])
+    ]);
+
+    const rawDivisions = Array.isArray(goalsRes) ? goalsRes : Array.isArray(goalsRes?.data) ? goalsRes.data : [];
+    const rawTeam = Array.isArray(teamRes) ? teamRes : Array.isArray(teamRes?.data) ? teamRes.data : [];
+
+    const divisions: DivisionGoal[] = rawDivisions.map(d => {
+      const proj = Number(d.projection || d.target || 0);
+      const sales = Number(d.sales || d.current || 0);
+      const coll = Number(d.collections || 0);
+      return {
+        id: d.id || `div-${d.code?.toLowerCase() || 'gen'}`,
+        code: d.code || 'AGR',
+        name: d.name || 'División Comercial',
+        projection: proj,
+        sales: sales,
+        pendingToSell: Math.max(0, proj - sales),
+        collections: coll,
+        pendingToCollect: Math.max(0, proj - coll),
+        percentage: proj > 0 ? Math.round((sales / proj) * 100) : 0,
+      };
+    });
+
+    const sellers: SellerPerformance[] = rawTeam.map((t, idx) => ({
+      id: t.id || `sel-${idx}`,
+      name: t.name || 'Vendedor Comercial',
+      code: `VEND-${idx + 1}`,
+      sales: Number(t.monthlySales || 0),
+      projection: 10000.00,
+      collections: Number(t.monthlySales || 0) * 0.95,
+      percentage: Number(t.performance || 0),
+      division: 'Comercial',
+    }));
+
+    const totalProj = divisions.reduce((sum, d) => sum + d.projection, 0);
+    const totalSales = divisions.reduce((sum, d) => sum + d.sales, 0);
     const totalPendingToSell = totalProj - totalSales;
-    const totalColl = DEMO_DIVISIONS.reduce((sum, d) => sum + d.collections, 0);
+    const totalColl = divisions.reduce((sum, d) => sum + d.collections, 0);
     const totalPendingToCollect = totalProj - totalColl;
-    const progress = Math.round((totalSales / totalProj) * 100);
+    const progress = totalProj > 0 ? Math.round((totalSales / totalProj) * 100) : 0;
 
     return {
       periodType,
@@ -193,8 +143,8 @@ export const goalsService = {
       totalCollections: totalColl,
       totalPendingToCollect: totalPendingToCollect,
       progressPercentage: progress,
-      divisions: DEMO_DIVISIONS,
-      sellers: DEMO_SELLERS,
+      divisions,
+      sellers,
     };
   },
 };

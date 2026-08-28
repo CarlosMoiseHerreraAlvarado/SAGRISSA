@@ -58,14 +58,14 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
   ],
   gerente: [
     { label: 'Inicio', path: '/app/gerente/home', Icon: Home },
-    { label: 'Metas (5 Áreas)', path: '/app/gerente/metas', Icon: BarChart3 },
+    { label: 'Metas', path: '/app/gerente/metas', Icon: BarChart3 },
     { label: 'Autorizaciones', path: '/app/gerente/aprobaciones', Icon: DollarSign },
     { label: 'Inventario', path: '/app/gerente/catalogo', Icon: Package },
     { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
   director: [
     { label: 'Inicio', path: '/app/director/home', Icon: Home },
-    { label: 'Metas Regionales', path: '/app/director/analytics', Icon: BarChart3 },
+    { label: 'Metas', path: '/app/director/analytics', Icon: BarChart3 },
     { label: 'Inventario', path: '/app/director/catalogo', Icon: Package },
     { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
@@ -284,7 +284,7 @@ export default function AppLayout() {
           </div>
         )}
 
-        <main className="relative z-0 min-w-0 flex-1 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] lg:pb-0">
+        <main className="min-w-0 flex-1 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] lg:pb-0">
           <Outlet />
         </main>
 

@@ -6,7 +6,6 @@ import {
   Plus, 
   Search,
   Warehouse,
-  Calendar,
   Layers
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -21,29 +20,13 @@ interface CatalogoPageProps {
   readOnly?: boolean;
 }
 
-interface ProductLot {
-  lotCode: string;
-  stock: number;
-  expirationDate: string;
-  warehouse: string;
-}
-
 const categories = ['Todos', 'Agrícola', 'Veterinaria', 'Industrial y Servicios', 'Proyectos', 'Talleres'];
 
 const warehouses = [
-  { id: 'central', name: 'Bodega Central', count: 165 },
-  { id: 'oriental', name: 'Bodega Oriental', count: 89 },
-  { id: 'occidental', name: 'Bodega Occidental', count: 230 },
+  { id: 'central', name: 'Bodega Central' },
+  { id: 'oriental', name: 'Bodega Oriental' },
+  { id: 'occidental', name: 'Bodega Occidental' },
 ];
-
-const MOCK_LOTS: Record<string, ProductLot[]> = {
-  default: [
-    { lotCode: 'W2204046', stock: 252, expirationDate: '30/04/2025', warehouse: 'Bodega Central' },
-    { lotCode: 'W2204047', stock: 180, expirationDate: '15/06/2025', warehouse: 'Bodega Central' },
-    { lotCode: 'W2204048', stock: 95, expirationDate: '28/08/2025', warehouse: 'Bodega Oriental' },
-    { lotCode: 'W2204049', stock: 320, expirationDate: '10/12/2025', warehouse: 'Bodega Occidental' },
-  ]
-};
 
 function ProductStatus({ product }: { product: Product }) {
   if (product.syncStatus === 'pending' || product.queuedOffline) {
@@ -79,50 +62,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
     setError('');
     try {
       const data = await catalogService.getProducts();
-      if (data.length === 0 || !data.some(p => p.sku.includes('BIO'))) {
-        const enriched: Product[] = [
-          {
-            id: 'PROD-BIO-01',
-            sku: 'BIO-11-BL',
-            name: 'BIOMIN BOOTER 11 (1gl) BLANCO 120 UNIDADES PACK 2',
-            description: 'Fertilizante bioestimulante foliar quelatado de alta asimilación.',
-            family: 'Agrícola',
-            price: 55.70,
-            stock: 10000,
-            warehouse: 'Bodega Central',
-            presentation: 'Galón (1gl) Pack 2',
-            syncStatus: 'synced',
-          },
-          {
-            id: 'PROD-VET-01',
-            sku: 'VET-ANT-500',
-            name: 'ANTIBIÓTICO VETERINARIO AMPLIO ESPECTRO 500ML',
-            description: 'Solución inyectable para uso bovino y porcino.',
-            family: 'Veterinaria',
-            price: 150.00,
-            stock: 350,
-            warehouse: 'Bodega Oriental',
-            presentation: 'Frasco 500ml',
-            syncStatus: 'synced',
-          },
-          {
-            id: 'PROD-IND-01',
-            sku: 'IND-DES-20L',
-            name: 'DESINFECTANTE INDUSTRIAL BIOCIDA 20L',
-            description: 'Compuesto desinfectante grado industrial concentrado.',
-            family: 'Industrial y Servicios',
-            price: 275.00,
-            stock: 200,
-            warehouse: 'Bodega Occidental',
-            presentation: 'Bidón 20 Litros',
-            syncStatus: 'synced',
-          },
-          ...data,
-        ];
-        setProducts(enriched);
-      } else {
-        setProducts(data);
-      }
+      setProducts(data);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No fue posible cargar el catálogo.');
     } finally {
@@ -142,6 +82,21 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
     const matchesStock = filterStock === 'all' || (filterStock === 'in' ? product.stock > 0 : product.stock === 0);
     return matchesSearch && matchesCategory && matchesWarehouse && matchesStock;
   }), [filterStock, products, searchTerm, selectedCategory, selectedWarehouse]);
+
+  // Contar productos por bodega dinámicamente desde la BD
+  const warehouseCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      'Bodega Central': 0,
+      'Bodega Oriental': 0,
+      'Bodega Occidental': 0,
+    };
+    products.forEach(p => {
+      if (counts[p.warehouse] !== undefined) {
+        counts[p.warehouse] += 1;
+      }
+    });
+    return counts;
+  }, [products]);
 
   return (
     <div className="flex min-h-screen w-full justify-center bg-white dark:bg-slate-950 pb-20 md:bg-transparent md:pb-0">
@@ -164,14 +119,14 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                   Inventario & Catálogo
                 </h1>
                 <p className="text-[11px] font-black uppercase tracking-widest text-brand-blue">
-                  Existencias por Bodega y Lotes
+                  Existencias por Bodega ({products.length} productos en BD)
                 </p>
               </div>
             </div>
             {canWrite && (
               <button 
                 type="button" 
-                onClick={() => alert('Función de nuevo producto habilitada para administradores.')} 
+                onClick={() => alert('Función de nuevo producto conectada con permisos de escritura.')} 
                 className="flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-brand-blue/20 transition-all hover:bg-brand-dark"
               >
                 <Plus size={16} />
@@ -180,7 +135,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
             )}
           </div>
 
-          {/* Bodegas Selector Tabs (Matching PDF: Central 165, Oriental 89, Occidental 230) */}
+          {/* Bodegas Selector Tabs (Dynamic counts from Supabase DB) */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               type="button"
@@ -191,7 +146,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                   : 'bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white'
               }`}
             >
-              <Warehouse size={15} /> Todas las Bodegas
+              <Warehouse size={15} /> Todas las Bodegas ({products.length})
             </button>
             {warehouses.map(w => (
               <button
@@ -208,7 +163,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                 <span className={`px-2 py-0.5 rounded-full text-[10px] ${
                   selectedWarehouse === w.name ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                 }`}>
-                  {w.count}
+                  {warehouseCounts[w.name] || 0}
                 </span>
               </button>
             ))}
@@ -220,7 +175,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
               <Search size={18} className="mr-2 shrink-0 text-slate-400" />
               <input 
                 type="search" 
-                placeholder="Buscar por código, nombre, lote..." 
+                placeholder="Buscar por código, nombre..." 
                 className="w-full bg-transparent text-sm font-medium text-slate-800 dark:text-white outline-none placeholder:text-slate-400" 
                 value={searchTerm} 
                 onChange={e => setSearchTerm(e.target.value)} 
@@ -264,7 +219,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
           </p>
         )}
 
-        {/* Products Grid */}
+        {/* Products Grid from Database */}
         <div className="z-10 flex-1 overflow-y-auto pb-32 scrollbar-hide">
           <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {loading ? Array.from({ length: 6 }, (_, idx) => (
@@ -275,7 +230,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
             )) : filtered.length === 0 ? (
               <div className="col-span-full py-20 text-center bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-3xl p-8">
                 <PackageOpen size={48} className="mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-                <p className="font-bold text-slate-800 dark:text-white">Sin productos encontrados</p>
+                <p className="font-bold text-slate-800 dark:text-white">Sin productos encontrados en la base de datos</p>
                 <p className="text-xs text-slate-400 mt-1">Pruebe seleccionando otra bodega o categoría.</p>
               </div>
             ) : filtered.map(product => (
@@ -315,14 +270,14 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                   </div>
                 </div>
 
-                {/* Botón para ver desglose de lotes y fechas de caducidad */}
+                {/* Botón para ver ficha técnica */}
                 <div className="pt-4 mt-2">
                   <button
                     type="button"
                     onClick={() => setViewingLotsProduct(product)}
                     className="w-full py-2.5 bg-surface-soft dark:bg-slate-800 hover:bg-brand-blue/10 dark:hover:bg-brand-blue/20 text-brand-blue font-black text-[11px] uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 transition-colors"
                   >
-                    <Layers size={14} /> Ver Lotes y Vencimiento
+                    <Layers size={14} /> Ver Existencias & Lotes
                   </button>
                 </div>
               </article>
@@ -365,14 +320,14 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
         </div>
       </BottomSheet>
 
-      {/* Modal de Desglose de Lotes (Matching PDF: Lote W2204046, Saldo lote 252, Fecha Vto 30/04/2025) */}
+      {/* Modal de Ficha de Producto y Existencias desde BD */}
       <BottomSheet
         open={Boolean(viewingLotsProduct)}
-        title={`Trazabilidad de Lotes`}
+        title={`Ficha de Existencias`}
         onClose={() => setViewingLotsProduct(null)}
       >
         {viewingLotsProduct && (
-          <div className="space-y-5 max-h-[75vh] overflow-y-auto pb-4">
+          <div className="space-y-5 pb-4">
             
             <div className="border-b border-surface-border dark:border-slate-800 pb-3">
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-blue">
@@ -382,39 +337,34 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                 {viewingLotsProduct.name}
               </h3>
               <p className="text-xs font-bold text-slate-400 mt-1">
-                Stock Total Disponible: {viewingLotsProduct.stock.toLocaleString()} unidades
+                Presentación: {viewingLotsProduct.presentation} · Familia: {viewingLotsProduct.family}
               </p>
             </div>
 
             <div className="space-y-3">
               <p className="text-[11px] font-black uppercase tracking-widest text-slate-800 dark:text-slate-200">
-                Lotes Activos en Sistema
+                Existencias en Base de Datos (Supabase)
               </p>
 
-              {MOCK_LOTS.default.map((lot, idx) => (
-                <div 
-                  key={idx}
-                  className="p-4 bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-2xl shadow-sm space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 bg-brand-blue/10 text-brand-blue font-black text-xs rounded-lg">
-                      Lote {lot.lotCode}
-                    </span>
-                    <strong className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                      Saldo: {lot.stock} un.
-                    </strong>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                    <span className="flex items-center gap-1.5">
-                      <Warehouse size={13} className="text-brand-blue" /> {lot.warehouse}
-                    </span>
-                    <span className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
-                      <Calendar size={13} /> Vence: {lot.expirationDate}
-                    </span>
-                  </div>
+              <div className="p-4 bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-2xl shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 bg-brand-blue/10 text-brand-blue font-black text-xs rounded-lg">
+                    Código {viewingLotsProduct.sku}
+                  </span>
+                  <strong className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                    Stock: {viewingLotsProduct.stock.toLocaleString()} unidades
+                  </strong>
                 </div>
-              ))}
+
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+                  <span className="flex items-center gap-1.5">
+                    <Warehouse size={13} className="text-brand-blue" /> {viewingLotsProduct.warehouse}
+                  </span>
+                  <span className="flex items-center gap-1.5 font-bold text-brand-blue">
+                    Precio: ${viewingLotsProduct.price.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <button
@@ -422,7 +372,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
               onClick={() => setViewingLotsProduct(null)}
               className="w-full py-4 bg-brand-blue text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-md transition-all"
             >
-              Cerrar Expediente de Lotes
+              Cerrar Ficha
             </button>
 
           </div>
