@@ -55,7 +55,7 @@ function toBackendProduct(product: Partial<Product>) {
 export const catalogService = {
   async getProducts(): Promise<Product[]> {
     try {
-      const response = await fetchApi<BackendProducto[] | PagedApiResponse<BackendProducto>>(API_ENDPOINTS.productos);
+      const response = await fetchApi<BackendProducto[] | PagedApiResponse<BackendProducto>>(`${API_ENDPOINTS.productos}?pageNumber=1&pageSize=500`);
       const products = (Array.isArray(response) ? response : response.items ?? []).map(mapProducto);
       await syncService.saveCatalogLocally(products, syncService.getCurrentOwnerId());
       return products;

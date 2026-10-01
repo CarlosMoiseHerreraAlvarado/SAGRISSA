@@ -70,7 +70,7 @@ export default function ClientesAsignadosPage() {
                   <div>
                     <h3 className="font-black text-slate-800 text-[15px]">{cliente.name}</h3>
                     <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      <MapPin size={10} /> Cliente SAGRISA
+                      <MapPin size={10} /> Cliente
                     </div>
                   </div>
                 </div>

@@ -56,6 +56,7 @@ function normalizeLoginResponse(raw: BackendLoginEnvelope | BackendLoginResponse
     : undefined);
 
   return {
+    id: payload.id ?? nestedUser?.id,
     nombre: payload.nombre ?? nestedUser?.nombre ?? '',
     codVendedor: payload.codVendedor ?? nestedUser?.codVendedor ?? '',
     cargo: payload.cargo ?? nestedUser?.cargo ?? '',
@@ -77,7 +78,7 @@ function buildUser(response: BackendLoginResponse, dui: string): User {
   const offlineCapabilities = response.offlineCapabilities ?? ROLE_OFFLINE_CAPABILITIES[role];
 
   return {
-    id: response.codVendedor,
+    id: response.id ?? response.codVendedor ?? response.nombre,
     name: response.nombre,
     dui,
     role,

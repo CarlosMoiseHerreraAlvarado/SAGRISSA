@@ -135,7 +135,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
             )}
           </div>
 
-          {/* Bodegas Selector Tabs (Dynamic counts from Supabase DB) */}
+          {/* Bodegas Selector Tabs (conteos provenientes de la API) */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               type="button"
@@ -343,7 +343,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
 
             <div className="space-y-3">
               <p className="text-[11px] font-black uppercase tracking-widest text-slate-800 dark:text-slate-200">
-                Existencias en Base de Datos (Supabase)
+                Existencias en base de datos
               </p>
 
               <div className="p-4 bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-2xl shadow-sm space-y-2">

@@ -61,10 +61,10 @@ export default function ApprovalQueuePage({ title, subtitle }: Props) {
     approvalsService.getPending()
       .then(data => {
         setItems(data);
-        if (data.length > 0 && !selected) {
+        if (data.length > 0) {
           // En tablet/PC pre-seleccionar el primer elemento para la vista Master-Detail
           if (window.innerWidth >= 768) {
-            setSelected(data[0]);
+            setSelected(current => current ?? data[0]);
           }
         }
       })
@@ -482,7 +482,7 @@ export default function ApprovalQueuePage({ title, subtitle }: Props) {
                     )}
                   </div>
 
-                  {/* Order Line Items Table (Matching PDF BIOMIN BOOTER 11) */}
+                  {/* Tabla de líneas del pedido recibidas desde la API */}
                   <div className="space-y-2">
                     <p className="text-[11px] font-black uppercase tracking-widest text-ink dark:text-slate-200">
                       Detalle de Partidas ({selected.items.length} productos)

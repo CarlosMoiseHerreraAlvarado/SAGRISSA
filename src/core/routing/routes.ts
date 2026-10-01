@@ -11,7 +11,7 @@ export const APP_ROUTES = {
   },
   vendedor: {
     home: '/app/vendedor/home',
-    catalogo: '/app/catalogo',
+    catalogo: '/app/vendedor/catalogo',
     pedidos: '/app/pedidos',
     clientes: '/app/clientes',
     cobros: '/app/cobros',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { User, Mail, Shield, Smartphone, Bell, Moon, LogOut, Briefcase, CheckCircle2, MapPin } from 'lucide-react';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { useAuth } from '../../../core/hooks/useAuth';
-import { useTheme } from '../../../core/context/ThemeContext';
+import { useTheme } from '../../../core/context/useTheme';
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();

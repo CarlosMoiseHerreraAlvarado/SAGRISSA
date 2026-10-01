@@ -10,7 +10,7 @@ export default function SupervisorMetasPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    goalsService.getPeriodGoalData('mensual', 'Noviembre')
+    goalsService.getPeriodGoalData('mensual', 'Periodo actual')
       .then(setData)
       .finally(() => setLoading(false));
   }, []);
@@ -29,7 +29,7 @@ export default function SupervisorMetasPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-ink dark:text-white tracking-tight">Metas de Equipo</h1>
           <p className="text-[10px] font-black uppercase tracking-widest text-brand-blue">
-            Supervisor Comercial · Noviembre 2022
+            Supervisor Comercial · Periodo actual
           </p>
         </div>
       </header>

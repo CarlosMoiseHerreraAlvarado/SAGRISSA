@@ -64,10 +64,12 @@ interface BackendDivisionResponse {
 interface BackendTeamResponse {
   id: string;
   name: string;
+  code?: string;
   role: string;
   monthlySales: number;
   performance: number;
   region: string;
+  division?: string;
 }
 
 export const goalsService = {
@@ -119,12 +121,12 @@ export const goalsService = {
     const sellers: SellerPerformance[] = rawTeam.map((t, idx) => ({
       id: t.id || `sel-${idx}`,
       name: t.name || 'Vendedor Comercial',
-      code: `VEND-${idx + 1}`,
+      code: t.code || t.id || `seller-${idx + 1}`,
       sales: Number(t.monthlySales || 0),
-      projection: 10000.00,
-      collections: Number(t.monthlySales || 0) * 0.95,
+      projection: 0,
+      collections: 0,
       percentage: Number(t.performance || 0),
-      division: 'Comercial',
+      division: t.division || 'Sin división',
     }));
 
     const totalProj = divisions.reduce((sum, d) => sum + d.projection, 0);
@@ -136,7 +138,7 @@ export const goalsService = {
 
     return {
       periodType,
-      periodLabel: `${periodValue} 2022`,
+      periodLabel: periodValue,
       totalProjection: totalProj,
       totalSales: totalSales,
       totalPendingToSell: totalPendingToSell,

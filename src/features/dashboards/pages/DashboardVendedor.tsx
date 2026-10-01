@@ -45,7 +45,7 @@ export default function DashboardVendedor() {
   };
 
   const menuItems = [
-    { id: 'cat', icon: PackageSearch, label: 'Catálogo Rápido', color: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900', path: '/app/catalogo' },
+    { id: 'cat', icon: PackageSearch, label: 'Catálogo Rápido', color: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900', path: '/app/vendedor/catalogo' },
     { id: 'new', icon: FileText, label: 'Registrar Pedido', color: 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900', path: '/app/pedidos/nuevo' },
     { id: 'cli', icon: Users, label: 'Mis Clientes', color: 'bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-900', path: '/app/clientes' },
     { id: 'cob', icon: Landmark, label: 'Hacer Cobro', color: 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-900', path: '/app/cobros' },

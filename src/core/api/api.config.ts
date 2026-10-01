@@ -1,18 +1,9 @@
-/**
- * Archivo base para llamadas a los servicios internos de ASP.NET Core a través de Azure API Management (APIM).
- * Según el documento maestro de arquitectura, la PWA nunca se comunica con Dynamics ni la SQL directa.
- */
-
-/**
- * Archivo base para llamadas a los servicios internos de ASP.NET Core a través de Azure API Management (APIM).
- * Según el documento maestro de arquitectura, la PWA nunca se comunica con Dynamics ni la SQL directa.
- */
+/** Cliente HTTP de la PWA hacia la API REST de ASP.NET Core. */
 
 import { syncService } from './sync.service';
 import { trackEvent, trackException } from '../utils/appInsights';
 
-const AZURE_API_URL = 'https://sagrisa-api-stg-b4emdghza0esehhf.canadacentral-01.azurewebsites.net';
-const configuredApiUrl = (import.meta.env.VITE_API_URL || `${AZURE_API_URL}/api`).replace(/\/+$/, '');
+const configuredApiUrl = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
 const API_BASE_URL = /\/api$/i.test(configuredApiUrl) ? configuredApiUrl : `${configuredApiUrl}/api`;
 export const AUTH_EXPIRED_EVENT = 'sagrissa:auth-expired';
 
@@ -24,7 +15,7 @@ function getAuthToken(): string | null {
   }
 }
 
-// Interceptor central para APIM: inyecta la sesión y correlaciona cada solicitud.
+// Interceptor central: inyecta la sesión y correlaciona cada solicitud.
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const startedAt = performance.now();
   const token = getAuthToken();

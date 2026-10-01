@@ -4,8 +4,10 @@ import { MobilePage } from '../../../core/layout/MobilePage';
 import { goalsService, type PeriodGoalData } from '../services/goals.service';
 
 export default function GerenteMetasPage() {
+  const currentMonth = new Intl.DateTimeFormat('es-SV', { month: 'long' }).format(new Date());
+  const currentMonthLabel = currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1);
   const [periodType, setPeriodType] = useState<'mensual' | 'trimestral' | 'anual'>('mensual');
-  const [selectedMonth, setSelectedMonth] = useState('Noviembre');
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthLabel);
   const [selectedQuarter, setSelectedQuarter] = useState('T4');
   const [activeDivision, setActiveDivision] = useState<string>('all');
   const [data, setData] = useState<PeriodGoalData | null>(null);
@@ -15,8 +17,7 @@ export default function GerenteMetasPage() {
   const quarters = ['T1 (Ene-Mar)', 'T2 (Abr-Jun)', 'T3 (Jul-Sep)', 'T4 (Oct-Dic)'];
 
   useEffect(() => {
-    setLoading(true);
-    const label = periodType === 'mensual' ? selectedMonth : periodType === 'trimestral' ? selectedQuarter : '2022';
+    const label = periodType === 'mensual' ? selectedMonth : periodType === 'trimestral' ? selectedQuarter : 'Anual';
     goalsService.getPeriodGoalData(periodType, label)
       .then(setData)
       .finally(() => setLoading(false));

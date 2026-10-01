@@ -101,7 +101,7 @@ function App() {
               </Route>
               <Route path="reportes" element={<VendedorReportesPage />} />
               <Route element={<ProtectedRoute requiredPermissions="catalog.read" />}>
-                <Route path="catalogo" element={<CatalogoPage />} />
+                <Route path="vendedor/catalogo" element={<CatalogoPage />} />
               </Route>
 
               <Route path="pedidos" element={<PedidosVendedorPage />} />

@@ -133,6 +133,7 @@ export interface BackendLoginRequest {
 }
 
 export interface BackendLoginResponse {
+  id?: string;
   nombre: string;
   codVendedor: string;
   cargo: string;

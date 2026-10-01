@@ -7,6 +7,7 @@ type PagedApiResponse<T> = { items?: T[] };
 type OrderInput = Partial<Order>;
 type OfflineOrderResponse = Order & { _offlineQueued?: boolean; syncTaskId?: string };
 type BackendCreateOrderPayload = {
+  id?: string;
   codCliente: string;
   tpago: string;
   fechaEntrega?: string;
@@ -77,6 +78,7 @@ function toBackendCreatePayload(payload: OrderInput): BackendCreateOrderPayload 
   if (detalles.length === 0) throw new Error('Debe agregar al menos un producto al pedido.');
 
   return {
+    id: payload.id || undefined,
     codCliente,
     tpago: 'Contado',
     fechaEntrega: payload.deliveryDate || undefined,
@@ -94,7 +96,7 @@ function isOfflineQueued(value: unknown): value is OfflineOrderResponse {
 
 export const orderService = {
   getMyOrders: async (): Promise<Order[]> => {
-    const response = await fetchApi<BackendPedidoEncabezado[] | PagedApiResponse<BackendPedidoEncabezado>>(API_ENDPOINTS.pedidos);
+    const response = await fetchApi<BackendPedidoEncabezado[] | PagedApiResponse<BackendPedidoEncabezado>>(`${API_ENDPOINTS.pedidos}?pageNumber=1&pageSize=500`);
     const data = Array.isArray(response) ? response : response.items ?? [];
     return data.map(mapPedidoEncabezado);
   },
@@ -104,16 +106,16 @@ export const orderService = {
   },
 
   createOrder: async (orderPayload: OrderInput): Promise<Order> => {
+    const stableOrderPayload = { ...orderPayload, id: orderPayload.id ?? crypto.randomUUID() };
     const response = await fetchApi<BackendPedidoResponse | OfflineOrderResponse>(API_ENDPOINTS.pedidos, {
       method: 'POST',
-      body: JSON.stringify(toBackendCreatePayload(orderPayload)),
+      body: JSON.stringify(toBackendCreatePayload(stableOrderPayload)),
     });
 
     if (isOfflineQueued(response)) {
-      trackEvent('orders.created.offline', { customerId: String(orderPayload.customerId ?? '') });
+      trackEvent('orders.created.offline', { customerId: String(stableOrderPayload.customerId ?? '') });
       return {
-        ...orderPayload,
-        id: `offline-${Date.now()}`,
+        ...stableOrderPayload,
         orderNumber: 'PENDIENTE',
         status: 'pending_approval',
         dateCreated: new Date().toISOString(),
