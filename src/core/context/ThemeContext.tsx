@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ThemeContext, type Theme } from './ThemeContextValue';
 
@@ -23,13 +23,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return 'light';
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
+    root.style.colorScheme = theme;
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {

@@ -23,9 +23,9 @@ export function SearchInput({
   return (
     <div
       className={`
-        flex items-center bg-slate-50 border border-slate-200 rounded-2xl 
+        flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl
         px-4 py-3 transition-all focus-within:ring-2 
-        focus-within:ring-brand-blue/15 focus-within:bg-white focus-within:border-brand-blue/30
+        focus-within:ring-brand-blue/15 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:border-brand-blue/30
         ${className}
       `}
     >
@@ -35,14 +35,14 @@ export function SearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 text-sm font-medium text-slate-700 bg-transparent outline-none placeholder:text-slate-300"
+        className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-100 bg-transparent outline-none placeholder:text-slate-300 dark:placeholder:text-slate-500"
       />
       {value && (
         <button
           type="button"
           aria-label="Limpiar búsqueda"
           onClick={handleClear}
-          className="min-h-11 min-w-11 rounded-xl p-2 text-slate-400 transition-colors hover:bg-white hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+          className="min-h-11 min-w-11 rounded-xl p-2 text-slate-400 transition-colors hover:bg-white dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
         >
           <X size={16} />
         </button>

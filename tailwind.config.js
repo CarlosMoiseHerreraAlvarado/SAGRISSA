@@ -14,17 +14,17 @@ export default {
           navy: '#0f172a',
         },
         surface: {
-          DEFAULT: '#ffffff',
-          soft: '#f4f6f9',
-          border: '#e8edf2',
+          DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
+          soft: 'rgb(var(--color-surface-soft) / <alpha-value>)',
+          border: 'rgb(var(--color-surface-border) / <alpha-value>)',
           dark: '#0b1120',
           'dark-soft': '#1e293b',
           'dark-border': '#334155',
         },
         ink: {
-          DEFAULT: '#0f172a',
-          muted: '#64748b',
-          light: '#94a3b8',
+          DEFAULT: 'rgb(var(--color-ink) / <alpha-value>)',
+          muted: 'rgb(var(--color-ink-muted) / <alpha-value>)',
+          light: 'rgb(var(--color-ink-light) / <alpha-value>)',
           dark: '#f8fafc',
           'dark-muted': '#94a3b8',
         }

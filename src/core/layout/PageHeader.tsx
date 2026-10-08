@@ -43,8 +43,8 @@ export function PageHeader({
       className={`
         px-6 py-5 flex items-center justify-between z-40
         ${sticky ? 'sticky top-0' : ''}
-        ${transparent ? 'bg-transparent' : 'bg-white'}
-        border-b border-slate-100
+        ${transparent ? 'bg-transparent' : 'bg-white dark:bg-slate-950'}
+        border-b border-slate-100 dark:border-slate-800
         ${className}
       `}
     >
@@ -54,13 +54,13 @@ export function PageHeader({
             type="button"
             onClick={handleBack}
             aria-label="Volver"
-            className="min-h-11 min-w-11 p-2 -ml-2 text-slate-400 hover:text-brand-blue transition-colors"
+            className="min-h-11 min-w-11 p-2 -ml-2 text-slate-400 dark:text-slate-300 hover:text-brand-blue transition-colors"
           >
             <ArrowLeft aria-hidden="true" size={24} className="mx-auto" />
           </button>
         )}
         <div>
-          <h1 className="text-xl font-black text-slate-800 tracking-tight">{title}</h1>
+          <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">{title}</h1>
           {subtitle && (
             <p className="text-[11px] font-bold text-brand-blue uppercase tracking-widest mt-0.5">
               {subtitle}
@@ -75,7 +75,7 @@ export function PageHeader({
           type="button"
           onClick={handleSettings}
           aria-label="Abrir ajustes"
-          className="min-h-11 min-w-11 p-2 text-slate-400 hover:text-brand-blue transition-colors"
+          className="min-h-11 min-w-11 p-2 text-slate-400 dark:text-slate-300 hover:text-brand-blue transition-colors"
         >
           <Settings aria-hidden="true" size={20} className="mx-auto" />
         </button>

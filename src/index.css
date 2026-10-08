@@ -5,6 +5,32 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-surface: 255 255 255;
+    --color-surface-soft: 244 246 249;
+    --color-surface-border: 232 237 242;
+    --color-ink: 15 23 42;
+    --color-ink-muted: 100 116 139;
+    --color-ink-light: 148 163 184;
+  }
+
+  html.dark {
+    --color-surface: 15 23 42;
+    --color-surface-soft: 30 41 59;
+    --color-surface-border: 51 65 85;
+    --color-ink: 241 245 249;
+    --color-ink-muted: 203 213 225;
+    --color-ink-light: 148 163 184;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   html, body, #root {
     @apply h-full w-full overflow-x-hidden selection:bg-brand-blue/10;
     height: 100%;
@@ -16,6 +42,98 @@
     @apply font-sans bg-white text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
+  }
+
+  /* Map common light utility surfaces to the dark palette, including pages
+     that predate the dark: variants. Explicit dark: classes still take priority. */
+  html.dark :where(div, section, article, header, main, aside)[class~='bg-white'] {
+    background-color: #0f172a;
+  }
+
+  html.dark :where(div, section, article, header, main, aside)[class~='bg-slate-50'],
+  html.dark :where(div, section, article, header, main, aside)[class~='bg-gray-50'] {
+    background-color: #1e293b;
+  }
+
+  html.dark [class~='text-slate-800'],
+  html.dark [class~='text-slate-700'],
+  html.dark [class~='text-slate-600'],
+  html.dark [class~='text-gray-800'],
+  html.dark [class~='text-gray-700'] {
+    color: #e2e8f0;
+  }
+
+  html.dark [class~='text-slate-500'],
+  html.dark [class~='text-slate-400'],
+  html.dark [class~='text-gray-500'],
+  html.dark [class~='text-gray-400'] {
+    color: #94a3b8;
+  }
+
+  html.dark [class~='text-slate-300'],
+  html.dark [class~='text-gray-300'] {
+    color: #cbd5e1;
+  }
+
+  html.dark [class~='bg-slate-100'],
+  html.dark [class~='bg-slate-200'] {
+    background-color: #334155;
+  }
+
+  html.dark [class~='bg-red-50'] { background-color: #450a0a; }
+  html.dark [class~='bg-amber-50'],
+  html.dark [class~='bg-yellow-50'] { background-color: #451a03; }
+  html.dark [class~='bg-emerald-50'],
+  html.dark [class~='bg-green-50'] { background-color: #022c22; }
+  html.dark [class~='bg-blue-50'] { background-color: #172554; }
+  html.dark [class~='bg-orange-50'] { background-color: #431407; }
+  html.dark [class~='bg-purple-50'] { background-color: #3b0764; }
+
+  html.dark [class~='text-red-700'],
+  html.dark [class~='text-red-600'] { color: #fca5a5; }
+  html.dark [class~='text-amber-900'],
+  html.dark [class~='text-amber-800'],
+  html.dark [class~='text-amber-700'],
+  html.dark [class~='text-amber-600'],
+  html.dark [class~='text-yellow-800'],
+  html.dark [class~='text-yellow-700'] { color: #fcd34d; }
+  html.dark [class~='text-emerald-700'],
+  html.dark [class~='text-emerald-600'],
+  html.dark [class~='text-green-700'],
+  html.dark [class~='text-green-600'] { color: #6ee7b7; }
+  html.dark [class~='text-orange-700'],
+  html.dark [class~='text-orange-600'] { color: #fdba74; }
+  html.dark [class~='text-blue-700'],
+  html.dark [class~='text-blue-600'] { color: #93c5fd; }
+  html.dark [class~='text-purple-700'],
+  html.dark [class~='text-purple-600'] { color: #d8b4fe; }
+
+  html.dark [class~='border-slate-50'],
+  html.dark [class~='border-slate-100'],
+  html.dark [class~='border-slate-200'],
+  html.dark [class~='border-gray-100'],
+  html.dark [class~='border-gray-200'] {
+    border-color: #334155;
+  }
+
+  html.dark [class~='border-red-100'],
+  html.dark [class~='border-red-200'] { border-color: #7f1d1d; }
+  html.dark [class~='border-amber-100'],
+  html.dark [class~='border-amber-200'] { border-color: #78350f; }
+  html.dark [class~='border-emerald-100'],
+  html.dark [class~='border-emerald-200'] { border-color: #064e3b; }
+  html.dark [class~='border-orange-100'],
+  html.dark [class~='border-orange-200'] { border-color: #7c2d12; }
+
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  html.dark ::selection {
+    background-color: rgb(0 169 244 / 30%);
+    color: #f8fafc;
   }
 
   button, [role='button'], input, select, textarea {

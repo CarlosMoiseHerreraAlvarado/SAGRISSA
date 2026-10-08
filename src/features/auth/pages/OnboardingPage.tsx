@@ -62,7 +62,7 @@ export default function OnboardingPage() {
 
   if (slide.type === 'splash') {
     return (
-      <div className="min-h-[100dvh] bg-white flex justify-center items-center cursor-pointer animate-in fade-in duration-700" onClick={handleNext}>
+      <div className="min-h-[100dvh] bg-white dark:bg-slate-950 flex justify-center items-center cursor-pointer animate-in fade-in duration-700" onClick={handleNext}>
         <div className="flex flex-col items-center gap-4">
            <div className="w-20 h-20 bg-[#00A9F4] rounded-3xl flex items-center justify-center shadow-lg animate-bounce duration-[2000ms]">
               <span className="text-white font-logo font-black text-4xl">S</span>
@@ -74,7 +74,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#f3f6f9] flex items-center justify-center p-6 overflow-y-auto">
+    <div className="min-h-[100dvh] bg-[#f3f6f9] dark:bg-slate-950 flex items-center justify-center p-6 overflow-y-auto">
       
       {/* Dashed Lines Pattern */}
       <svg className="absolute top-10 right-10 w-32 h-32 pointer-events-none opacity-20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -85,15 +85,15 @@ export default function OnboardingPage() {
       </svg>
 
       {/* Contenedor tipo Web App Card (Full en Móvil, Card en PC) */}
-      <div className="w-full h-full md:h-auto md:min-h-[600px] md:max-w-md bg-white md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col items-center p-12 transition-all duration-500 animate-in slide-in-from-right-4">
+      <div className="w-full h-full md:h-auto md:min-h-[600px] md:max-w-md bg-white dark:bg-slate-900 md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col items-center p-12 transition-all duration-500 animate-in slide-in-from-right-4">
         
         <div className="flex-1 flex flex-col items-center justify-center text-center">
-           <div className="w-40 h-40 bg-slate-50 rounded-[40px] flex items-center justify-center mb-12 border border-slate-100 shadow-inner">
+           <div className="w-40 h-40 bg-slate-50 dark:bg-slate-800 rounded-[40px] flex items-center justify-center mb-12 border border-slate-100 dark:border-slate-700 shadow-inner">
               {slide.icon}
            </div>
            
-           <h2 className="text-2xl font-black text-slate-800 mb-4 tracking-tight uppercase tracking-widest">{slide.title}</h2>
-           <p className="text-[14px] text-slate-500 leading-relaxed font-medium px-4">
+           <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-4 tracking-tight uppercase tracking-widest">{slide.title}</h2>
+           <p className="text-[14px] text-slate-500 dark:text-slate-300 leading-relaxed font-medium px-4">
              {slide.description}
            </p>
         </div>
@@ -103,7 +103,7 @@ export default function OnboardingPage() {
             {slides.slice(1).map((_, idx) => (
               <div 
                 key={idx} 
-                className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx + 1 ? 'bg-[#00A9F4] w-6' : 'bg-slate-200 w-1.5'}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx + 1 ? 'bg-[#00A9F4] w-6' : 'bg-slate-200 dark:bg-slate-700 w-1.5'}`}
               />
             ))}
           </div>
@@ -111,7 +111,7 @@ export default function OnboardingPage() {
           <div className="w-full flex gap-3">
              <button 
                onClick={() => navigate('/login')}
-               className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-600"
+               className="flex-1 py-4 text-slate-400 dark:text-slate-300 font-bold text-sm hover:text-slate-600 dark:hover:text-slate-100"
              >
                Omitir
              </button>

@@ -169,8 +169,8 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-[100dvh] bg-surface-soft flex items-center justify-center p-0 md:p-6">
-      <section className="w-full min-h-[100dvh] md:min-h-[680px] md:h-auto md:max-w-md bg-white md:rounded-[32px] md:shadow-card-hover relative overflow-hidden flex flex-col">
+    <main className="min-h-[100dvh] bg-surface-soft dark:bg-slate-950 flex items-center justify-center p-0 md:p-6">
+      <section className="w-full min-h-[100dvh] md:min-h-[680px] md:h-auto md:max-w-md bg-white dark:bg-slate-900 md:rounded-[32px] md:shadow-card-hover relative overflow-hidden flex flex-col">
         <div className="absolute inset-x-0 top-0 h-1 bg-brand-blue" />
         <div className="flex-1 px-6 py-12 sm:px-8 md:py-16 flex flex-col relative z-10">
           <div className="mb-12">
@@ -179,19 +179,19 @@ export default function LoginPage() {
               <ShieldCheck size={22} aria-hidden="true" />
               <span className="text-[11px] font-black uppercase tracking-[0.18em]">Acceso seguro</span>
             </div>
-            <h1 className="mt-5 text-2xl font-black tracking-tight text-ink">Bienvenido/a</h1>
-            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+            <h1 className="mt-5 text-2xl font-black tracking-tight text-ink dark:text-slate-100">Bienvenido/a</h1>
+            <p className="mt-2 text-sm leading-relaxed text-ink-muted dark:text-slate-300">
               Ingrese su DUI y PIN para entrar a la experiencia correspondiente a sus permisos.
             </p>
           </div>
 
           <div className="flex items-center gap-2 mb-4">
             {step === 'pin' && (
-              <button type="button" onClick={() => { setStep('dui'); setError(''); }} className="min-h-11 min-w-11 rounded-xl text-ink-muted hover:bg-surface-soft" aria-label="Volver al DUI">
+              <button type="button" onClick={() => { setStep('dui'); setError(''); }} className="min-h-11 min-w-11 rounded-xl text-ink-muted dark:text-slate-300 hover:bg-surface-soft dark:hover:bg-slate-800" aria-label="Volver al DUI">
                 <ArrowLeft size={20} className="mx-auto" aria-hidden="true" />
               </button>
             )}
-            <label htmlFor="login-value" className="text-xs font-black uppercase tracking-widest text-ink-muted">
+            <label htmlFor="login-value" className="text-xs font-black uppercase tracking-widest text-ink-muted dark:text-slate-300">
               {fieldLabel}
             </label>
           </div>
@@ -210,10 +210,10 @@ export default function LoginPage() {
               else setPin(event.target.value);
             }}
             onKeyDown={event => { if (event.key === 'Enter') handleAction(); }}
-            className="min-h-14 w-full rounded-2xl border border-surface-border bg-white px-5 text-base font-semibold text-ink outline-none transition focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10"
+            className="min-h-14 w-full rounded-2xl border border-surface-border dark:border-slate-700 bg-white dark:bg-slate-800 px-5 text-base font-semibold text-ink dark:text-slate-100 outline-none transition focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10"
           />
 
-          {error && <p id="login-error" role="alert" className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
+          {error && <p id="login-error" role="alert" className="mt-3 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/50 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-300">{error}</p>}
 
           <button
             type="button"
@@ -224,11 +224,11 @@ export default function LoginPage() {
             {loading ? <span className="flex items-center justify-center gap-2"><Loader2 size={18} className="animate-spin" aria-hidden="true" /> Validando</span> : step === 'dui' ? 'Continuar' : 'Iniciar sesión'}
           </button>
 
-          {slowLogin && <p className="mt-3 text-center text-xs font-semibold text-amber-700" role="status">El servidor esta tardando en responder. Puede estar despertando; espere unos segundos.</p>}
+          {slowLogin && <p className="mt-3 text-center text-xs font-semibold text-amber-700 dark:text-amber-300" role="status">El servidor esta tardando en responder. Puede estar despertando; espere unos segundos.</p>}
 
           <div className="mt-auto pt-12 text-center">
-            <p className="text-xs font-medium text-ink-muted">El rol y las capacidades se asignan desde el servidor.</p>
-            <p className="mt-2 text-[11px] font-semibold text-ink-light">SAGRISA · Plataforma comercial</p>
+            <p className="text-xs font-medium text-ink-muted dark:text-slate-300">El rol y las capacidades se asignan desde el servidor.</p>
+            <p className="mt-2 text-[11px] font-semibold text-ink-light dark:text-slate-400">SAGRISA · Plataforma comercial</p>
           </div>
         </div>
       </section>

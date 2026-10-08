@@ -15,7 +15,7 @@ export function SectionTitle({ title, icon: Icon, action, className = '' }: Sect
     <div className={`flex items-center justify-between px-1 ${className}`}>
       <div className="flex items-center gap-2">
         {Icon && <Icon size={16} className="text-brand-blue" />}
-        <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-wider">
+        <h3 className="text-[13px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
           {title}
         </h3>
       </div>

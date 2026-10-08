@@ -35,7 +35,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
   return (
     <div
       ref={containerRef}
-      className={`relative flex bg-white px-2 pt-2 border-b border-slate-100 ${className}`}
+      className={`relative flex bg-white dark:bg-slate-950 px-2 pt-2 border-b border-slate-100 dark:border-slate-800 ${className}`}
     >
       {tabs.map((tab) => (
         <button
@@ -48,7 +48,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
             transition-all relative z-10
             ${activeTab === tab.id
               ? 'text-brand-blue'
-              : 'text-slate-400 hover:text-slate-600'
+              : 'text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-100'
             }
           `}
         >
@@ -60,7 +60,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
                   text-[10px] px-1.5 py-0.5 rounded-full
                   ${activeTab === tab.id
                     ? 'bg-brand-blue/10 text-brand-blue'
-                    : 'bg-slate-100 text-slate-400'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-300'
                   }
                 `}
               >

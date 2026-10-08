@@ -1,10 +1,12 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../core/hooks/useAuth';
+import { useTheme } from '../../../core/context/useTheme';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -32,13 +34,32 @@ export default function SettingsPage() {
         </div>
 
         {/* Options Card */}
-        <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-smooth-sm">
-          <p className="font-bold text-sm text-slate-800 mb-4">Cambiar modo de ingresar</p>
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-2xl shadow-smooth-sm">
+          <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 mb-4">Apariencia</h4>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isDark}
+            onClick={toggleTheme}
+            className="flex min-h-14 w-full items-center justify-between rounded-xl px-2 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-brand-blue"
+          >
+            <span className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {isDark ? <Moon size={18} aria-hidden="true" /> : <Sun size={18} aria-hidden="true" />}
+              Modo oscuro
+            </span>
+            <span className={`relative h-6 w-11 rounded-full transition-colors ${isDark ? 'bg-brand-blue' : 'bg-slate-300'}`}>
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isDark ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </span>
+          </button>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-2xl shadow-smooth-sm">
+          <p className="font-bold text-sm text-slate-800 dark:text-slate-100 mb-4">Cambiar modo de ingresar</p>
           
-          <div className="py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors rounded-t-lg px-2 -mx-2">
+          <div className="py-4 border-b border-slate-100 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors rounded-t-lg px-2 -mx-2">
             <span className="text-sm text-primary font-bold">Ingresar con huella</span>
           </div>
-          <div className="pt-4 pb-1 cursor-pointer hover:bg-slate-50 transition-colors rounded-b-lg px-2 -mx-2">
+          <div className="pt-4 pb-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors rounded-b-lg px-2 -mx-2">
             <span className="text-sm text-primary font-bold">Ingresar con PIN</span>
           </div>
         </div>
