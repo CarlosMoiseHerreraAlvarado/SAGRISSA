@@ -82,7 +82,7 @@ export function AgingCard({
       <div className="space-y-4">
         {items.map((item, index) => {
           const percentage = (item.amount / maxAmount) * 100;
-          const ratio = item.amount / total;
+          const ratio = total > 0 ? item.amount / total : 0;
 
           return (
             <div key={index} className="group">
