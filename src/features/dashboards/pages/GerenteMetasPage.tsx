@@ -276,7 +276,7 @@ export default function GerenteMetasPage() {
                   return !q || seller.name.toLowerCase().includes(q) || seller.code.toLowerCase().includes(q);
                 })
                 .map(seller => (
-                <div key={seller.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer" onClick={() => navigate(`/app/gerente/metas/vendedor/${seller.id}`)}>
+                <div key={seller.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer" onClick={() => navigate(`/app/gerente/metas/vendedor/${encodeURIComponent(seller.code || seller.id)}`)}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center font-black text-xs">
                       {seller.name.split(' ').map(n => n[0]).slice(0, 2).join('')}

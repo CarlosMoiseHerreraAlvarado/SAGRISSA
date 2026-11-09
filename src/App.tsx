@@ -38,6 +38,7 @@ const ClientesAsignadosPage = lazy(() => import('./features/dashboards/pages/Cli
 const PedidoDetailVendedorPage = lazy(() => import('./features/dashboards/pages/PedidoDetailVendedorPage'));
 const FacturasPage = lazy(() => import('./features/facturacion/pages/FacturasPage'));
 const GerenteMetasPage = lazy(() => import('./features/dashboards/pages/GerenteMetasPage'));
+const GerenteVendedorMetasPage = lazy(() => import('./features/dashboards/pages/GerenteVendedorMetasPage'));
 
 const DEFAULT_ROUTES = {
   cliente: '/app/cliente/home', vendedor: '/app/vendedor/home', supervisor: '/app/supervisor/home',
@@ -137,6 +138,7 @@ function App() {
                 <Route path="gerente/aprobaciones" element={<GerenteApprovalsPage />} />
               </Route>
               <Route path="gerente/metas" element={<GerenteMetasPage />} />
+              <Route path="gerente/metas/vendedor/:id" element={<GerenteVendedorMetasPage />} />
               <Route path="gerente/catalogo" element={<CatalogoPage />} />
               <Route element={<ProtectedRoute requiredPermissions="analytics.read" />}>
                 <Route path="gerente/analytics" element={<RoleAnalyticsPage title="Analytics gerencial" subtitle="Ventas, facturación y cobros consolidados" />} />
@@ -151,6 +153,7 @@ function App() {
               <Route path="director/home" element={<DashboardDirector />} />
               <Route path="director/analytics" element={<DirectorAnalyticsPage />} />
               <Route path="director/metas" element={<GerenteMetasPage />} />
+              <Route path="director/metas/vendedor/:id" element={<GerenteVendedorMetasPage />} />
               <Route path="director/catalogo" element={<CatalogoPage />} />
               <Route path="director/aprobaciones" element={<GerenteApprovalsPage />} />
               <Route path="director/reportes" element={<DirectorReportesPage />} />
