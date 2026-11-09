@@ -37,6 +37,9 @@ export interface User {
   role: Role;
   email?: string;
   department?: string;
+  area?: string;
+  division?: string;
+  country?: string;
   claims: string[];
   permissions: Permission[];
   scope: AccessScope;
@@ -53,6 +56,7 @@ export interface Product {
   name: string;
   description: string;
   family: string;
+  division?: string;
   price: number;
   stock: number;
   warehouse: string;
@@ -221,4 +225,5 @@ export interface BackendProducto {
   activo: boolean;
   familia?: string | null;
   categoria?: string | null;
+  division?: string | null;
 }

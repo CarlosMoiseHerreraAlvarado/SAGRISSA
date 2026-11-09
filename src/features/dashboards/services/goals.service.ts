@@ -91,11 +91,19 @@ export const goalsService = {
 
   async getPeriodGoalData(
     periodType: 'mensual' | 'trimestral' | 'anual',
-    periodValue: string = 'Noviembre'
+    periodValue: string = 'Noviembre',
+    vendedor?: string
   ): Promise<PeriodGoalData> {
+    const params = new URLSearchParams({
+      scope: periodType,
+      periodo: periodType,
+      valor: periodValue,
+      ...(vendedor ? { vendedor } : {})
+    });
+    const query = `?${params.toString()}`;
     const [goalsRes, teamRes] = await Promise.all([
-      fetchApi<BackendDivisionResponse[] | { data: BackendDivisionResponse[] }>('/goals').catch(() => []),
-      fetchApi<BackendTeamResponse[] | { data: BackendTeamResponse[] }>('/team').catch(() => [])
+      fetchApi<BackendDivisionResponse[] | { data: BackendDivisionResponse[] }>(`/goals${query}`).catch(() => []),
+      fetchApi<BackendTeamResponse[] | { data: BackendTeamResponse[] }>(`/team${query}`).catch(() => [])
     ]);
 
     const rawDivisions = Array.isArray(goalsRes) ? goalsRes : Array.isArray(goalsRes?.data) ? goalsRes.data : [];

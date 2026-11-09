@@ -15,6 +15,7 @@ export interface BusinessAnalytics {
   globalInsight: string;
 }
 
-export function getBusinessAnalytics(): Promise<BusinessAnalytics> {
-  return fetchApi<BusinessAnalytics>('/analytics');
+export function getBusinessAnalytics(area?: string): Promise<BusinessAnalytics> {
+  const query = area ? `?area=${encodeURIComponent(area)}` : '';
+  return fetchApi<BusinessAnalytics>(`/analytics${query}`);
 }

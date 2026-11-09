@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { MobilePage } from '../../../core/layout/MobilePage';
 import { goalsService, type PeriodGoalData } from '../services/goals.service';
 
 export default function GerenteMetasPage() {
+  const navigate = useNavigate();
   const currentMonth = new Intl.DateTimeFormat('es-SV', { month: 'long' }).format(new Date());
   const currentMonthLabel = currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1);
   const [periodType, setPeriodType] = useState<'mensual' | 'trimestral' | 'anual'>('mensual');
@@ -12,6 +14,7 @@ export default function GerenteMetasPage() {
   const [activeDivision, setActiveDivision] = useState<string>('all');
   const [data, setData] = useState<PeriodGoalData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchSeller, setSearchSeller] = useState('');
 
   const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const quarters = ['T1 (Ene-Mar)', 'T2 (Abr-Jun)', 'T3 (Jul-Sep)', 'T4 (Oct-Dic)'];
@@ -252,12 +255,28 @@ export default function GerenteMetasPage() {
         {data && data.sellers.length > 0 && (
           <section className="space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-ink dark:text-white">
-              Desempeño Individual del Equipo de Ventas
+              DESEMPEÑO INDIVIDUAL
             </h3>
 
+            <div className="relative">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchSeller}
+                onChange={e => setSearchSeller(e.target.value)}
+                placeholder="Buscar vendedor por nombre o código..."
+                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-2xl text-sm text-ink dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-brand-blue transition-all"
+              />
+            </div>
+
             <div className="bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 rounded-3xl p-6 shadow-card dark:shadow-card-dark divide-y divide-surface-border dark:divide-slate-800">
-              {data.sellers.map(seller => (
-                <div key={seller.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {data.sellers
+                .filter(seller => {
+                  const q = searchSeller.trim().toLowerCase();
+                  return !q || seller.name.toLowerCase().includes(q) || seller.code.toLowerCase().includes(q);
+                })
+                .map(seller => (
+                <div key={seller.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer" onClick={() => navigate(`/app/gerente/metas/vendedor/${seller.id}`)}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center font-black text-xs">
                       {seller.name.split(' ').map(n => n[0]).slice(0, 2).join('')}

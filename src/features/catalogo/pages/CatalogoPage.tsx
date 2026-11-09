@@ -44,6 +44,7 @@ function ProductStatus({ product }: { product: Product }) {
 export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isGerente = user?.role === 'gerente';
   const canWrite = !readOnly && hasPermission(user?.permissions, 'catalog.write');
   const ownerId = user?.id ?? 'anonymous';
   
@@ -78,10 +79,10 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
     const query = searchTerm.trim().toLowerCase();
     const matchesSearch = !query || product.name.toLowerCase().includes(query) || product.sku.toLowerCase().includes(query);
     const matchesCategory = selectedCategory === 'Todos' || product.family === selectedCategory;
-    const matchesWarehouse = readOnly || selectedWarehouse === 'Todos' || product.warehouse === selectedWarehouse;
-    const matchesStock = readOnly || filterStock === 'all' || (filterStock === 'in' ? product.stock > 0 : product.stock === 0);
+    const matchesWarehouse = readOnly || isGerente || selectedWarehouse === 'Todos' || product.warehouse === selectedWarehouse;
+    const matchesStock = readOnly || isGerente || filterStock === 'all' || (filterStock === 'in' ? product.stock > 0 : product.stock === 0);
     return matchesSearch && matchesCategory && matchesWarehouse && matchesStock;
-  }), [filterStock, products, readOnly, searchTerm, selectedCategory, selectedWarehouse]);
+  }), [filterStock, isGerente, products, readOnly, searchTerm, selectedCategory, selectedWarehouse]);
 
   // Contar productos por bodega dinámicamente desde la BD
   const warehouseCounts = useMemo(() => {
@@ -136,7 +137,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
           </div>
 
           {/* Bodegas Selector Tabs (conteos provenientes de la API) */}
-          {!readOnly && <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {(!readOnly || isGerente) && <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               type="button"
               onClick={() => setSelectedWarehouse('Todos')}
@@ -181,7 +182,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
                 onChange={e => setSearchTerm(e.target.value)} 
               />
             </div>
-            {!readOnly && <button
+            {(!readOnly && !isGerente) && <button
               type="button" 
               onClick={() => setShowFilters(true)} 
               className={`flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-2xl border p-3 shadow-sm transition-all ${
@@ -221,21 +222,22 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
 
         {/* Products Grid from Database */}
         <div className="z-10 flex-1 overflow-y-auto pb-32 scrollbar-hide">
-          {readOnly ? <div className="overflow-x-auto rounded-2xl border border-surface-border bg-white dark:border-slate-800 dark:bg-slate-900">
+          {(readOnly || isGerente) ? <div className="overflow-x-auto rounded-2xl border border-surface-border bg-white dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full min-w-[680px] border-collapse text-left text-sm">
               <thead className="bg-surface-soft text-[10px] font-black uppercase tracking-wider text-ink-muted dark:bg-slate-800">
-                <tr><th scope="col" className="px-4 py-3">Código</th><th scope="col" className="px-4 py-3">Producto</th><th scope="col" className="px-4 py-3">Familia</th><th scope="col" className="px-4 py-3">Presentación</th><th scope="col" className="px-4 py-3">Precio</th><th scope="col" className="px-4 py-3">Existencia</th></tr>
+                <tr><th scope="col" className="px-4 py-3">Código</th><th scope="col" className="px-4 py-3">Producto</th><th scope="col" className="px-4 py-3">Familia</th>{user?.country !== 'GT' && <th scope="col" className="px-4 py-3">División</th>}<th scope="col" className="px-4 py-3">Presentación</th><th scope="col" className="px-4 py-3">Precio</th><th scope="col" className="px-4 py-3">Existencia</th></tr>
               </thead>
               <tbody className="divide-y divide-surface-border dark:divide-slate-800">
-                {loading ? Array.from({ length: 5 }, (_, idx) => <tr key={idx}><td colSpan={6} className="px-4 py-3"><Skeleton className="h-5 w-full" /></td></tr>) : filtered.map(product => <tr key={product.id} className="text-ink hover:bg-surface-soft/70 dark:text-white dark:hover:bg-slate-800/60">
+                {loading ? Array.from({ length: 5 }, (_, idx) => <tr key={idx}><td colSpan={user?.country !== 'GT' ? 7 : 6} className="px-4 py-3"><Skeleton className="h-5 w-full" /></td></tr>) : filtered.map(product => <tr key={product.id} className="text-ink hover:bg-surface-soft/70 dark:text-white dark:hover:bg-slate-800/60">
                   <td className="whitespace-nowrap px-4 py-3 font-bold text-brand-blue">{product.sku}</td>
                   <td className="px-4 py-3"><div className="font-bold">{product.name}</div>{product.description && <p className="mt-1 max-w-sm text-xs text-ink-muted">{product.description}</p>}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-ink-muted">{product.family}</td>
+                  {user?.country !== 'GT' && <td className="whitespace-nowrap px-4 py-3 text-ink-muted">{product.division ?? '—'}</td>}
                   <td className="whitespace-nowrap px-4 py-3 text-ink-muted">{product.presentation}</td>
                   <td className="whitespace-nowrap px-4 py-3 font-bold">${product.price.toFixed(2)}</td>
                   <td className="whitespace-nowrap px-4 py-3"><ProductStatus product={product} /></td>
                 </tr>)}
-                {!loading && filtered.length === 0 && <tr><td colSpan={6} className="px-4 py-12 text-center text-sm font-semibold text-ink-muted">No se encontraron productos. Pruebe con otra búsqueda o categoría.</td></tr>}
+                {!loading && filtered.length === 0 && <tr><td colSpan={user?.country !== 'GT' ? 7 : 6} className="px-4 py-12 text-center text-sm font-semibold text-ink-muted">No se encontraron productos. Pruebe con otra búsqueda o categoría.</td></tr>}
               </tbody>
             </table>
           </div> : <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -305,7 +307,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
       </div>
 
       {/* Modal de Filtros */}
-      {!readOnly && <BottomSheet open={showFilters} title="Filtros de Inventario" onClose={() => setShowFilters(false)}>
+      {(!readOnly && !isGerente) && <BottomSheet open={showFilters} title="Filtros de Inventario" onClose={() => setShowFilters(false)}>
         <div className="space-y-6">
           <fieldset>
             <legend className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Disponibilidad en Existencia</legend>
@@ -338,7 +340,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
       </BottomSheet>}
 
       {/* Modal de Ficha de Producto y Existencias desde BD */}
-      {!readOnly && <BottomSheet
+      {(!readOnly && !isGerente) && <BottomSheet
         open={Boolean(viewingLotsProduct)}
         title={`Ficha de Existencias`}
         onClose={() => setViewingLotsProduct(null)}
