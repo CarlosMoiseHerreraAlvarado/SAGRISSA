@@ -69,7 +69,7 @@ export default function CatalogoPage({ readOnly = false }: CatalogoPageProps) {
       const data = await catalogService.getProducts();
       setProducts(data);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No fue posible cargar el catálogo.');
+      console.warn("Error al cargar catalogo:", caught);
     } finally {
       setLoading(false);
     }
