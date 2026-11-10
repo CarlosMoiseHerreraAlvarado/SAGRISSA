@@ -65,8 +65,13 @@ export default function DashboardDirector() {
           </div>
         </section>
         
-        <button type="button" onClick={() => navigate('/app/director/reportes')} className="flex min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-brand-blue text-sm font-black uppercase tracking-widest text-white shadow-md shadow-brand-blue/20">
-          <FileText size={20} /> Reportes ejecutivos
+        {/* Reportes Ejecutivos: Conecta directamente a la vista con Top Clientes y Cobros Regionales por país */}
+        <button 
+          type="button" 
+          onClick={() => navigate('/app/director/analytics')} 
+          className="flex min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-brand-blue text-sm font-black uppercase tracking-widest text-white shadow-md shadow-brand-blue/20 hover:bg-brand-blue/90 transition-all cursor-pointer"
+        >
+          <FileText size={20} /> Reportes ejecutivos (Top Clientes & Cobros)
         </button>
       </div>
     </MobilePage>

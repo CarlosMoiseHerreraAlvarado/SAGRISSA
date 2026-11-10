@@ -57,6 +57,11 @@ export interface Product {
   description: string;
   family: string;
   division?: string;
+  clase?: string;
+  fechaVencimiento?: string;
+  estadoVencimiento?: 'VIGENTE' | 'POR VENCER' | 'VENCIDO';
+  pais?: string;
+  lote?: string;
   price: number;
   stock: number;
   warehouse: string;
@@ -226,4 +231,9 @@ export interface BackendProducto {
   familia?: string | null;
   categoria?: string | null;
   division?: string | null;
+  clase?: string | null;
+  fechaVencimiento?: string | null;
+  estadoVencimiento?: string | null;
+  pais?: string | null;
+  lote?: string | null;
 }

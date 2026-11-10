@@ -4,7 +4,23 @@ import type { BackendProducto, Product } from '../../../types';
 import { API_ENDPOINTS } from '../../../core/api/endpoints';
 
 function mapProducto(product: BackendProducto): Product {
-  return { id: product.codigo, sku: product.codigo, name: product.nombre, description: product.descripcion ?? '', family: product.familia ?? product.categoria ?? '', division: product.division ?? undefined, price: product.precio, stock: product.stock ?? 0, warehouse: product.bodega, presentation: product.presentacion };
+  return {
+    id: product.codigo,
+    sku: product.codigo,
+    name: product.nombre,
+    description: product.descripcion ?? '',
+    family: product.familia ?? product.categoria ?? '',
+    division: product.division ?? undefined,
+    clase: product.clase ?? undefined,
+    fechaVencimiento: product.fechaVencimiento ?? undefined,
+    estadoVencimiento: (product.estadoVencimiento as 'VIGENTE' | 'POR VENCER' | 'VENCIDO') ?? undefined,
+    pais: product.pais ?? undefined,
+    lote: product.lote ?? undefined,
+    price: product.precio,
+    stock: product.stock ?? 0,
+    warehouse: product.bodega,
+    presentation: product.presentacion
+  };
 }
 
 type PagedApiResponse<T> = { items?: T[] };

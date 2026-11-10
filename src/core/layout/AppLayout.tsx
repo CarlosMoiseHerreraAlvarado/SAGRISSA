@@ -65,7 +65,7 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
   ],
   director: [
     { label: 'Inicio', path: '/app/director/home', Icon: Home },
-    { label: 'Metas', path: '/app/director/analytics', Icon: BarChart3 },
+    { label: 'Reportes', path: '/app/director/analytics', Icon: BarChart3 },
     { label: 'Inventario', path: '/app/director/catalogo', Icon: Package },
     { label: 'Ajustes', path: APP_ROUTES.config, Icon: Settings },
   ],
